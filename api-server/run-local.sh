@@ -3,7 +3,7 @@ go build
 cd ..
 mv cmd/cmd api-server
 
-export MIGRATIONS_PATH='./resources/db/mysql'
+export MIGRATIONS_PATH='./resources/db/sqlite'
 export JWT_ISSUER='webca'
 export JWT_SECRET='jwt-secret'
 

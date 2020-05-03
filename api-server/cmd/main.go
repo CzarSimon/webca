@@ -6,6 +6,7 @@ import (
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/logger"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 )
 
@@ -33,6 +34,7 @@ func newServer(e *env) *http.Server {
 		}
 		v1 := r.Group("/v1", rbac.Secure("USER"))
 	*/
+	r.POST("/v1/accounts", e.createAccount)
 
 	return &http.Server{
 		Addr:    ":" + e.cfg.port,

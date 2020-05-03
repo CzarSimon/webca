@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/CzarSimon/httputil"
+	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -14,12 +15,10 @@ type env struct {
 }
 
 func (e *env) checkHealth() error {
-	/*
-		err := dbutil.Connected(e.db)
-		if err != nil {
-			return httputil.ServiceUnavailableError(err)
-		}
-	*/
+	err := dbutil.Connected(e.db)
+	if err != nil {
+		return httputil.ServiceUnavailableError(err)
+	}
 
 	return nil
 }
@@ -34,16 +33,15 @@ func (e *env) close() {
 func setupEnv() *env {
 	cfg := getConfig()
 
-	/*
-		db := dbutil.MustConnect(cfg.db)
-		err = dbutil.Upgrade(cfg.migrationsPath, cfg.db.Driver(), db)
-		if err != nil {
-			log.Fatal("failed to apply database migrations", zap.Error(err))
-		}
-	*/
+	db := dbutil.MustConnect(cfg.db)
+	err := dbutil.Upgrade(cfg.migrationsPath, cfg.db.Driver(), db)
+	if err != nil {
+		log.Fatal("failed to apply database migrations", zap.Error(err))
+	}
 
 	return &env{
 		cfg: cfg,
+		db:  db,
 	}
 }
 

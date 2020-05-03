@@ -15,7 +15,9 @@ type config struct {
 
 func getConfig() config {
 	return config{
-		db:             getDBCredentials(),
+		db: dbutil.SqliteConfig{
+			Name: "./test.db",
+		},
 		port:           environ.Get("SERVICE_PORT", "8080"),
 		migrationsPath: environ.Get("MIGRATIONS_PATH", "/etc/api-server/migrations"),
 		jwtCredentials: getJwtCredentials(),
