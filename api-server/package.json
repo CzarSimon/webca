@@ -1,0 +1,5 @@
+{
+    "name": "api-server",
+    "version": "0.1.0",
+    "registry": "eu.gcr.io/czarsimon/webca"
+}
