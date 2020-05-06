@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -12,24 +13,56 @@ import (
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
+	"github.com/CzarSimon/webca/api-server/internal/service"
+	"github.com/CzarSimon/webca/api-server/internal/timeutil"
 	"github.com/opentracing/opentracing-go"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
 
-func TestCreateAccount(t *testing.T) {
+func TestSignUp_NewAccount(t *testing.T) {
+	starttime := timeutil.Now()
 	assert := assert.New(t)
 	e, _ := createTestEnv()
 	server := newServer(e)
 
-	account := model.AccountRequest{
-		Name:     "test-account",
-		Password: "a5f3feccb16822dcfaa50c9fba91cab3",
+	body := model.AuthenticationRequest{
+		AccountName: "test-account",
+		Email:       "mail@mail.com",
+		Password:    "a5f3feccb16822dcfaa50c9fba91cab3",
 	}
 
-	req := createTestRequest("/v1/accounts", http.MethodPost, "", account)
+	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
 	res := performTestRequest(server.Handler, req)
+	endtime := timeutil.Now()
 	assert.Equal(http.StatusOK, res.Code)
+
+	var responseBody model.AuthenticationResponse
+	err := json.NewDecoder(res.Result().Body).Decode(&responseBody)
+	assert.NoError(err)
+
+	user, err := jwt.NewVerifier(e.cfg.jwtCredentials, 0).Verify(responseBody.Token)
+	assert.NoError(err)
+	assert.Equal(responseBody.User.ID, user.ID)
+	assert.True(user.HasRole(model.AdminRole))
+
+	assert.Equal(model.AdminRole, responseBody.User.Role)
+	assert.Equal(body.Email, responseBody.User.Email)
+	assert.Equal(body.AccountName, responseBody.User.Account.Name)
+
+	assert.Empty(responseBody.User.Credentials.Password)
+	assert.Empty(responseBody.User.Credentials.Salt)
+
+	assert.True(starttime.Before(responseBody.User.CreatedAt))
+	assert.True(starttime.Before(responseBody.User.UpdatedAt))
+	assert.True(endtime.After(responseBody.User.CreatedAt))
+	assert.True(endtime.After(responseBody.User.UpdatedAt))
+
+	assert.True(endtime.After(responseBody.User.Account.CreatedAt))
+	assert.True(endtime.After(responseBody.User.Account.CreatedAt))
+	assert.True(starttime.Before(responseBody.User.Account.CreatedAt))
+	assert.True(starttime.Before(responseBody.User.Account.CreatedAt))
+
 }
 
 // ---- Test utils ----
@@ -56,6 +89,9 @@ func createTestEnv() (*env, context.Context) {
 	e := &env{
 		cfg: cfg,
 		db:  db,
+		accountService: &service.AccountService{
+			JwtIssuer: jwt.NewIssuer(cfg.jwtCredentials),
+		},
 	}
 
 	return e, context.Background()

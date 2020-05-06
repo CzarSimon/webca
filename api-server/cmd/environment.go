@@ -5,13 +5,16 @@ import (
 
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/dbutil"
+	"github.com/CzarSimon/httputil/jwt"
+	"github.com/CzarSimon/webca/api-server/internal/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
 type env struct {
-	cfg config
-	db  *sql.DB
+	cfg            config
+	db             *sql.DB
+	accountService *service.AccountService
 }
 
 func (e *env) checkHealth() error {
@@ -42,6 +45,9 @@ func setupEnv() *env {
 	return &env{
 		cfg: cfg,
 		db:  db,
+		accountService: &service.AccountService{
+			JwtIssuer: jwt.NewIssuer(cfg.jwtCredentials),
+		},
 	}
 }
 

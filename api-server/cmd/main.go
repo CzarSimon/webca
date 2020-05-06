@@ -34,7 +34,7 @@ func newServer(e *env) *http.Server {
 		}
 		v1 := r.Group("/v1", rbac.Secure("USER"))
 	*/
-	r.POST("/v1/accounts", e.createAccount)
+	r.POST("/v1/signup", e.signup)
 
 	return &http.Server{
 		Addr:    ":" + e.cfg.port,
