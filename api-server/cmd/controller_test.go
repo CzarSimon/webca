@@ -13,6 +13,7 @@ import (
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
+	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/service"
 	"github.com/CzarSimon/webca/api-server/internal/timeutil"
 	"github.com/opentracing/opentracing-go"
@@ -23,7 +24,7 @@ import (
 func TestSignUp_NewAccount(t *testing.T) {
 	starttime := timeutil.Now()
 	assert := assert.New(t)
-	e, _ := createTestEnv()
+	e, ctx := createTestEnv()
 	server := newServer(e)
 
 	body := model.AuthenticationRequest{
@@ -32,37 +33,44 @@ func TestSignUp_NewAccount(t *testing.T) {
 		Password:    "a5f3feccb16822dcfaa50c9fba91cab3",
 	}
 
+	accountRepo := repository.NewAccountRepository(e.db)
+	_, accountExists, err := accountRepo.FindByName(ctx, body.AccountName)
+	assert.False(accountExists)
+	assert.NoError(err)
+
 	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
 	res := performTestRequest(server.Handler, req)
 	endtime := timeutil.Now()
 	assert.Equal(http.StatusOK, res.Code)
 
 	var responseBody model.AuthenticationResponse
-	err := json.NewDecoder(res.Result().Body).Decode(&responseBody)
+	err = json.NewDecoder(res.Result().Body).Decode(&responseBody)
 	assert.NoError(err)
 
+	// Check JWT
 	user, err := jwt.NewVerifier(e.cfg.jwtCredentials, 0).Verify(responseBody.Token)
 	assert.NoError(err)
 	assert.Equal(responseBody.User.ID, user.ID)
-	assert.True(user.HasRole(model.AdminRole))
+	assert.True(user.HasRole(model.AdminRole)) // Should be ADMIN since account was created.
 
+	// Check response body.
 	assert.Equal(model.AdminRole, responseBody.User.Role)
 	assert.Equal(body.Email, responseBody.User.Email)
 	assert.Equal(body.AccountName, responseBody.User.Account.Name)
-
 	assert.Empty(responseBody.User.Credentials.Password)
 	assert.Empty(responseBody.User.Credentials.Salt)
-
 	assert.True(starttime.Before(responseBody.User.CreatedAt))
 	assert.True(starttime.Before(responseBody.User.UpdatedAt))
 	assert.True(endtime.After(responseBody.User.CreatedAt))
 	assert.True(endtime.After(responseBody.User.UpdatedAt))
-
 	assert.True(endtime.After(responseBody.User.Account.CreatedAt))
 	assert.True(endtime.After(responseBody.User.Account.CreatedAt))
 	assert.True(starttime.Before(responseBody.User.Account.CreatedAt))
 	assert.True(starttime.Before(responseBody.User.Account.CreatedAt))
 
+	_, accountExists, err = accountRepo.FindByName(ctx, body.AccountName)
+	assert.True(accountExists)
+	assert.NoError(err)
 }
 
 // ---- Test utils ----
@@ -90,7 +98,8 @@ func createTestEnv() (*env, context.Context) {
 		cfg: cfg,
 		db:  db,
 		accountService: &service.AccountService{
-			JwtIssuer: jwt.NewIssuer(cfg.jwtCredentials),
+			JwtIssuer:   jwt.NewIssuer(cfg.jwtCredentials),
+			AccountRepo: repository.NewAccountRepository(db),
 		},
 	}
 

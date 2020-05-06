@@ -4,8 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
+	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/opentracing/opentracing-go"
 )
 
@@ -13,7 +15,8 @@ const tokenLifetime = 12 * time.Hour
 
 // AccountService service responsible for account and user business logic.
 type AccountService struct {
-	JwtIssuer jwt.Issuer
+	JwtIssuer   jwt.Issuer
+	AccountRepo repository.AccountRepository
 }
 
 // Signup signs up a user if not present.
@@ -38,13 +41,13 @@ func (a *AccountService) Signup(ctx context.Context, req model.AuthenticationReq
 }
 
 func (a *AccountService) createUser(ctx context.Context, req model.AuthenticationRequest) (model.User, error) {
-	account, wasNew, err := a.getOrCreateAccount(ctx, req.AccountName)
+	account, existed, err := a.getOrCreateAccount(ctx, req.AccountName)
 	if err != nil {
 		return model.User{}, err
 	}
 
 	role := model.UserRole
-	if wasNew {
+	if !existed {
 		role = model.AdminRole
 	}
 
@@ -55,5 +58,20 @@ func (a *AccountService) createUser(ctx context.Context, req model.Authenticatio
 }
 
 func (a *AccountService) getOrCreateAccount(ctx context.Context, name string) (model.Account, bool, error) {
-	return model.NewAccount(name), true, nil
+	account, exists, err := a.AccountRepo.FindByName(ctx, name)
+	if err != nil {
+		return model.Account{}, false, httputil.InternalServerError(err)
+	}
+
+	if exists {
+		return account, true, nil
+	}
+
+	account = model.NewAccount(name)
+	err = a.AccountRepo.Save(ctx, account)
+	if err != nil {
+		return model.Account{}, false, httputil.InternalServerError(err)
+	}
+
+	return account, false, nil
 }

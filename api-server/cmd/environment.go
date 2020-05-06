@@ -6,6 +6,7 @@ import (
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/jwt"
+	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -46,7 +47,8 @@ func setupEnv() *env {
 		cfg: cfg,
 		db:  db,
 		accountService: &service.AccountService{
-			JwtIssuer: jwt.NewIssuer(cfg.jwtCredentials),
+			JwtIssuer:   jwt.NewIssuer(cfg.jwtCredentials),
+			AccountRepo: repository.NewAccountRepository(db),
 		},
 	}
 }
