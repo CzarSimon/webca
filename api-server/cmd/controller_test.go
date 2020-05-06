@@ -13,6 +13,7 @@ import (
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
+	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/service"
 	"github.com/CzarSimon/webca/api-server/internal/timeutil"
@@ -84,6 +85,113 @@ func TestSignUp_NewAccount(t *testing.T) {
 	assert.NoError(err)
 	assert.Equal(body.Email, storedUser.Email)
 	assert.Equal(responseBody.User.Account.ID, storedUser.Account.ID)
+	assert.Equal(model.AdminRole, storedUser.Role)
+
+	assert.NotEmpty(storedUser.Credentials.Password)
+	assert.NotEmpty(storedUser.Credentials.Salt)
+	assert.NotEqual(body.Password, storedUser.Credentials.Password)
+}
+
+func TestSignUp_ExistingAccount(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	body := model.AuthenticationRequest{
+		AccountName: "existing-test-account",
+		Email:       "mail@mail.com",
+		Password:    "a5f3feccb16822dcfaa50c9fba91cab3",
+	}
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	err := accountRepo.Save(ctx, model.NewAccount(body.AccountName))
+	assert.NoError(err)
+
+	userRepo := repository.NewUserRepository(e.db)
+	_, userExists, err := userRepo.FindByAccountNameAndEmail(ctx, body.AccountName, body.Email)
+	assert.False(userExists)
+	assert.NoError(err)
+
+	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var responseBody model.AuthenticationResponse
+	err = json.NewDecoder(res.Result().Body).Decode(&responseBody)
+	assert.NoError(err)
+
+	// Check JWT
+	user, err := jwt.NewVerifier(e.cfg.jwtCredentials, 0).Verify(responseBody.Token)
+	assert.NoError(err)
+	assert.True(user.HasRole(model.UserRole)) // Should be USER since account already existed.
+
+	// Check response body.
+	assert.Equal(model.UserRole, responseBody.User.Role)
+	assert.Equal(body.Email, responseBody.User.Email)
+	assert.Equal(body.AccountName, responseBody.User.Account.Name)
+
+	storedUser, userExists, err := userRepo.FindByAccountNameAndEmail(ctx, body.AccountName, body.Email)
+	assert.True(userExists)
+	assert.NoError(err)
+	assert.Equal(body.Email, storedUser.Email)
+	assert.Equal(responseBody.User.Account.ID, storedUser.Account.ID)
+	assert.Equal(model.UserRole, storedUser.Role)
+}
+
+func TestSignUp_SameUser_NewAccount(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	existingAccount := model.NewAccount("existing-account")
+	err := accountRepo.Save(ctx, existingAccount)
+	assert.NoError(err)
+
+	existingUser := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, existingAccount)
+	userRepo := repository.NewUserRepository(e.db)
+	err = userRepo.Save(ctx, existingUser)
+	assert.NoError(err)
+
+	body := model.AuthenticationRequest{
+		AccountName: "new-account",
+		Email:       existingUser.Email,
+		Password:    "a5f3feccb16822dcfaa50c9fba91cab3",
+	}
+
+	_, userExists, err := userRepo.FindByAccountNameAndEmail(ctx, body.AccountName, body.Email)
+	assert.False(userExists)
+	assert.NoError(err)
+
+	_, userExists, _ = userRepo.FindByAccountNameAndEmail(ctx, existingAccount.Name, body.Email)
+	assert.True(userExists)
+
+	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var responseBody model.AuthenticationResponse
+	err = json.NewDecoder(res.Result().Body).Decode(&responseBody)
+	assert.NoError(err)
+
+	// Check response body.
+	assert.Equal(model.AdminRole, responseBody.User.Role)
+	assert.Equal(body.Email, responseBody.User.Email)
+	assert.Equal(body.AccountName, responseBody.User.Account.Name)
+
+	newUser, userExists, _ := userRepo.FindByAccountNameAndEmail(ctx, body.AccountName, body.Email)
+	assert.True(userExists)
+	assert.Equal(existingUser.Email, newUser.Email)
+	assert.Equal(responseBody.User.Account.ID, newUser.Account.ID)
+	assert.NotEqual(existingAccount.ID, newUser.Account.ID)
+	assert.Equal(model.AdminRole, newUser.Role)
+
+	oldUser, userExists, _ := userRepo.FindByAccountNameAndEmail(ctx, existingAccount.Name, body.Email)
+	assert.True(userExists)
+	assert.NotEqual(oldUser.ID, newUser.ID)
+	assert.Equal(existingUser.ID, oldUser.ID)
+	assert.Equal(oldUser.Email, newUser.Email)
+	assert.NotEqual(oldUser.Account.ID, newUser.Account.ID)
 }
 
 // ---- Test utils ----
@@ -107,13 +215,19 @@ func createTestEnv() (*env, context.Context) {
 		log.Panic("Failed to apply upgrade migratons", zap.Error(err))
 	}
 
+	passwordSvc, err := password.NewService("secret-password-encryption-key", 32)
+	if err != nil {
+		log.Fatal("failed create password.Servicie", zap.Error(err))
+	}
+
 	e := &env{
 		cfg: cfg,
 		db:  db,
 		accountService: &service.AccountService{
-			JwtIssuer:   jwt.NewIssuer(cfg.jwtCredentials),
-			AccountRepo: repository.NewAccountRepository(db),
-			UserRepo:    repository.NewUserRepository(db),
+			JwtIssuer:       jwt.NewIssuer(cfg.jwtCredentials),
+			AccountRepo:     repository.NewAccountRepository(db),
+			UserRepo:        repository.NewUserRepository(db),
+			PasswordService: passwordSvc,
 		},
 	}
 

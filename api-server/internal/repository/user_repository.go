@@ -30,6 +30,7 @@ const findUserByAccountNameAndEmailQuery = `
 	SELECT 
 		u.id, 
 		u.email, 
+		u.Role,
 		u.password, 
 		u.salt,
 		u.created_at,
@@ -53,6 +54,7 @@ func (r *userRepo) FindByAccountNameAndEmail(ctx context.Context, accountName, e
 	err := r.db.QueryRowContext(ctx, findUserByAccountNameAndEmailQuery, email, accountName).Scan(
 		&u.ID,
 		&u.Email,
+		&u.Role,
 		&u.Credentials.Password,
 		&u.Credentials.Salt,
 		&u.CreatedAt,

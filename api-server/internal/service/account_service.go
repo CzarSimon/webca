@@ -7,6 +7,7 @@ import (
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
+	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/opentracing/opentracing-go"
 )
@@ -15,9 +16,10 @@ const tokenLifetime = 12 * time.Hour
 
 // AccountService service responsible for account and user business logic.
 type AccountService struct {
-	JwtIssuer   jwt.Issuer
-	AccountRepo repository.AccountRepository
-	UserRepo    repository.UserRepository
+	JwtIssuer       jwt.Issuer
+	AccountRepo     repository.AccountRepository
+	UserRepo        repository.UserRepository
+	PasswordService *password.Service
 }
 
 // Signup signs up a user if not present.
@@ -52,7 +54,11 @@ func (a *AccountService) createUser(ctx context.Context, req model.Authenticatio
 		role = model.AdminRole
 	}
 
-	credentials := model.Credentials{Password: req.Password, Salt: ""}
+	credentials, err := a.PasswordService.Hash(ctx, req.Password)
+	if err != nil {
+		return model.User{}, httputil.InternalServerError(err)
+	}
+
 	user := model.NewUser(req.Email, role, credentials, account)
 	err = a.UserRepo.Save(ctx, user)
 	if err != nil {

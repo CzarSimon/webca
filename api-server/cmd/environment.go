@@ -6,6 +6,7 @@ import (
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/jwt"
+	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/service"
 	"github.com/gin-gonic/gin"
@@ -43,13 +44,19 @@ func setupEnv() *env {
 		log.Fatal("failed to apply database migrations", zap.Error(err))
 	}
 
+	passwordSvc, err := password.NewService(mustReadSecretFromFile("PASSWORD_ENCRYPTION_KEY_FILE"), cfg.saltLength)
+	if err != nil {
+		log.Fatal("failed create password.Servicie", zap.Error(err))
+	}
+
 	return &env{
 		cfg: cfg,
 		db:  db,
 		accountService: &service.AccountService{
-			JwtIssuer:   jwt.NewIssuer(cfg.jwtCredentials),
-			AccountRepo: repository.NewAccountRepository(db),
-			UserRepo:    repository.NewUserRepository(db),
+			JwtIssuer:       jwt.NewIssuer(cfg.jwtCredentials),
+			AccountRepo:     repository.NewAccountRepository(db),
+			UserRepo:        repository.NewUserRepository(db),
+			PasswordService: passwordSvc,
 		},
 	}
 }
