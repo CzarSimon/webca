@@ -1,0 +1,28 @@
+name: cicd
+on: 
+  push:
+    paths:
+      - api-server/**
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: print base cwd
+      run: ls
+    - name: goto api-server
+      run: cd api-server
+    - name: print api-server cwd
+      run: ls
+    - name: Get dependencies
+      run: go mod download
+    - name: Test
+      run: go test ./...
