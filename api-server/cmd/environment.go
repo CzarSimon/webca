@@ -6,6 +6,7 @@ import (
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/jwt"
+	"github.com/CzarSimon/webca/api-server/internal/audit"
 	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/service"
@@ -49,11 +50,15 @@ func setupEnv() *env {
 		log.Fatal("failed create password.Servicie", zap.Error(err))
 	}
 
+	auditRepo := repository.NewAuditEventRepository(db)
+	auditLog := audit.NewLogger("webca:api-server", auditRepo)
+
 	return &env{
 		cfg: cfg,
 		db:  db,
 		accountService: &service.AccountService{
 			JwtIssuer:       jwt.NewIssuer(cfg.jwtCredentials),
+			AuditLog:        auditLog,
 			AccountRepo:     repository.NewAccountRepository(db),
 			UserRepo:        repository.NewUserRepository(db),
 			PasswordService: passwordSvc,

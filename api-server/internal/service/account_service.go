@@ -6,6 +6,7 @@ import (
 
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/jwt"
+	"github.com/CzarSimon/webca/api-server/internal/audit"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
@@ -17,6 +18,7 @@ const tokenLifetime = 12 * time.Hour
 // AccountService service responsible for account and user business logic.
 type AccountService struct {
 	JwtIssuer       jwt.Issuer
+	AuditLog        audit.Logger
 	AccountRepo     repository.AccountRepository
 	UserRepo        repository.UserRepository
 	PasswordService *password.Service
@@ -65,6 +67,7 @@ func (a *AccountService) createUser(ctx context.Context, req model.Authenticatio
 		return model.User{}, httputil.InternalServerError(err)
 	}
 
+	a.logNewUser(ctx, user, !existed)
 	return user, nil
 }
 
@@ -85,4 +88,14 @@ func (a *AccountService) getOrCreateAccount(ctx context.Context, name string) (m
 	}
 
 	return account, false, nil
+}
+
+func (a *AccountService) logNewUser(ctx context.Context, user model.User, newAccount bool) {
+	if newAccount {
+		a.AuditLog.Create(ctx, user.ID, "account:%s", user.Account.ID)
+	} else {
+		a.AuditLog.Read(ctx, user.ID, "account:%s", user.Account.ID)
+	}
+
+	a.AuditLog.Create(ctx, user.ID, "user:%s", user.ID)
 }

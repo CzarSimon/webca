@@ -48,6 +48,14 @@ CREATE TABLE `certificate` (
   FOREIGN KEY (`signatory_id`) REFERENCES `certificate` (`id`),
   FOREIGN KEY (`account_id`) REFERENCES `account` (`id`)
 );
+CREATE TABLE `audit_log` (
+  `id` VARCHAR(50) NOT NULL,
+  `user_id` VARCHAR(50) NOT NULL,
+  `activity` VARCHAR(50) NOT NULL,
+  `resource` VARCHAR(100) NOT NULL,
+  `created_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`)
+);
 INSERT INTO `certificate_type`(`name`, `created_at`)
 VALUES
   ('ROOT_CA', CURRENT_TIMESTAMP),
@@ -63,3 +71,4 @@ DROP TABLE IF EXISTS `certificate_type`;
 DROP TABLE IF EXISTS `user_account`;
 DROP TABLE IF EXISTS `role`;
 DROP TABLE IF EXISTS `account`;
+DROP TABLE IF EXISTS `audit_log`;

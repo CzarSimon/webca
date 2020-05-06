@@ -12,6 +12,7 @@ import (
 	"github.com/CzarSimon/httputil/client/rpc"
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/jwt"
+	"github.com/CzarSimon/webca/api-server/internal/audit"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
@@ -84,12 +85,26 @@ func TestSignUp_NewAccount(t *testing.T) {
 	assert.True(userExists)
 	assert.NoError(err)
 	assert.Equal(body.Email, storedUser.Email)
+	assert.Equal(user.ID, storedUser.ID)
 	assert.Equal(responseBody.User.Account.ID, storedUser.Account.ID)
 	assert.Equal(model.AdminRole, storedUser.Role)
 
 	assert.NotEmpty(storedUser.Credentials.Password)
 	assert.NotEmpty(storedUser.Credentials.Salt)
 	assert.NotEqual(body.Password, storedUser.Credentials.Password)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:account:%s", account.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("CREATE", events[0].Activity)
+	assert.Equal(user.ID, events[0].UserID)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:user:%s", user.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("CREATE", events[0].Activity)
+	assert.Equal(user.ID, events[0].UserID)
 }
 
 func TestSignUp_ExistingAccount(t *testing.T) {
@@ -136,6 +151,19 @@ func TestSignUp_ExistingAccount(t *testing.T) {
 	assert.Equal(body.Email, storedUser.Email)
 	assert.Equal(responseBody.User.Account.ID, storedUser.Account.ID)
 	assert.Equal(model.UserRole, storedUser.Role)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:account:%s", storedUser.Account.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("READ", events[0].Activity)
+	assert.Equal(user.ID, events[0].UserID)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:user:%s", user.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("CREATE", events[0].Activity)
+	assert.Equal(user.ID, events[0].UserID)
 }
 
 func TestSignUp_SameUser_NewAccount(t *testing.T) {
@@ -242,11 +270,15 @@ func createTestEnv() (*env, context.Context) {
 		log.Fatal("failed create password.Servicie", zap.Error(err))
 	}
 
+	auditRepo := repository.NewAuditEventRepository(db)
+	auditLog := audit.NewLogger("webca:api-server", auditRepo)
+
 	e := &env{
 		cfg: cfg,
 		db:  db,
 		accountService: &service.AccountService{
 			JwtIssuer:       jwt.NewIssuer(cfg.jwtCredentials),
+			AuditLog:        auditLog,
 			AccountRepo:     repository.NewAccountRepository(db),
 			UserRepo:        repository.NewUserRepository(db),
 			PasswordService: passwordSvc,
