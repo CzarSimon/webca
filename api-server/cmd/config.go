@@ -6,29 +6,24 @@ import (
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/environ"
 	"github.com/CzarSimon/httputil/jwt"
+	"github.com/CzarSimon/webca/api-server/internal/password"
 )
 
 type config struct {
 	db             dbutil.Config
 	port           string
-	saltLength     int
+	passwordPolicy password.Policy
 	migrationsPath string
 	jwtCredentials jwt.Credentials
 }
 
 func getConfig() config {
-	saltLenStr := environ.Get("PASSWORD_SALT_LENGTH", "32")
-	saltLength, err := strconv.Atoi(saltLenStr)
-	if err != nil {
-		log.Fatal("failed to parse saltLength: " + saltLenStr)
-	}
-
 	return config{
 		db: dbutil.SqliteConfig{
 			Name: "./test.db",
 		},
 		port:           environ.Get("SERVICE_PORT", "8080"),
-		saltLength:     saltLength,
+		passwordPolicy: getPasswordPolicy(),
 		migrationsPath: environ.Get("MIGRATIONS_PATH", "/etc/api-server/migrations"),
 		jwtCredentials: getJwtCredentials(),
 	}
@@ -52,7 +47,24 @@ func getJwtCredentials() jwt.Credentials {
 	}
 }
 
-func mustReadSecretFromFile(keyName string) string {
-	filepath := environ.MustGet("keyName")
+func getPasswordPolicy() password.Policy {
+	return password.Policy{
+		SaltLength: getIntFromEnvironment("PASSWORD_SALT_LENGTH", 32),
+		MinLength:  getIntFromEnvironment("PASSWORD_MIN_LENGTH", 16),
+	}
+}
+
+func mustReadSecretFromFile(key string) string {
+	filepath := environ.MustGet(key)
 	return filepath
+}
+
+func getIntFromEnvironment(key string, defaultVal int) int {
+	s := environ.Get(key, strconv.Itoa(defaultVal))
+	intVal, err := strconv.Atoi(s)
+	if err != nil {
+		log.Sugar().Fatalf("failed to parse %s: %s", key, defaultVal)
+	}
+
+	return intVal
 }

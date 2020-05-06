@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/crypto"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/opentracing/opentracing-go"
@@ -12,13 +13,13 @@ import (
 
 // Service hashes and verifies passwords.
 type Service struct {
-	hasher  crypto.Hasher
-	cipher  crypto.Cipher
-	saltLen int
+	hasher crypto.Hasher
+	cipher crypto.Cipher
+	policy Policy
 }
 
 // NewService creates a new Service with an enclosed encryption key.
-func NewService(key string, saltLen int) (*Service, error) {
+func NewService(key string, policy Policy) (*Service, error) {
 	keyHasher := crypto.Sha256Hasher{}
 	encryptionKey, err := keyHasher.Hash([]byte(key), []byte(""))
 	if err != nil {
@@ -26,9 +27,9 @@ func NewService(key string, saltLen int) (*Service, error) {
 	}
 
 	return &Service{
-		hasher:  crypto.DefaultScryptHasher(),
-		cipher:  crypto.NewAESCipher(encryptionKey),
-		saltLen: saltLen,
+		hasher: crypto.DefaultScryptHasher(),
+		cipher: crypto.NewAESCipher(encryptionKey),
+		policy: policy,
 	}, nil
 }
 
@@ -37,7 +38,12 @@ func (s *Service) Hash(ctx context.Context, password string) (model.Credentials,
 	span, ctx := opentracing.StartSpanFromContext(ctx, "password_service_hash")
 	defer span.Finish()
 
-	salt, err := crypto.RandomBytes(s.saltLen)
+	err := s.policy.Allowed(password)
+	if err != nil {
+		return model.Credentials{}, httputil.BadRequestError(err)
+	}
+
+	salt, err := crypto.RandomBytes(s.policy.SaltLength)
 	if err != nil {
 		return model.Credentials{}, err
 	}

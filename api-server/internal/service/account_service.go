@@ -56,7 +56,7 @@ func (a *AccountService) createUser(ctx context.Context, req model.Authenticatio
 
 	credentials, err := a.PasswordService.Hash(ctx, req.Password)
 	if err != nil {
-		return model.User{}, httputil.InternalServerError(err)
+		return model.User{}, err
 	}
 
 	user := model.NewUser(req.Email, role, credentials, account)

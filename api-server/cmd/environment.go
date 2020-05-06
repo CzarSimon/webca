@@ -44,7 +44,7 @@ func setupEnv() *env {
 		log.Fatal("failed to apply database migrations", zap.Error(err))
 	}
 
-	passwordSvc, err := password.NewService(mustReadSecretFromFile("PASSWORD_ENCRYPTION_KEY_FILE"), cfg.saltLength)
+	passwordSvc, err := password.NewService(mustReadSecretFromFile("PASSWORD_ENCRYPTION_KEY_FILE"), cfg.passwordPolicy)
 	if err != nil {
 		log.Fatal("failed create password.Servicie", zap.Error(err))
 	}

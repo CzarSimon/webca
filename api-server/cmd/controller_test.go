@@ -194,6 +194,27 @@ func TestSignUp_SameUser_NewAccount(t *testing.T) {
 	assert.NotEqual(oldUser.Account.ID, newUser.Account.ID)
 }
 
+func TestSignUp_WeekPassword(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	body := model.AuthenticationRequest{
+		AccountName: "new-account",
+		Email:       "mail@mail.com",
+		Password:    "top-short",
+	}
+
+	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+
+	userRepo := repository.NewUserRepository(e.db)
+	_, userExists, err := userRepo.FindByAccountNameAndEmail(ctx, body.AccountName, body.Email)
+	assert.NoError(err)
+	assert.False(userExists)
+}
+
 // ---- Test utils ----
 
 func createTestEnv() (*env, context.Context) {
@@ -215,7 +236,8 @@ func createTestEnv() (*env, context.Context) {
 		log.Panic("Failed to apply upgrade migratons", zap.Error(err))
 	}
 
-	passwordSvc, err := password.NewService("secret-password-encryption-key", 32)
+	policy := password.Policy{SaltLength: 32, MinLength: 16}
+	passwordSvc, err := password.NewService("secret-password-encryption-key", policy)
 	if err != nil {
 		log.Fatal("failed create password.Servicie", zap.Error(err))
 	}
