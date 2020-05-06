@@ -49,6 +49,7 @@ func setupEnv() *env {
 		accountService: &service.AccountService{
 			JwtIssuer:   jwt.NewIssuer(cfg.jwtCredentials),
 			AccountRepo: repository.NewAccountRepository(db),
+			UserRepo:    repository.NewUserRepository(db),
 		},
 	}
 }

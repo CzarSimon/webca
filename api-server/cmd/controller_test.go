@@ -38,6 +38,11 @@ func TestSignUp_NewAccount(t *testing.T) {
 	assert.False(accountExists)
 	assert.NoError(err)
 
+	userRepo := repository.NewUserRepository(e.db)
+	_, userExists, err := userRepo.FindByAccountNameAndEmail(ctx, body.AccountName, body.Email)
+	assert.False(userExists)
+	assert.NoError(err)
+
 	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
 	res := performTestRequest(server.Handler, req)
 	endtime := timeutil.Now()
@@ -68,9 +73,17 @@ func TestSignUp_NewAccount(t *testing.T) {
 	assert.True(starttime.Before(responseBody.User.Account.CreatedAt))
 	assert.True(starttime.Before(responseBody.User.Account.CreatedAt))
 
-	_, accountExists, err = accountRepo.FindByName(ctx, body.AccountName)
+	account, accountExists, err := accountRepo.FindByName(ctx, body.AccountName)
 	assert.True(accountExists)
 	assert.NoError(err)
+	assert.Equal(body.AccountName, account.Name)
+	assert.Equal(responseBody.User.Account.ID, account.ID)
+
+	storedUser, userExists, err := userRepo.FindByAccountNameAndEmail(ctx, body.AccountName, body.Email)
+	assert.True(userExists)
+	assert.NoError(err)
+	assert.Equal(body.Email, storedUser.Email)
+	assert.Equal(responseBody.User.Account.ID, storedUser.Account.ID)
 }
 
 // ---- Test utils ----
@@ -100,6 +113,7 @@ func createTestEnv() (*env, context.Context) {
 		accountService: &service.AccountService{
 			JwtIssuer:   jwt.NewIssuer(cfg.jwtCredentials),
 			AccountRepo: repository.NewAccountRepository(db),
+			UserRepo:    repository.NewUserRepository(db),
 		},
 	}
 

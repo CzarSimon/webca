@@ -1,4 +1,4 @@
-name: cicd
+name: api-server-pipeline
 on: 
   push:
     paths:

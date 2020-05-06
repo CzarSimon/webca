@@ -17,6 +17,7 @@ const tokenLifetime = 12 * time.Hour
 type AccountService struct {
 	JwtIssuer   jwt.Issuer
 	AccountRepo repository.AccountRepository
+	UserRepo    repository.UserRepository
 }
 
 // Signup signs up a user if not present.
@@ -53,6 +54,10 @@ func (a *AccountService) createUser(ctx context.Context, req model.Authenticatio
 
 	credentials := model.Credentials{Password: req.Password, Salt: ""}
 	user := model.NewUser(req.Email, role, credentials, account)
+	err = a.UserRepo.Save(ctx, user)
+	if err != nil {
+		return model.User{}, httputil.InternalServerError(err)
+	}
 
 	return user, nil
 }
