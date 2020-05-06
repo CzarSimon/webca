@@ -3,10 +3,11 @@ on:
   push:
     paths:
       - api-server/**
+      - .github/workflows/api-server-pipeline.yml
 
 jobs:
-  test:
-    name: test
+  run-tests:
+    name: run-tests
     runs-on: ubuntu-latest
     steps:
     - name: Set up Go 1.13
@@ -16,11 +17,6 @@ jobs:
       id: go
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: print base cwd
-      run: ls
-    - name: print api-server cwd
-      run: ls
-      working-directory: ./api-server
     - name: Get dependencies
       run: go mod download
       working-directory: ./api-server

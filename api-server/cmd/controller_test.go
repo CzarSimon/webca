@@ -237,6 +237,11 @@ func TestSignUp_WeekPassword(t *testing.T) {
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusBadRequest, res.Code)
 
+	accountRepo := repository.NewAccountRepository(e.db)
+	_, accountExists, err := accountRepo.FindByName(ctx, body.AccountName)
+	assert.NoError(err)
+	assert.False(accountExists)
+
 	userRepo := repository.NewUserRepository(e.db)
 	_, userExists, err := userRepo.FindByAccountNameAndEmail(ctx, body.AccountName, body.Email)
 	assert.NoError(err)

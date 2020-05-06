@@ -46,6 +46,11 @@ func (a *AccountService) Signup(ctx context.Context, req model.AuthenticationReq
 }
 
 func (a *AccountService) createUser(ctx context.Context, req model.AuthenticationRequest) (model.User, error) {
+	credentials, err := a.PasswordService.Hash(ctx, req.Password)
+	if err != nil {
+		return model.User{}, err
+	}
+
 	account, existed, err := a.getOrCreateAccount(ctx, req.AccountName)
 	if err != nil {
 		return model.User{}, err
@@ -54,11 +59,6 @@ func (a *AccountService) createUser(ctx context.Context, req model.Authenticatio
 	role := model.UserRole
 	if !existed {
 		role = model.AdminRole
-	}
-
-	credentials, err := a.PasswordService.Hash(ctx, req.Password)
-	if err != nil {
-		return model.User{}, err
 	}
 
 	user := model.NewUser(req.Email, role, credentials, account)
