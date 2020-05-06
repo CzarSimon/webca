@@ -18,11 +18,12 @@ jobs:
       uses: actions/checkout@v2
     - name: print base cwd
       run: ls
-    - name: goto api-server
-      run: cd api-server
     - name: print api-server cwd
       run: ls
+      working-directory: ./api-server
     - name: Get dependencies
       run: go mod download
+      working-directory: ./api-server
     - name: Test
       run: go test ./...
+      working-directory: ./api-server
