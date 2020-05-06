@@ -1,0 +1,8 @@
+.github
+.gitignore
+Makefile
+run-image.sh
+api-server
+run-local.sh
+test.db
+resources/testing

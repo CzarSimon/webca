@@ -1,12 +1,14 @@
 package main
 
 import (
+	"io/ioutil"
 	"strconv"
 
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/environ"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/password"
+	"go.uber.org/zap"
 )
 
 type config struct {
@@ -35,7 +37,7 @@ func getDBCredentials() dbutil.Config {
 		Port:             environ.MustGet("DB_PORT"),
 		Database:         environ.MustGet("DB_DATABASE"),
 		User:             environ.MustGet("DB_USERNAME"),
-		Password:         environ.MustGet("DB_PASSWORD"),
+		Password:         mustReadSecretFromFile("DB_PASSWORD_FILE"),
 		ConnectionParams: "parseTime=true",
 	}
 }
@@ -43,7 +45,7 @@ func getDBCredentials() dbutil.Config {
 func getJwtCredentials() jwt.Credentials {
 	return jwt.Credentials{
 		Issuer: environ.MustGet("JWT_ISSUER"),
-		Secret: environ.MustGet("JWT_SECRET"),
+		Secret: mustReadSecretFromFile("PASSWORD_ENCRYPTION_KEY_FILE"),
 	}
 }
 
@@ -55,8 +57,13 @@ func getPasswordPolicy() password.Policy {
 }
 
 func mustReadSecretFromFile(key string) string {
-	filepath := environ.MustGet(key)
-	return filepath
+	filename := environ.MustGet(key)
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Fatal("could not read file: "+filename, zap.Error(err))
+	}
+
+	return string(b)
 }
 
 func getIntFromEnvironment(key string, defaultVal int) int {
