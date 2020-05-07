@@ -113,21 +113,22 @@ type Credentials struct {
 
 // Certificate tls certificate and metadata.
 type Certificate struct {
-	ID          string     `json:"id,omitempty"`
-	Signature   string     `json:"signature,omitempty"`
-	PrivateKey  PrivateKey `json:"-"`
-	Format      string     `json:"format,omitempty"`
-	Type        string     `json:"type,omitempty"`
-	SignatoryID string     `json:"signatoryId,omitempty"`
-	AccountID   string     `json:"accountId,omitempty"`
-	CreatedAt   string     `json:"createdAt,omitempty"`
-	UpdatedAt   string     `json:"updatedAt,omitempty"`
+	ID          string  `json:"id,omitempty"`
+	Signature   string  `json:"signature,omitempty"`
+	KeyPair     KeyPair `json:"-"`
+	Format      string  `json:"format,omitempty"`
+	Type        string  `json:"type,omitempty"`
+	SignatoryID string  `json:"signatoryId,omitempty"`
+	AccountID   string  `json:"accountId,omitempty"`
+	CreatedAt   string  `json:"createdAt,omitempty"`
+	UpdatedAt   string  `json:"updatedAt,omitempty"`
 }
 
-// PrivateKey assymetric private key.
-type PrivateKey struct {
+// KeyPair asymmetric key pair of a public and private key, the private key is encrypted.
+type KeyPair struct {
 	ID          string
-	Body        string
+	PublicKey   string
+	PrivateKey  string
 	Format      string
 	Algorithm   string
 	Credentials Credentials

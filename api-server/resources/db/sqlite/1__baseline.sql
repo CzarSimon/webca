@@ -31,9 +31,10 @@ CREATE TABLE `certificate_type` (
   `created_at` DATETIME NOT NULL,
   PRIMARY KEY (`name`)
 );
-CREATE TABLE `private_key` (
+CREATE TABLE `key_pair` (
   `id` VARCHAR(50) NOT NULL,
-  `body` TEXT NOT NULL,
+  `public_key` TEXT NOT NULL,
+  `private_key` TEXT NOT NULL,
   `format` VARCHAR(50) NOT NULL,
   `type` VARCHAR(50) NOT NULL,
   `password` VARCHAR(100) NOT NULL,
@@ -41,7 +42,8 @@ CREATE TABLE `private_key` (
   `account_id` VARCHAR(50) NOT NULL,
   `created_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE(`body`),
+  UNIQUE(`public_key`),
+  UNIQUE(`private_key`),
   FOREIGN KEY (`account_id`) REFERENCES `account` (`id`)
 );
 CREATE TABLE `certificate` (
@@ -49,14 +51,14 @@ CREATE TABLE `certificate` (
   `signature` VARCHAR(50) NOT NULL,
   `format` VARCHAR(50) NOT NULL,
   `type` VARCHAR(50) NOT NULL,
-  `private_key_id` VARCHAR(50) NOT NULL,
+  `key_pair_id` VARCHAR(50) NOT NULL,
   `signatory_id` VARCHAR(50) NOT NULL,
   `account_id` VARCHAR(50) NOT NULL,
   `created_at` DATETIME NOT NULL,
   `updated_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE(`signature`),
-  FOREIGN KEY (`private_key_id`) REFERENCES `private_key` (`id`),
+  FOREIGN KEY (`key_pair_id`) REFERENCES `key_pair` (`id`),
   FOREIGN KEY (`type`) REFERENCES `certificate_type` (`name`),
   FOREIGN KEY (`signatory_id`) REFERENCES `certificate` (`id`),
   FOREIGN KEY (`account_id`) REFERENCES `account` (`id`)
