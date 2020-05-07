@@ -31,19 +31,32 @@ CREATE TABLE `certificate_type` (
   `created_at` DATETIME NOT NULL,
   PRIMARY KEY (`name`)
 );
+CREATE TABLE `private_key` (
+  `id` VARCHAR(50) NOT NULL,
+  `body` TEXT NOT NULL,
+  `format` VARCHAR(50) NOT NULL,
+  `type` VARCHAR(50) NOT NULL,
+  `password` VARCHAR(100) NOT NULL,
+  `salt` VARCHAR(64) NOT NULL,
+  `account_id` VARCHAR(50) NOT NULL,
+  `created_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE(`body`),
+  FOREIGN KEY (`account_id`) REFERENCES `account` (`id`)
+);
 CREATE TABLE `certificate` (
   `id` VARCHAR(50) NOT NULL,
-  `signature` TEXT NOT NULL,
-  `private_key` TEXT NOT NULL,
-  `format` TEXT NOT NULL,
+  `signature` VARCHAR(50) NOT NULL,
+  `format` VARCHAR(50) NOT NULL,
   `type` VARCHAR(50) NOT NULL,
+  `private_key_id` VARCHAR(50) NOT NULL,
   `signatory_id` VARCHAR(50) NOT NULL,
   `account_id` VARCHAR(50) NOT NULL,
   `created_at` DATETIME NOT NULL,
   `updated_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE(`signature`),
-  UNIQUE(`private_key`),
+  FOREIGN KEY (`private_key_id`) REFERENCES `private_key` (`id`),
   FOREIGN KEY (`type`) REFERENCES `certificate_type` (`name`),
   FOREIGN KEY (`signatory_id`) REFERENCES `certificate` (`id`),
   FOREIGN KEY (`account_id`) REFERENCES `account` (`id`)
@@ -68,6 +81,7 @@ VALUES
 -- +migrate Down
   DROP TABLE IF EXISTS `certificate`;
 DROP TABLE IF EXISTS `certificate_type`;
+DROP TABLE IF EXISTS `private_key`;
 DROP TABLE IF EXISTS `user_account`;
 DROP TABLE IF EXISTS `role`;
 DROP TABLE IF EXISTS `account`;
