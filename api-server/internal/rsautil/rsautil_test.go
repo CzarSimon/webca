@@ -1,6 +1,7 @@
 package rsautil
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/CzarSimon/webca/api-server/internal/model"
@@ -10,16 +11,34 @@ import (
 func TestGenerateKeys(t *testing.T) {
 	assert := assert.New(t)
 
-	pair, err := GenerateKeys(model.KeyRequest{
-		Algorithm: model.RSAAlgorithm,
+	rsaKey, err := GenerateKeys(model.KeyRequest{
+		Algorithm: Algorithm,
 		Options: map[string]interface{}{
 			"keySize": 1024,
 		},
 	})
 	assert.NoError(err)
-	assert.Equal(1024, pair.keySize)
-	assert.NotNil(pair.publicKey)
-	assert.NotNil(pair.privateKey)
+	assert.Equal(1024, rsaKey.keySize)
+	assert.Equal("RSA", rsaKey.algorithm)
+	assert.NotNil(rsaKey.publicKey)
+	assert.NotNil(rsaKey.privateKey)
+
+	pair, err := rsaKey.Encode()
+	assert.NoError(err)
+
+	assert.True(strings.HasPrefix(pair.PublicKey, "-----BEGIN PUBLIC KEY-----"))
+	assert.True(strings.HasSuffix(pair.PublicKey, "-----END PUBLIC KEY-----\n"))
+
+	assert.True(strings.HasPrefix(pair.PrivateKey, "-----BEGIN RSA PRIVATE KEY-----"))
+	assert.True(strings.HasSuffix(pair.PrivateKey, "-----END RSA PRIVATE KEY-----\n"))
+
+	assert.Len(pair.ID, 36)
+	assert.Equal("PEM", pair.Format)
+	assert.Equal(Algorithm, pair.Algorithm)
+	assert.NotEmpty(pair.CreatedAt)
+
+	assert.Empty(pair.AccountID)
+	assert.Empty(pair.Credentials)
 }
 
 func TestGenerateKeys_BadOptions(t *testing.T) {
@@ -27,20 +46,20 @@ func TestGenerateKeys_BadOptions(t *testing.T) {
 
 	// Options cannot be nil
 	_, err := GenerateKeys(model.KeyRequest{
-		Algorithm: model.RSAAlgorithm,
+		Algorithm: Algorithm,
 	})
 	assert.Error(err)
 
 	// Options must contain keySize.
 	_, err = GenerateKeys(model.KeyRequest{
-		Algorithm: model.RSAAlgorithm,
+		Algorithm: Algorithm,
 		Options:   map[string]interface{}{},
 	})
 	assert.Error(err)
 
 	// Options.keySize must be an integer.
 	_, err = GenerateKeys(model.KeyRequest{
-		Algorithm: model.RSAAlgorithm,
+		Algorithm: Algorithm,
 		Options: map[string]interface{}{
 			"keySize": "not an integer",
 		},

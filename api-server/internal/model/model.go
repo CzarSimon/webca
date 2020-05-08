@@ -22,11 +22,6 @@ const (
 	UserRole  = "USER"
 )
 
-// Asymmetric cryptography algorithms
-const (
-	RSAAlgorithm = "RSA"
-)
-
 // AuthenticationRequest authentication information.
 type AuthenticationRequest struct {
 	AccountName string `json:"accountName,omitempty"`
@@ -134,15 +129,15 @@ func (c CertificateRequest) KeyRequest() KeyRequest {
 	}
 }
 
+// SignEncoder interface to encode a serialized keypair and sign certificates with it.
+type SignEncoder interface {
+	Encode() (KeyPair, error)
+}
+
 // KeyRequest instructions for generation of a key pair.
 type KeyRequest struct {
 	Algorithm string                 `json:"algorithm,omitempty"`
 	Options   map[string]interface{} `json:"options,omitempty"`
-}
-
-// RSAOptions options for generation of an RSA key.
-type RSAOptions struct {
-	KeySize int
 }
 
 // CertificateSubject identiy to which a certificate is issued.

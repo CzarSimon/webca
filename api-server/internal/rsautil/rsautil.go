@@ -3,14 +3,22 @@ package rsautil
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 
+	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/webca/api-server/internal/model"
+	"github.com/CzarSimon/webca/api-server/internal/timeutil"
 )
+
+// Algorithm name of the RSA algorithm.
+const Algorithm = "RSA"
 
 // options options for generation of an RSA key.
 type options struct {
-	keySize int
+	keySize   int
+	algorithm string
 }
 
 // KeyPair asymmetric key pair of a RSA public and private keys.
@@ -18,6 +26,18 @@ type KeyPair struct {
 	publicKey  *rsa.PublicKey
 	privateKey *rsa.PrivateKey
 	options
+}
+
+// Encode encodes and RSA keypair into a serialized KeyPair.
+func (p KeyPair) Encode() (model.KeyPair, error) {
+	return model.KeyPair{
+		ID:         id.New(),
+		PublicKey:  encodePem("PUBLIC KEY", x509.MarshalPKCS1PublicKey(p.publicKey)),
+		PrivateKey: encodePem("RSA PRIVATE KEY", x509.MarshalPKCS1PrivateKey(p.privateKey)),
+		Format:     "PEM",
+		Algorithm:  p.algorithm,
+		CreatedAt:  timeutil.Now(),
+	}, nil
 }
 
 // GenerateKeys parses key options and generates an RSA KeyPair.
@@ -40,7 +60,7 @@ func GenerateKeys(req model.KeyRequest) (KeyPair, error) {
 }
 
 func parseOptions(req model.KeyRequest) (options, error) {
-	if req.Algorithm != model.RSAAlgorithm {
+	if req.Algorithm != Algorithm {
 		return options{}, fmt.Errorf("rsautil: unsupported KeyRequest.Algorithm=%s", req.Algorithm)
 	}
 
@@ -59,6 +79,16 @@ func parseOptions(req model.KeyRequest) (options, error) {
 	}
 
 	return options{
-		keySize: keySize,
+		keySize:   keySize,
+		algorithm: req.Algorithm,
 	}, nil
+}
+
+func encodePem(blockType string, b []byte) string {
+	block := &pem.Block{
+		Type:  blockType,
+		Bytes: b,
+	}
+
+	return string(pem.EncodeToMemory(block))
 }
