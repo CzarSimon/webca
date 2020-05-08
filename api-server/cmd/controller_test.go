@@ -10,6 +10,7 @@ import (
 
 	"github.com/CzarSimon/httputil/client/rpc"
 	"github.com/CzarSimon/httputil/dbutil"
+	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/audit"
 	"github.com/CzarSimon/webca/api-server/internal/password"
@@ -31,6 +32,32 @@ func TestTestHealth(t *testing.T) {
 	e.close()
 	req = createUnauthenticatedTestRequest("/health", http.MethodGet, nil)
 	assert.Equal(http.StatusServiceUnavailable, performTestRequest(server.Handler, req).Code)
+}
+
+func testUnauthorized(t *testing.T, route, method string) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	req := createUnauthenticatedTestRequest(route, method, nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnauthorized, res.Code)
+}
+
+func testForbidden(t *testing.T, route, method string, roles []string) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	for _, role := range roles {
+		user := jwt.User{
+			ID:    id.New(),
+			Roles: []string{role},
+		}
+		req := createTestRequest(route, method, user, nil)
+		res := performTestRequest(server.Handler, req)
+		assert.Equal(http.StatusForbidden, res.Code)
+	}
 }
 
 // ---- Test utils ----

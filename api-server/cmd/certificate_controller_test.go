@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
@@ -50,16 +49,8 @@ func TestCreateRootCertificate(t *testing.T) {
 }
 
 func TestCreateRootCertificate_UnauthorizedAndForbidden(t *testing.T) {
-	assert := assert.New(t)
-	e, _ := createTestEnv()
-	server := newServer(e)
-
-	req := createUnauthenticatedTestRequest("/v1/certificates", http.MethodPost, model.CertificateRequest{})
-	res := performTestRequest(server.Handler, req)
-	assert.Equal(http.StatusUnauthorized, res.Code)
-
-	anonymousUser := jwt.User{ID: id.New(), Roles: []string{jwt.AnonymousRole}}
-	req = createTestRequest("/v1/certificates", http.MethodPost, anonymousUser, model.CertificateRequest{})
-	res = performTestRequest(server.Handler, req)
-	assert.Equal(http.StatusForbidden, res.Code)
+	testUnauthorized(t, "/v1/certificates", http.MethodPost)
+	testForbidden(t, "/v1/certificates", http.MethodPost, []string{
+		jwt.AnonymousRole,
+	})
 }
