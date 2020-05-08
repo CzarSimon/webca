@@ -35,7 +35,7 @@ func TestSignUp_NewAccount(t *testing.T) {
 	assert.False(userExists)
 	assert.NoError(err)
 
-	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
+	req := createUnauthenticatedTestRequest("/v1/signup", http.MethodPost, body)
 	res := performTestRequest(server.Handler, req)
 	endtime := timeutil.Now()
 	assert.Equal(http.StatusOK, res.Code)
@@ -117,7 +117,7 @@ func TestSignUp_ExistingAccount(t *testing.T) {
 	assert.False(userExists)
 	assert.NoError(err)
 
-	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
+	req := createUnauthenticatedTestRequest("/v1/signup", http.MethodPost, body)
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
 
@@ -184,7 +184,7 @@ func TestSignUp_SameUser_NewAccount(t *testing.T) {
 	_, userExists, _ = userRepo.FindByAccountNameAndEmail(ctx, existingAccount.Name, body.Email)
 	assert.True(userExists)
 
-	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
+	req := createUnauthenticatedTestRequest("/v1/signup", http.MethodPost, body)
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
 
@@ -223,7 +223,7 @@ func TestSignUp_WeekPassword(t *testing.T) {
 		Password:    "top-short",
 	}
 
-	req := createTestRequest("/v1/signup", http.MethodPost, "", body)
+	req := createUnauthenticatedTestRequest("/v1/signup", http.MethodPost, body)
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusBadRequest, res.Code)
 

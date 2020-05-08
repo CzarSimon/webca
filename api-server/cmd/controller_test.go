@@ -69,7 +69,19 @@ func performTestRequest(r http.Handler, req *http.Request) *httptest.ResponseRec
 	return w
 }
 
-func createTestRequest(route, method, role string, body interface{}) *http.Request {
+func createTestRequest(route, method string, user jwt.User, body interface{}) *http.Request {
+	issuer := jwt.NewIssuer(getTestJWTCredentials())
+	token, err := issuer.Issue(user, time.Hour)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	req := createUnauthenticatedTestRequest(route, method, body)
+	req.Header.Add("Authorization", "Bearer "+token)
+	return req
+}
+
+func createUnauthenticatedTestRequest(route, method string, body interface{}) *http.Request {
 	client := rpc.NewClient(time.Second)
 	req, err := client.CreateRequest(method, route, body)
 	if err != nil {
@@ -83,17 +95,6 @@ func createTestRequest(route, method, role string, body interface{}) *http.Reque
 		opentracing.HTTPHeadersCarrier(req.Header),
 	)
 
-	if role == "" {
-		return req
-	}
-
-	issuer := jwt.NewIssuer(getTestJWTCredentials())
-	token, err := issuer.Issue(jwt.User{
-		ID:    "test-user",
-		Roles: []string{role},
-	}, time.Hour)
-
-	req.Header.Add("Authorization", "Bearer "+token)
 	return req
 }
 

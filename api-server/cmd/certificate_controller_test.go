@@ -4,15 +4,27 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
+	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateRootCertificate(t *testing.T) {
 	assert := assert.New(t)
-	e, _ := createTestEnv()
+	e, ctx := createTestEnv()
 	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	account := model.NewAccount("test-account")
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
+	userRepo := repository.NewUserRepository(e.db)
+	err = userRepo.Save(ctx, user)
+	assert.NoError(err)
 
 	body := model.CertificateRequest{
 		Name: "test-root-ca-certificate",
@@ -32,7 +44,7 @@ func TestCreateRootCertificate(t *testing.T) {
 		},
 	}
 
-	req := createTestRequest("/v1/certificates", http.MethodPost, model.UserRole, body)
+	req := createTestRequest("/v1/certificates", http.MethodPost, user.JWTUser(), body)
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
 }
@@ -42,11 +54,12 @@ func TestCreateRootCertificate_UnauthorizedAndForbidden(t *testing.T) {
 	e, _ := createTestEnv()
 	server := newServer(e)
 
-	req := createTestRequest("/v1/certificates", http.MethodPost, "", model.CertificateRequest{})
+	req := createUnauthenticatedTestRequest("/v1/certificates", http.MethodPost, model.CertificateRequest{})
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusUnauthorized, res.Code)
 
-	req = createTestRequest("/v1/certificates", http.MethodPost, jwt.AnonymousRole, model.CertificateRequest{})
+	anonymousUser := jwt.User{ID: id.New(), Roles: []string{jwt.AnonymousRole}}
+	req = createTestRequest("/v1/certificates", http.MethodPost, anonymousUser, model.CertificateRequest{})
 	res = performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusForbidden, res.Code)
 }
