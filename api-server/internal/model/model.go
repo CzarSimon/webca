@@ -126,13 +126,13 @@ type Certificate struct {
 
 // KeyPair asymmetric key pair of a public and private key, the private key is encrypted.
 type KeyPair struct {
-	ID          string
-	PublicKey   string
-	PrivateKey  string
-	Format      string
-	Algorithm   string
-	Credentials Credentials
-	CreatedAt   string
+	ID          string      `json:"id,omitempty"`
+	PublicKey   string      `json:"publicKey,omitempty"`
+	PrivateKey  string      `json:"privateKey,omitempty"`
+	Format      string      `json:"format,omitempty"`
+	Algorithm   string      `json:"algorithm,omitempty"`
+	Credentials Credentials `json:"-"`
+	CreatedAt   string      `json:"createdAt,omitempty"`
 }
 
 // AuditEvent sensitive activity performed in the system.
