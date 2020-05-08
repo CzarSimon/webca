@@ -35,6 +35,7 @@ func newServer(e *env) *http.Server {
 		v1 := r.Group("/v1", rbac.Secure("USER"))
 	*/
 	r.POST("/v1/signup", e.signup)
+	r.POST("/v1/certificates", e.createCertificate)
 
 	return &http.Server{
 		Addr:    ":" + e.cfg.port,

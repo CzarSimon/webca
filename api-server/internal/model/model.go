@@ -22,12 +22,6 @@ const (
 	UserRole  = "USER"
 )
 
-// AccountRequest account creation and authentication request.
-type AccountRequest struct {
-	Name     string `json:"name,omitempty"`
-	Password string `json:"password,omitempty"`
-}
-
 // AuthenticationRequest authentication information.
 type AuthenticationRequest struct {
 	AccountName string `json:"accountName,omitempty"`
@@ -111,17 +105,46 @@ type Credentials struct {
 	Salt     string
 }
 
+// CertificateRequest certificate creation request body.
+type CertificateRequest struct {
+	Name        string                 `json:"name,omitempty"`
+	Subject     CertificateSubject     `json:"subject,omitempty"`
+	Type        string                 `json:"type,omitempty"`
+	Algorithm   string                 `json:"algorithm,omitempty"`
+	SignatoryID string                 `json:"signatoryId,omitempty"`
+	Password    string                 `json:"password,omitempty"`
+	Options     map[string]interface{} `json:"options,omitempty"`
+}
+
+// RSAOptions options for generation of an RSA key.
+type RSAOptions struct {
+	KeySize int
+}
+
+// CertificateSubject identiy to which a certificate is issued.
+type CertificateSubject struct {
+	CommonName         string `json:"commonName,omitempty"`
+	Country            string `json:"country,omitempty"`
+	State              string `json:"state,omitempty"`
+	Locality           string `json:"locality,omitempty"`
+	Organization       string `json:"organization,omitempty"`
+	OrganizationalUnit string `json:"organizationalUnit,omitempty"`
+	Email              string `json:"email,omitempty"`
+}
+
 // Certificate tls certificate and metadata.
 type Certificate struct {
-	ID          string  `json:"id,omitempty"`
-	Signature   string  `json:"signature,omitempty"`
-	KeyPair     KeyPair `json:"-"`
-	Format      string  `json:"format,omitempty"`
-	Type        string  `json:"type,omitempty"`
-	SignatoryID string  `json:"signatoryId,omitempty"`
-	AccountID   string  `json:"accountId,omitempty"`
-	CreatedAt   string  `json:"createdAt,omitempty"`
-	UpdatedAt   string  `json:"updatedAt,omitempty"`
+	ID          string             `json:"id,omitempty"`
+	Name        string             `json:"name,omitempty"`
+	Subject     CertificateSubject `json:"subject,omitempty"`
+	Body        string             `json:"body,omitempty"`
+	KeyPair     KeyPair            `json:"-"`
+	Format      string             `json:"format,omitempty"`
+	Type        string             `json:"type,omitempty"`
+	SignatoryID string             `json:"signatoryId,omitempty"`
+	AccountID   string             `json:"accountId,omitempty"`
+	CreatedAt   string             `json:"createdAt,omitempty"`
+	UpdatedAt   string             `json:"updatedAt,omitempty"`
 }
 
 // KeyPair asymmetric key pair of a public and private key, the private key is encrypted.
