@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,7 +32,21 @@ func TestCreateRootCertificate(t *testing.T) {
 		},
 	}
 
-	req := createTestRequest("/v1/certificates", http.MethodPost, "", body)
+	req := createTestRequest("/v1/certificates", http.MethodPost, model.UserRole, body)
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
+}
+
+func TestCreateRootCertificate_UnauthorizedAndForbidden(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, "", model.CertificateRequest{})
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnauthorized, res.Code)
+
+	req = createTestRequest("/v1/certificates", http.MethodPost, jwt.AnonymousRole, model.CertificateRequest{})
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusForbidden, res.Code)
 }
