@@ -11,7 +11,7 @@ import (
 
 // KeyPairRepository data access layer for key paris.
 type KeyPairRepository interface {
-	// Save(ctx context.Context, key model.KeyPair) error
+	Save(ctx context.Context, key model.KeyPair) error
 	FindByAccountID(ctx context.Context, accountID string) ([]model.KeyPair, error)
 }
 
@@ -63,4 +63,22 @@ func (r *keyPairRepo) FindByAccountID(ctx context.Context, accountID string) ([]
 	}
 
 	return keys, nil
+}
+
+const saveKeyPairQuery = `
+	INSERT INTO key_pair(id, public_key, private_key, format, type, password, salt, account_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+
+func (r *keyPairRepo) Save(ctx context.Context, key model.KeyPair) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "key_pair_repo_save")
+	defer span.Finish()
+
+	_, err := r.db.ExecContext(ctx, saveKeyPairQuery,
+		key.ID, key.PublicKey, key.PrivateKey, key.Format, key.Algorithm,
+		key.Credentials.Password, key.Credentials.Salt, key.AccountID, key.CreatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to save %s: %w", key, err)
+	}
+
+	return nil
 }

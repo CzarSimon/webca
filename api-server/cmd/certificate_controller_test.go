@@ -52,7 +52,7 @@ func TestCreateRootCertificate(t *testing.T) {
 	assert.Len(keys, 0)
 }
 
-func TestCreateRootCertificate_UnauthorizedAndForbidden(t *testing.T) {
+func TestCreateCertificate_UnauthorizedAndForbidden(t *testing.T) {
 	testUnauthorized(t, "/v1/certificates", http.MethodPost)
 	testForbidden(t, "/v1/certificates", http.MethodPost, []string{
 		jwt.AnonymousRole,

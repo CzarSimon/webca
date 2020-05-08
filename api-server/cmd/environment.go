@@ -15,9 +15,10 @@ import (
 )
 
 type env struct {
-	cfg            config
-	db             *sql.DB
-	accountService *service.AccountService
+	cfg                config
+	db                 *sql.DB
+	accountService     *service.AccountService
+	certificateService *service.CertificateService
 }
 
 func (e *env) checkHealth() error {
@@ -47,7 +48,7 @@ func setupEnv() *env {
 
 	passwordSvc, err := password.NewService(mustReadSecretFromFile("PASSWORD_ENCRYPTION_KEY_FILE"), cfg.passwordPolicy)
 	if err != nil {
-		log.Fatal("failed create password.Servicie", zap.Error(err))
+		log.Fatal("failed create password.Service", zap.Error(err))
 	}
 
 	auditRepo := repository.NewAuditEventRepository(db)
@@ -61,6 +62,11 @@ func setupEnv() *env {
 			AuditLog:        auditLog,
 			AccountRepo:     repository.NewAccountRepository(db),
 			UserRepo:        repository.NewUserRepository(db),
+			PasswordService: passwordSvc,
+		},
+		certificateService: &service.CertificateService{
+			AuditLog:        auditLog,
+			KeyPairRepo:     repository.NewKeyPairRepository(db),
 			PasswordService: passwordSvc,
 		},
 	}

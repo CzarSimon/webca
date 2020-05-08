@@ -100,6 +100,11 @@ func createTestEnv() (*env, context.Context) {
 			UserRepo:        repository.NewUserRepository(db),
 			PasswordService: passwordSvc,
 		},
+		certificateService: &service.CertificateService{
+			AuditLog:        auditLog,
+			KeyPairRepo:     repository.NewKeyPairRepository(db),
+			PasswordService: passwordSvc,
+		},
 	}
 
 	return e, context.Background()

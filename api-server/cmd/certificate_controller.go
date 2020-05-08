@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/webca/api-server/internal/model"
@@ -11,7 +12,7 @@ import (
 )
 
 func (e *env) createCertificate(c *gin.Context) {
-	span, _ := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_create_certificate")
+	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_create_certificate")
 	defer span.Finish()
 
 	var body model.CertificateRequest
@@ -23,5 +24,12 @@ func (e *env) createCertificate(c *gin.Context) {
 		return
 	}
 
-	httputil.SendOK(c)
+	res, err := e.certificateService.Create(ctx, body)
+	if err != nil {
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
 }

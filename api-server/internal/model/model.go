@@ -22,6 +22,11 @@ const (
 	UserRole  = "USER"
 )
 
+// Asymmetric cryptography algorithms
+const (
+	RSAAlgorithm = "RSA"
+)
+
 // AuthenticationRequest authentication information.
 type AuthenticationRequest struct {
 	AccountName string `json:"accountName,omitempty"`
@@ -116,6 +121,25 @@ type CertificateRequest struct {
 	Options     map[string]interface{} `json:"options,omitempty"`
 }
 
+// KeyRequest extracts key request from a certificate request.
+func (c CertificateRequest) KeyRequest() KeyRequest {
+	opts := c.Options
+	if opts == nil {
+		opts = make(map[string]interface{})
+	}
+
+	return KeyRequest{
+		Algorithm: c.Algorithm,
+		Options:   opts,
+	}
+}
+
+// KeyRequest instructions for generation of a key pair.
+type KeyRequest struct {
+	Algorithm string                 `json:"algorithm,omitempty"`
+	Options   map[string]interface{} `json:"options,omitempty"`
+}
+
 // RSAOptions options for generation of an RSA key.
 type RSAOptions struct {
 	KeySize int
@@ -157,6 +181,10 @@ type KeyPair struct {
 	Credentials Credentials `json:"-"`
 	AccountID   string      `json:"accountId,omitempty"`
 	CreatedAt   time.Time   `json:"createdAt,omitempty"`
+}
+
+func (k KeyPair) String() string {
+	return fmt.Sprintf("KeyPair(id=%s, format=%s, algorithm=%s, accountId=%s, createdAt=%v)", k.ID, k.Format, k.Algorithm, k.AccountID, k.CreatedAt)
 }
 
 // AuditEvent sensitive activity performed in the system.
