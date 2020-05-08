@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 	"time"
 
 	"github.com/CzarSimon/httputil/client/rpc"
@@ -15,8 +16,22 @@ import (
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/service"
 	"github.com/opentracing/opentracing-go"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
+
+func TestTestHealth(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	req := createUnauthenticatedTestRequest("/health", http.MethodGet, nil)
+	assert.Equal(http.StatusOK, performTestRequest(server.Handler, req).Code)
+
+	e.close()
+	req = createUnauthenticatedTestRequest("/health", http.MethodGet, nil)
+	assert.Equal(http.StatusServiceUnavailable, performTestRequest(server.Handler, req).Code)
+}
 
 // ---- Test utils ----
 
