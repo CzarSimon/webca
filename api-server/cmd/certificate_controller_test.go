@@ -46,6 +46,10 @@ func TestCreateRootCertificate(t *testing.T) {
 	req := createTestRequest("/v1/certificates", http.MethodPost, user.JWTUser(), body)
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
+
+	keyPairRepo := repository.NewKeyPairRepository(e.db)
+	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
+	assert.Len(keys, 0)
 }
 
 func TestCreateRootCertificate_UnauthorizedAndForbidden(t *testing.T) {

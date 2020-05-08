@@ -143,8 +143,8 @@ type Certificate struct {
 	Type        string             `json:"type,omitempty"`
 	SignatoryID string             `json:"signatoryId,omitempty"`
 	AccountID   string             `json:"accountId,omitempty"`
-	CreatedAt   string             `json:"createdAt,omitempty"`
-	UpdatedAt   string             `json:"updatedAt,omitempty"`
+	CreatedAt   time.Time          `json:"createdAt,omitempty"`
+	UpdatedAt   time.Time          `json:"updatedAt,omitempty"`
 }
 
 // KeyPair asymmetric key pair of a public and private key, the private key is encrypted.
@@ -155,7 +155,8 @@ type KeyPair struct {
 	Format      string      `json:"format,omitempty"`
 	Algorithm   string      `json:"algorithm,omitempty"`
 	Credentials Credentials `json:"-"`
-	CreatedAt   string      `json:"createdAt,omitempty"`
+	AccountID   string      `json:"accountId,omitempty"`
+	CreatedAt   time.Time   `json:"createdAt,omitempty"`
 }
 
 // AuditEvent sensitive activity performed in the system.

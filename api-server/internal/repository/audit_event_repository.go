@@ -26,7 +26,7 @@ type auditRepo struct {
 	db *sql.DB
 }
 
-const findAuditEventByResourceQuery = `
+const findAuditEventsByResourceQuery = `
 	SELECT 
 		id, 
 		user_id,
@@ -43,7 +43,7 @@ func (r *auditRepo) FindByResource(ctx context.Context, resource string) ([]mode
 	defer span.Finish()
 
 	events := make([]model.AuditEvent, 0)
-	rows, err := r.db.QueryContext(ctx, findAuditEventByResourceQuery, resource)
+	rows, err := r.db.QueryContext(ctx, findAuditEventsByResourceQuery, resource)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query audit_log by resource=%s: %w", resource, err)
 	}
