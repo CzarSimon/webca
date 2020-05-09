@@ -7,11 +7,13 @@ import (
 
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/crypto"
+	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/webca/api-server/internal/audit"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/rsautil"
+	"github.com/CzarSimon/webca/api-server/internal/timeutil"
 	"github.com/opentracing/opentracing-go"
 )
 
@@ -52,18 +54,17 @@ func (c *CertificateService) Create(ctx context.Context, req model.CertificateRe
 }
 
 func (c *CertificateService) createCertificate(ctx context.Context, req model.CertificateRequest, keys model.SignEncoder, user model.User) (model.Certificate, error) {
-	pair, err := c.encryptKeys(ctx, keys.Encode(), req.Password, user)
+	keyPair, err := c.encryptKeys(ctx, keys.Encode(), req.Password, user)
 	if err != nil {
 		return model.Certificate{}, err
 	}
 
-	err = c.KeyPairRepo.Save(ctx, pair)
+	err = c.KeyPairRepo.Save(ctx, keyPair)
 	if err != nil {
 		return model.Certificate{}, err
 	}
 
-	cert := model.Certificate{KeyPair: pair}
-
+	cert := assembleCertificate(req, keyPair, user)
 	c.logNewCertificate(ctx, cert, user.ID)
 	return cert, nil
 }
@@ -119,4 +120,17 @@ func (c *CertificateService) findUser(ctx context.Context, userID string) (model
 func (c *CertificateService) logNewCertificate(ctx context.Context, cert model.Certificate, userID string) {
 	// c.AuditLog.Create(ctx, userID, "certificate:%s", cert.ID)
 	c.AuditLog.Create(ctx, userID, "key-pair:%s", cert.KeyPair.ID)
+}
+
+func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, user model.User) model.Certificate {
+	return model.Certificate{
+		ID:        id.New(),
+		Name:      req.Name,
+		Subject:   req.Subject,
+		KeyPair:   keyPair,
+		Format:    keyPair.Format,
+		Type:      req.Type,
+		AccountID: user.Account.ID,
+		CreatedAt: timeutil.Now(),
+	}
 }

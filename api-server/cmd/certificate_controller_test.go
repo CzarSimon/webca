@@ -55,7 +55,15 @@ func TestCreateRootCertificate(t *testing.T) {
 	var rBody model.Certificate
 	err = json.NewDecoder(res.Result().Body).Decode(&rBody)
 	assert.NoError(err)
+	assert.Len(rBody.ID, 36)
 	assert.Empty(rBody.KeyPair)
+	assert.Empty(rBody.SignatoryID)
+	assert.NotEmpty(rBody.CreatedAt)
+
+	assert.Equal("PEM", rBody.Format)
+	assert.Equal("ROOT_CA", rBody.Type)
+	assert.Equal(account.ID, rBody.AccountID)
+	assert.Equal(body.Name, rBody.Name)
 
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
