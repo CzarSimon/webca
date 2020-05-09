@@ -1,4 +1,4 @@
 api-server/api-server
 api-server/test.db
 
-web-ui/node_modules
+web-app/node_modules
