@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -50,6 +51,11 @@ func TestCreateRootCertificate(t *testing.T) {
 	req := createTestRequest("/v1/certificates", http.MethodPost, user.JWTUser(), body)
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
+
+	var rBody model.Certificate
+	err = json.NewDecoder(res.Result().Body).Decode(&rBody)
+	assert.NoError(err)
+	assert.Empty(rBody.KeyPair)
 
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)

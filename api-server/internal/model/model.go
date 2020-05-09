@@ -164,7 +164,6 @@ type Certificate struct {
 	SignatoryID string             `json:"signatoryId,omitempty"`
 	AccountID   string             `json:"accountId,omitempty"`
 	CreatedAt   time.Time          `json:"createdAt,omitempty"`
-	UpdatedAt   time.Time          `json:"updatedAt,omitempty"`
 }
 
 // KeyPair asymmetric key pair of a public and private key, the private key is encrypted.
