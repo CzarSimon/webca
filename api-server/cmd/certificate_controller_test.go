@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
 
+	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
@@ -66,8 +68,92 @@ func TestCreateRootCertificate(t *testing.T) {
 
 	assert.True(strings.HasPrefix(key.PublicKey, "-----BEGIN PUBLIC KEY-----"))
 	assert.True(strings.HasSuffix(key.PublicKey, "-----END PUBLIC KEY-----\n"))
-
 	assert.False(strings.HasPrefix(key.PrivateKey, "-----BEGIN RSA PRIVATE KEY-----"))
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:key-pair:%s", key.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("CREATE", events[0].Activity)
+	assert.Equal(user.ID, events[0].UserID)
+}
+
+func TestCreateCertificate_WeekPassword(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	account := model.NewAccount("test-account")
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
+	userRepo := repository.NewUserRepository(e.db)
+	err = userRepo.Save(ctx, user)
+	assert.NoError(err)
+
+	body := model.CertificateRequest{
+		Name: "test-root-ca-certificate",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "ROOT_CA",
+		Algorithm: "RSA",
+		Password:  "123456",
+		Options: map[string]interface{}{
+			"keySize": 2048,
+		},
+	}
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, user.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+
+	keyPairRepo := repository.NewKeyPairRepository(e.db)
+	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
+	assert.NoError(err)
+	assert.Len(keys, 0)
+}
+
+func TestCreateCertificate_AuthenticatedUserMissingInDatabase(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	account := model.NewAccount("test-account")
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
+	userRepo := repository.NewUserRepository(e.db)
+	err = userRepo.Save(ctx, user)
+	assert.NoError(err)
+
+	body := model.CertificateRequest{
+		Name: "test-root-ca-certificate",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "ROOT_CA",
+		Algorithm: "RSA",
+		Password:  "4ad4a159f6145fd8168b2de1c11677ff",
+		Options: map[string]interface{}{
+			"keySize": 2048,
+		},
+	}
+
+	jwtUser := user.JWTUser()
+	jwtUser.ID = id.New()
+	req := createTestRequest("/v1/certificates", http.MethodPost, jwtUser, body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnauthorized, res.Code)
+
+	keyPairRepo := repository.NewKeyPairRepository(e.db)
+	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
+	assert.NoError(err)
+	assert.Len(keys, 0)
 }
 
 func TestCreateCertificate_UnauthorizedAndForbidden(t *testing.T) {

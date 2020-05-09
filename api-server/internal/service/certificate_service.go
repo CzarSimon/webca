@@ -62,7 +62,10 @@ func (c *CertificateService) createCertificate(ctx context.Context, req model.Ce
 		return model.Certificate{}, err
 	}
 
-	return model.Certificate{}, nil
+	cert := model.Certificate{KeyPair: pair}
+
+	c.logNewCertificate(ctx, cert, user.ID)
+	return cert, nil
 }
 
 func (c *CertificateService) createKeys(ctx context.Context, req model.KeyRequest) (model.SignEncoder, error) {
@@ -105,11 +108,15 @@ func (c *CertificateService) findUser(ctx context.Context, userID string) (model
 		return model.User{}, httputil.InternalServerError(err)
 	}
 
-	// TODO: test this
 	if !exists {
 		err := fmt.Errorf("unable to find User(id=%s) even though an authenticated user id was provided", userID)
 		return model.User{}, httputil.UnauthorizedError(err)
 	}
 
 	return user, nil
+}
+
+func (c *CertificateService) logNewCertificate(ctx context.Context, cert model.Certificate, userID string) {
+	// c.AuditLog.Create(ctx, userID, "certificate:%s", cert.ID)
+	c.AuditLog.Create(ctx, userID, "key-pair:%s", cert.KeyPair.ID)
 }
