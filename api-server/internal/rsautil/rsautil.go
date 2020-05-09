@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"strconv"
 
 	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/webca/api-server/internal/model"
@@ -21,6 +22,10 @@ type options struct {
 	algorithm string
 }
 
+func (o options) String() string {
+	return fmt.Sprintf("options(algorithm=%s, keySize=%d)", o.algorithm, o.keySize)
+}
+
 // KeyPair asymmetric key pair of a RSA public and private keys.
 type KeyPair struct {
 	publicKey  *rsa.PublicKey
@@ -29,7 +34,7 @@ type KeyPair struct {
 }
 
 // Encode encodes and RSA keypair into a serialized KeyPair.
-func (p KeyPair) Encode() (model.KeyPair, error) {
+func (p KeyPair) Encode() model.KeyPair {
 	return model.KeyPair{
 		ID:         id.New(),
 		PublicKey:  encodePem("PUBLIC KEY", x509.MarshalPKCS1PublicKey(p.publicKey)),
@@ -37,7 +42,7 @@ func (p KeyPair) Encode() (model.KeyPair, error) {
 		Format:     "PEM",
 		Algorithm:  p.algorithm,
 		CreatedAt:  timeutil.Now(),
-	}, nil
+	}
 }
 
 // GenerateKeys parses key options and generates an RSA KeyPair.
@@ -49,7 +54,7 @@ func GenerateKeys(req model.KeyRequest) (KeyPair, error) {
 
 	key, err := rsa.GenerateKey(rand.Reader, opts.keySize)
 	if err != nil {
-		return KeyPair{}, err
+		return KeyPair{}, fmt.Errorf("rsautil: failed to generate RSA key options=%s: %w", opts, err)
 	}
 
 	return KeyPair{
@@ -73,9 +78,20 @@ func parseOptions(req model.KeyRequest) (options, error) {
 		return options{}, fmt.Errorf("rsautil: KeyRequest.Options must contain keySize")
 	}
 
-	keySize, ok := val.(int)
-	if !ok {
-		return options{}, fmt.Errorf("rsautil: KeyRequest.Options.keySize must be an int got: %v", val)
+	var keySize int
+	var err error
+	switch typedVal := val.(type) {
+	case int:
+		keySize = typedVal
+	case float64:
+		keySize = int(typedVal)
+	case string:
+		keySize, err = strconv.Atoi(typedVal)
+		if err != nil {
+			return options{}, fmt.Errorf("rsautil: KeyRequest.Options.keySize must convertible to an int got %s. error: %w ", typedVal, err)
+		}
+	default:
+		return options{}, fmt.Errorf("rsautil: KeyRequest.Options.keySize must convertible to an int got value=%v type=%T", val, val)
 	}
 
 	return options{

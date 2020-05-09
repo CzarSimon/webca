@@ -24,6 +24,15 @@ func (e *env) createCertificate(c *gin.Context) {
 		return
 	}
 
+	principal, ok := httputil.GetPrincipal(c)
+	if !ok {
+		err = httputil.InternalServerError(fmt.Errorf("failed to parse prinipal from authenticated request"))
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	body.UserID = principal.ID
 	res, err := e.certificateService.Create(ctx, body)
 	if err != nil {
 		span.LogFields(tracelog.Error(err))

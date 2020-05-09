@@ -23,8 +23,7 @@ func TestGenerateKeys(t *testing.T) {
 	assert.NotNil(rsaKey.publicKey)
 	assert.NotNil(rsaKey.privateKey)
 
-	pair, err := rsaKey.Encode()
-	assert.NoError(err)
+	pair := rsaKey.Encode()
 
 	assert.True(strings.HasPrefix(pair.PublicKey, "-----BEGIN PUBLIC KEY-----"))
 	assert.True(strings.HasSuffix(pair.PublicKey, "-----END PUBLIC KEY-----\n"))
@@ -39,6 +38,30 @@ func TestGenerateKeys(t *testing.T) {
 
 	assert.Empty(pair.AccountID)
 	assert.Empty(pair.Credentials)
+
+	rsaKey, err = GenerateKeys(model.KeyRequest{
+		Algorithm: Algorithm,
+		Options: map[string]interface{}{
+			"keySize": "512",
+		},
+	})
+	assert.NoError(err)
+	assert.Equal(512, rsaKey.keySize)
+	assert.Equal("RSA", rsaKey.algorithm)
+	assert.NotNil(rsaKey.publicKey)
+	assert.NotNil(rsaKey.privateKey)
+
+	rsaKey, err = GenerateKeys(model.KeyRequest{
+		Algorithm: Algorithm,
+		Options: map[string]interface{}{
+			"keySize": float64(512),
+		},
+	})
+	assert.NoError(err)
+	assert.Equal(512, rsaKey.keySize)
+	assert.Equal("RSA", rsaKey.algorithm)
+	assert.NotNil(rsaKey.publicKey)
+	assert.NotNil(rsaKey.privateKey)
 }
 
 func TestGenerateKeys_BadOptions(t *testing.T) {

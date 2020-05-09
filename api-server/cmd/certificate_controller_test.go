@@ -2,11 +2,13 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
+	"github.com/CzarSimon/webca/api-server/internal/rsautil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,7 +51,23 @@ func TestCreateRootCertificate(t *testing.T) {
 
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
-	assert.Len(keys, 0)
+	assert.NoError(err)
+	assert.Len(keys, 1)
+
+	key := keys[0]
+	assert.Equal(rsautil.Algorithm, key.Algorithm)
+	assert.Equal("PEM", key.Format)
+	assert.Equal(user.Account.ID, key.AccountID)
+	assert.Len(key.ID, 36)
+	assert.NotEmpty(key.Credentials)
+	assert.NotEmpty(key.EncryptionSalt)
+	assert.NotEmpty(key.CreatedAt)
+	assert.NotEmpty(key.PrivateKey)
+
+	assert.True(strings.HasPrefix(key.PublicKey, "-----BEGIN PUBLIC KEY-----"))
+	assert.True(strings.HasSuffix(key.PublicKey, "-----END PUBLIC KEY-----\n"))
+
+	assert.False(strings.HasPrefix(key.PrivateKey, "-----BEGIN RSA PRIVATE KEY-----"))
 }
 
 func TestCreateCertificate_UnauthorizedAndForbidden(t *testing.T) {

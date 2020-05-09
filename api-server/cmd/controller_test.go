@@ -90,6 +90,8 @@ func createTestEnv() (*env, context.Context) {
 	auditRepo := repository.NewAuditEventRepository(db)
 	auditLog := audit.NewLogger("webca:api-server", auditRepo)
 
+	userRepo := repository.NewUserRepository(db)
+
 	e := &env{
 		cfg: cfg,
 		db:  db,
@@ -97,12 +99,13 @@ func createTestEnv() (*env, context.Context) {
 			JwtIssuer:       jwt.NewIssuer(cfg.jwtCredentials),
 			AuditLog:        auditLog,
 			AccountRepo:     repository.NewAccountRepository(db),
-			UserRepo:        repository.NewUserRepository(db),
+			UserRepo:        userRepo,
 			PasswordService: passwordSvc,
 		},
 		certificateService: &service.CertificateService{
 			AuditLog:        auditLog,
 			KeyPairRepo:     repository.NewKeyPairRepository(db),
+			UserRepo:        userRepo,
 			PasswordService: passwordSvc,
 		},
 	}

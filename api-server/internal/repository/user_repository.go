@@ -12,6 +12,7 @@ import (
 // UserRepository data access layer for user accounts.
 type UserRepository interface {
 	Save(ctx context.Context, user model.User) error
+	Find(ctx context.Context, id string) (model.User, bool, error)
 	FindByAccountNameAndEmail(ctx context.Context, accountName, email string) (model.User, bool, error)
 }
 
@@ -24,6 +25,53 @@ func NewUserRepository(db *sql.DB) UserRepository {
 
 type userRepo struct {
 	db *sql.DB
+}
+
+const findUserQuery = `
+	SELECT 
+		u.id, 
+		u.email, 
+		u.Role,
+		u.password, 
+		u.salt,
+		u.created_at,
+		u.updated_at,
+		a.id,
+		a.name,
+		a.created_at,
+		a.updated_at
+	FROM 
+		user_account u 
+		INNER JOIN account a ON a.id = u.account_id
+	WHERE 
+		u.id = ?`
+
+func (r *userRepo) Find(ctx context.Context, id string) (model.User, bool, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "user_repo_find")
+	defer span.Finish()
+
+	var u model.User
+	err := r.db.QueryRowContext(ctx, findUserQuery, id).Scan(
+		&u.ID,
+		&u.Email,
+		&u.Role,
+		&u.Credentials.Password,
+		&u.Credentials.Salt,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+		&u.Account.ID,
+		&u.Account.Name,
+		&u.Account.CreatedAt,
+		&u.Account.UpdatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return model.User{}, false, nil
+	}
+	if err != nil {
+		return model.User{}, false, fmt.Errorf("failed to query user by id=%s: %w", id, err)
+	}
+
+	return u, true, nil
 }
 
 const findUserByAccountNameAndEmailQuery = `

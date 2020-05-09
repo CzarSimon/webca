@@ -38,14 +38,14 @@ func (s *Service) Hash(ctx context.Context, password string) (model.Credentials,
 	span, ctx := opentracing.StartSpanFromContext(ctx, "password_service_hash")
 	defer span.Finish()
 
-	err := s.policy.Allowed(password)
+	err := s.Allowed(password)
 	if err != nil {
 		return model.Credentials{}, httputil.BadRequestError(err)
 	}
 
-	salt, err := crypto.RandomBytes(s.policy.SaltLength)
+	salt, err := s.GenerateSalt()
 	if err != nil {
-		return model.Credentials{}, err
+		return model.Credentials{}, fmt.Errorf("salt generation failed: %w", err)
 	}
 
 	hash, err := s.hasher.Hash([]byte(password), salt)
@@ -62,6 +62,16 @@ func (s *Service) Hash(ctx context.Context, password string) (model.Credentials,
 		Password: encode(ciphertext),
 		Salt:     encode(salt),
 	}, nil
+}
+
+// Allowed used the underlying policy to assert that a password is allowed.
+func (s *Service) Allowed(candidate string) error {
+	return s.policy.Allowed(candidate)
+}
+
+// GenerateSalt generates a random salt whose length is based on the underlying policy.
+func (s *Service) GenerateSalt() ([]byte, error) {
+	return crypto.RandomBytes(s.policy.SaltLength)
 }
 
 func encode(b []byte) string {

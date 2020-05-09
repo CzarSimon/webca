@@ -72,7 +72,7 @@ func (u User) JWTUser() jwt.User {
 }
 
 func (u User) String() string {
-	return fmt.Sprintf("User(id=%s, role=%s, createdAt=%v, updatedAt=%v)", u.ID, u.Role, u.CreatedAt, u.UpdatedAt)
+	return fmt.Sprintf("User(id=%s, role=%s, createdAt=%v, updatedAt=%v, account=%s)", u.ID, u.Role, u.CreatedAt, u.UpdatedAt, u.Account)
 }
 
 // Account user account.
@@ -114,6 +114,7 @@ type CertificateRequest struct {
 	SignatoryID string                 `json:"signatoryId,omitempty"`
 	Password    string                 `json:"password,omitempty"`
 	Options     map[string]interface{} `json:"options,omitempty"`
+	UserID      string                 `json:"-"`
 }
 
 // KeyRequest extracts key request from a certificate request.
@@ -131,7 +132,7 @@ func (c CertificateRequest) KeyRequest() KeyRequest {
 
 // SignEncoder interface to encode a serialized keypair and sign certificates with it.
 type SignEncoder interface {
-	Encode() (KeyPair, error)
+	Encode() KeyPair
 }
 
 // KeyRequest instructions for generation of a key pair.
@@ -168,14 +169,15 @@ type Certificate struct {
 
 // KeyPair asymmetric key pair of a public and private key, the private key is encrypted.
 type KeyPair struct {
-	ID          string      `json:"id,omitempty"`
-	PublicKey   string      `json:"publicKey,omitempty"`
-	PrivateKey  string      `json:"privateKey,omitempty"`
-	Format      string      `json:"format,omitempty"`
-	Algorithm   string      `json:"algorithm,omitempty"`
-	Credentials Credentials `json:"-"`
-	AccountID   string      `json:"accountId,omitempty"`
-	CreatedAt   time.Time   `json:"createdAt,omitempty"`
+	ID             string      `json:"id,omitempty"`
+	PublicKey      string      `json:"publicKey,omitempty"`
+	PrivateKey     string      `json:"privateKey,omitempty"`
+	Format         string      `json:"format,omitempty"`
+	Algorithm      string      `json:"algorithm,omitempty"`
+	EncryptionSalt string      `json:"-"`
+	Credentials    Credentials `json:"-"`
+	AccountID      string      `json:"accountId,omitempty"`
+	CreatedAt      time.Time   `json:"createdAt,omitempty"`
 }
 
 func (k KeyPair) String() string {
