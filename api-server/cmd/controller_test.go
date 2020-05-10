@@ -63,8 +63,10 @@ func testForbidden(t *testing.T, route, method string, roles []string) {
 // ---- Test utils ----
 
 func createTestEnv() (*env, context.Context) {
+	testID := id.New()
+	fmt.Println("Test ", testID)
 	cfg := config{
-		db:             dbutil.SqliteConfig{},
+		db:             dbutil.SqliteConfig{Name: fmt.Sprintf("test-%s.db", testID)},
 		migrationsPath: "../resources/db/sqlite",
 		jwtCredentials: getTestJWTCredentials(),
 	}

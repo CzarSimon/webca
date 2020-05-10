@@ -65,6 +65,11 @@ func TestCreateRootCertificate(t *testing.T) {
 	assert.Equal(account.ID, rBody.AccountID)
 	assert.Equal(body.Name, rBody.Name)
 
+	certRepo := repository.NewCertificateRepository(e.db)
+	_, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
+	assert.NoError(err)
+	assert.False(exists)
+
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
 	assert.NoError(err)

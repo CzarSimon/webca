@@ -50,7 +50,7 @@ func (r *keyPairRepo) FindByAccountID(ctx context.Context, accountID string) ([]
 	keys := make([]model.KeyPair, 0)
 	rows, err := r.db.QueryContext(ctx, findKeyPairsByAccountIDQuery, accountID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query key_pair for accountId=%s: %w", accountID, err)
+		return nil, fmt.Errorf("failed to query key_pair for account(id=%s): %w", accountID, err)
 	}
 	defer rows.Close()
 
@@ -58,7 +58,7 @@ func (r *keyPairRepo) FindByAccountID(ctx context.Context, accountID string) ([]
 	for rows.Next() {
 		err = rows.Scan(&k.ID, &k.PublicKey, &k.PrivateKey, &k.Format, &k.Algorithm, &k.EncryptionSalt, &k.Credentials.Password, &k.Credentials.Salt, &k.AccountID, &k.CreatedAt)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan row for key_pairfor accountId=%s: %w", accountID, err)
+			return nil, fmt.Errorf("failed to scan row for key_pairfor account(id=%s): %w", accountID, err)
 		}
 		keys = append(keys, k)
 	}
