@@ -128,7 +128,7 @@ func (c *CertificateService) findUser(ctx context.Context, userID string) (model
 }
 
 func (c *CertificateService) logNewCertificate(ctx context.Context, cert model.Certificate, userID string) {
-	// c.AuditLog.Create(ctx, userID, "certificate:%s", cert.ID)
+	c.AuditLog.Create(ctx, userID, "certificate:%s", cert.ID)
 	c.AuditLog.Create(ctx, userID, "key-pair:%s", cert.KeyPair.ID)
 }
 

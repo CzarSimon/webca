@@ -100,6 +100,12 @@ func TestCreateRootCertificate(t *testing.T) {
 	assert.Len(events, 1)
 	assert.Equal("CREATE", events[0].Activity)
 	assert.Equal(user.ID, events[0].UserID)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s", cert.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("CREATE", events[0].Activity)
+	assert.Equal(user.ID, events[0].UserID)
 }
 
 func TestCreateCertificate_WeekPassword(t *testing.T) {
