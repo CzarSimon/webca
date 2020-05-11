@@ -45,6 +45,11 @@ func (p KeyPair) Encode() model.KeyPair {
 	}
 }
 
+// CreateCertificate creates certificate based on a RSA key pair.
+func (p KeyPair) CreateCertificate(template x509.Certificate) (string, error) {
+	return "-", nil
+}
+
 // GenerateKeys parses key options and generates an RSA KeyPair.
 func GenerateKeys(req model.KeyRequest) (KeyPair, error) {
 	opts, err := parseOptions(req)

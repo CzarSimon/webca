@@ -40,7 +40,7 @@ func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 	}
 
 	_, err = tx.ExecContext(ctx, saveCertificateQuery,
-		cert.ID, cert.Name, cert.Subject.CommonName, "-", cert.Format, cert.Type, cert.KeyPair.ID, cert.AccountID, cert.CreatedAt,
+		cert.ID, cert.Name, cert.Subject.CommonName, cert.Body, cert.Format, cert.Type, cert.KeyPair.ID, cert.AccountID, cert.CreatedAt,
 	)
 	if err != nil {
 		dbutil.Rollback(tx)
@@ -54,7 +54,7 @@ func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 	)
 	if err != nil {
 		dbutil.Rollback(tx)
-		return fmt.Errorf("failed to save %s: %w", key, err)
+		return fmt.Errorf("failed to insert %s: %w", key, err)
 	}
 
 	return tx.Commit()

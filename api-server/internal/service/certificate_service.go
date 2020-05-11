@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/base64"
 	"fmt"
 
@@ -61,6 +62,12 @@ func (c *CertificateService) createCertificate(ctx context.Context, req model.Ce
 	}
 
 	cert := assembleCertificate(req, keyPair, user)
+	body, err := keys.CreateCertificate(x509.Certificate{})
+	if err != nil {
+		return model.Certificate{}, fmt.Errorf("failed to create x509 certificate: %w", err)
+	}
+
+	cert.Body = body
 	err = c.CertRepo.Save(ctx, cert)
 	if err != nil {
 		return model.Certificate{}, err
