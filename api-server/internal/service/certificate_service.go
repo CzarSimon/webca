@@ -80,8 +80,13 @@ func (c *CertificateService) createCertificate(ctx context.Context, req model.Ce
 }
 
 func (c *CertificateService) createKeys(ctx context.Context, req model.KeyRequest) (model.KeyEncoder, error) {
-	keys, err := rsautil.GenerateKeys(req)
-	return keys, err
+	switch req.Algorithm {
+	case rsautil.Algorithm:
+		return rsautil.GenerateKeys(req)
+	default:
+		err := fmt.Errorf("CertificateService: unsupported KeyRequest.Algorithm=%s", req.Algorithm)
+		return nil, httputil.BadRequestError(err)
+	}
 }
 
 func (c *CertificateService) encryptKeys(ctx context.Context, keyPair model.KeyPair, pwd string, user model.User) (model.KeyPair, error) {
