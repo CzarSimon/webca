@@ -35,6 +35,7 @@ func (e *env) createCertificate(c *gin.Context) {
 	body.UserID = principal.ID
 	res, err := e.certificateService.Create(ctx, body)
 	if err != nil {
+		fmt.Println(err)
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return

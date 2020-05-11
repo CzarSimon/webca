@@ -48,12 +48,12 @@ func (c *CertificateService) Create(ctx context.Context, req model.CertificateRe
 
 	keys, err := c.createKeys(ctx, req.KeyRequest())
 	if err != nil {
-		return model.Certificate{}, httputil.InternalServerError(err)
+		return model.Certificate{}, err
 	}
 
 	cert, err := c.createCertificate(ctx, req, keys, user)
 	if err != nil {
-		return model.Certificate{}, httputil.InternalServerError(err)
+		return model.Certificate{}, err
 	}
 
 	return cert, nil
@@ -67,7 +67,7 @@ func (c *CertificateService) createCertificate(ctx context.Context, req model.Ce
 
 	cert, err := signCertificate(assembleCertificate(req, keyPair, user), keys)
 	if err != nil {
-		return model.Certificate{}, fmt.Errorf("failed to create x509 certificate: %w", err)
+		return model.Certificate{}, err
 	}
 
 	err = c.CertRepo.Save(ctx, cert)
