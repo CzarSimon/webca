@@ -60,6 +60,36 @@ func testForbidden(t *testing.T, route, method string, roles []string) {
 	}
 }
 
+func testBadContentType(t *testing.T, route, method, role string) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	user := jwt.User{
+		ID:    id.New(),
+		Roles: []string{role},
+	}
+	req := createTestRequest(route, method, user, nil)
+	req.Header.Del("Content-Type")
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnsupportedMediaType, res.Code)
+
+	req = createTestRequest(route, method, user, nil)
+	req.Header.Set("Content-Type", "application/xml")
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnsupportedMediaType, res.Code)
+
+	req = createTestRequest(route, method, user, nil)
+	req.Header.Set("Content-Type", "text/plain")
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnsupportedMediaType, res.Code)
+
+	req = createTestRequest(route, method, user, nil)
+	req.Header.Set("Content-Type", "text/html")
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnsupportedMediaType, res.Code)
+}
+
 // ---- Test utils ----
 
 func createTestEnv() (*env, context.Context) {
@@ -148,6 +178,7 @@ func createUnauthenticatedTestRequest(route, method string, body interface{}) *h
 		opentracing.HTTPHeadersCarrier(req.Header),
 	)
 
+	req.Header.Set("Content-Type", "application/json")
 	return req
 }
 

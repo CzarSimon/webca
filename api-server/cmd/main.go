@@ -2,10 +2,8 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/CzarSimon/httputil"
-	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/httputil/logger"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	_ "github.com/go-sql-driver/mysql"
@@ -30,10 +28,9 @@ func main() {
 
 func newServer(e *env) *http.Server {
 	r := httputil.NewRouter("api-server", e.checkHealth)
+	r.Use(httputil.AllowJSON())
 
-	rbac := httputil.RBAC{
-		Verifier: jwt.NewVerifier(e.cfg.jwtCredentials, time.Minute),
-	}
+	rbac := httputil.NewRBAC(e.cfg.jwtCredentials)
 	secured := r.Group("", rbac.Secure(model.AdminRole, model.UserRole))
 
 	r.POST("/v1/signup", e.signup)

@@ -7,6 +7,7 @@ github.com/CzarSimon/httputil v0.0.0-20200511195256-3e9d96c51d26/go.mod h1:w6Yb3
 github.com/CzarSimon/webca v0.0.0-20200506092848-192efb4ca830 h1:3Yrezrzaq5i/nNOUy0YSCU+EvsXUOlEiIqhAb/mWgjg=
 github.com/CzarSimon/webca v0.0.0-20200508193609-b9c9bfbbc05f h1:Cof7g7mHJeLDvnYrZHbFH3VmhpWatTFq0S25VWrFY+Q=
 github.com/CzarSimon/webca v0.0.0-20200511210037-610bdbcce2ca h1:RW7d9nhHa4c9uKGtcs20nJQqQPZBfXNI6hbhcmdjtM0=
+github.com/CzarSimon/webca v0.0.0-20200511212900-d0f61e5290c0 h1:lY1c3GIYbcmMR+S2cKyUx8E5oqUjNah2uKO+CNF413k=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=

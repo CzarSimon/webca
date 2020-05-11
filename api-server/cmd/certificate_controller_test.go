@@ -272,6 +272,10 @@ func TestCreateCertificate_UnsupportedAlgorithm(t *testing.T) {
 	assert.False(exists)
 }
 
+func TestCreateCertificate_BadContentType(t *testing.T) {
+	testBadContentType(t, "/v1/certificates", http.MethodPost, model.UserRole)
+}
+
 func TestCreateCertificate_UnauthorizedAndForbidden(t *testing.T) {
 	testUnauthorized(t, "/v1/certificates", http.MethodPost)
 	testForbidden(t, "/v1/certificates", http.MethodPost, []string{
