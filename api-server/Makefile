@@ -7,3 +7,6 @@ install:
 
 run:
 	sh run-local.sh
+
+cleanup:
+	rm cmd/test-*.db

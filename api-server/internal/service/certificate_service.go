@@ -20,6 +20,7 @@ import (
 // CertificateService service responsible for certificate createion and management.
 type CertificateService struct {
 	AuditLog        audit.Logger
+	CertRepo        repository.CertificateRepository
 	KeyPairRepo     repository.KeyPairRepository
 	UserRepo        repository.UserRepository
 	PasswordService *password.Service
@@ -59,12 +60,12 @@ func (c *CertificateService) createCertificate(ctx context.Context, req model.Ce
 		return model.Certificate{}, err
 	}
 
-	err = c.KeyPairRepo.Save(ctx, keyPair)
+	cert := assembleCertificate(req, keyPair, user)
+	err = c.CertRepo.Save(ctx, cert)
 	if err != nil {
 		return model.Certificate{}, err
 	}
 
-	cert := assembleCertificate(req, keyPair, user)
 	c.logNewCertificate(ctx, cert, user.ID)
 	return cert, nil
 }

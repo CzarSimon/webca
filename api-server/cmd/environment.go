@@ -68,6 +68,7 @@ func setupEnv() *env {
 		},
 		certificateService: &service.CertificateService{
 			AuditLog:        auditLog,
+			CertRepo:        repository.NewCertificateRepository(db),
 			KeyPairRepo:     repository.NewKeyPairRepository(db),
 			UserRepo:        userRepo,
 			PasswordService: passwordSvc,
