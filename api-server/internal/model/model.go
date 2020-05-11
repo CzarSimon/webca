@@ -154,6 +154,10 @@ type CertificateSubject struct {
 	Email              string `json:"email,omitempty"`
 }
 
+func (s CertificateSubject) String() string {
+	return fmt.Sprintf("C=%s, ST=%s, L=%s, O=%s, OU=%s, CN=%s", s.Country, s.State, s.Locality, s.Organization, s.OrganizationalUnit, s.CommonName)
+}
+
 // Certificate tls certificate and metadata.
 type Certificate struct {
 	ID          string             `json:"id,omitempty"`

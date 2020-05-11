@@ -40,7 +40,7 @@ func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 	}
 
 	_, err = tx.ExecContext(ctx, saveCertificateQuery,
-		cert.ID, cert.Name, cert.Subject.CommonName, cert.Body, cert.Format, cert.Type, cert.KeyPair.ID, cert.AccountID, cert.CreatedAt,
+		cert.ID, cert.Name, cert.Subject.String(), cert.Body, cert.Format, cert.Type, cert.KeyPair.ID, cert.AccountID, cert.CreatedAt,
 	)
 	if err != nil {
 		dbutil.Rollback(tx)
