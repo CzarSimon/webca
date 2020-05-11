@@ -64,11 +64,16 @@ func TestCreateRootCertificate(t *testing.T) {
 	assert.Equal("ROOT_CA", rBody.Type)
 	assert.Equal(account.ID, rBody.AccountID)
 	assert.Equal(body.Name, rBody.Name)
+	assert.True(strings.HasPrefix(rBody.Body, "-----BEGIN CERTIFICATE-----"))
+	assert.True(strings.HasSuffix(rBody.Body, "-----END CERTIFICATE-----\n"))
 
 	certRepo := repository.NewCertificateRepository(e.db)
-	_, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
+	cert, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
 	assert.NoError(err)
 	assert.True(exists)
+	assert.Equal(rBody.ID, cert.ID)
+	assert.True(strings.HasPrefix(cert.Body, "-----BEGIN CERTIFICATE-----"))
+	assert.True(strings.HasSuffix(cert.Body, "-----END CERTIFICATE-----\n"))
 
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)

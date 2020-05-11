@@ -2,6 +2,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/CzarSimon/httputil v0.0.0-20200506073618-f9ead655e0ec h1:rTOcevq0Nh9z4nIPavYCS7kZw6WB3owLGuIjcrrHwCw=
 github.com/CzarSimon/httputil v0.0.0-20200506073618-f9ead655e0ec/go.mod h1:w6Yb3CuxRYG9kgFmoinULoT4vMNrh1j51iZBmdjtzmA=
+github.com/CzarSimon/httputil v0.0.0-20200511195256-3e9d96c51d26 h1:njOvIjJTBswh14aYrbqN7Y4bSG5Yp63wXk2E57aSKWo=
+github.com/CzarSimon/httputil v0.0.0-20200511195256-3e9d96c51d26/go.mod h1:w6Yb3CuxRYG9kgFmoinULoT4vMNrh1j51iZBmdjtzmA=
 github.com/CzarSimon/webca v0.0.0-20200506092848-192efb4ca830 h1:3Yrezrzaq5i/nNOUy0YSCU+EvsXUOlEiIqhAb/mWgjg=
 github.com/CzarSimon/webca v0.0.0-20200508193609-b9c9bfbbc05f h1:Cof7g7mHJeLDvnYrZHbFH3VmhpWatTFq0S25VWrFY+Q=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=

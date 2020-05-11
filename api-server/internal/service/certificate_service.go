@@ -2,9 +2,13 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
+	"math/big"
 
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/crypto"
@@ -55,19 +59,17 @@ func (c *CertificateService) Create(ctx context.Context, req model.CertificateRe
 	return cert, nil
 }
 
-func (c *CertificateService) createCertificate(ctx context.Context, req model.CertificateRequest, keys model.SignEncoder, user model.User) (model.Certificate, error) {
+func (c *CertificateService) createCertificate(ctx context.Context, req model.CertificateRequest, keys model.KeyEncoder, user model.User) (model.Certificate, error) {
 	keyPair, err := c.encryptKeys(ctx, keys.Encode(), req.Password, user)
 	if err != nil {
 		return model.Certificate{}, err
 	}
 
-	cert := assembleCertificate(req, keyPair, user)
-	body, err := keys.CreateCertificate(x509.Certificate{})
+	cert, err := signCertificate(assembleCertificate(req, keyPair, user), keys)
 	if err != nil {
 		return model.Certificate{}, fmt.Errorf("failed to create x509 certificate: %w", err)
 	}
 
-	cert.Body = body
 	err = c.CertRepo.Save(ctx, cert)
 	if err != nil {
 		return model.Certificate{}, err
@@ -77,7 +79,7 @@ func (c *CertificateService) createCertificate(ctx context.Context, req model.Ce
 	return cert, nil
 }
 
-func (c *CertificateService) createKeys(ctx context.Context, req model.KeyRequest) (model.SignEncoder, error) {
+func (c *CertificateService) createKeys(ctx context.Context, req model.KeyRequest) (model.KeyEncoder, error) {
 	keys, err := rsautil.GenerateKeys(req)
 	return keys, err
 }
@@ -130,6 +132,22 @@ func (c *CertificateService) logNewCertificate(ctx context.Context, cert model.C
 	c.AuditLog.Create(ctx, userID, "key-pair:%s", cert.KeyPair.ID)
 }
 
+func signCertificate(cert model.Certificate, keys model.KeyEncoder) (model.Certificate, error) {
+	template, err := x509Template(cert)
+	if err != nil {
+		return model.Certificate{}, err
+	}
+
+	b, err := x509.CreateCertificate(rand.Reader, template, template, keys.PublicKey(), keys.PrivateKey())
+	if err != nil {
+		return model.Certificate{}, fmt.Errorf("failed to create x509 certificate: %w", err)
+	}
+
+	block := &pem.Block{Type: "CERTIFICATE", Bytes: b}
+	cert.Body = string(pem.EncodeToMemory(block))
+	return cert, nil
+}
+
 func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, user model.User) model.Certificate {
 	return model.Certificate{
 		ID:        id.New(),
@@ -141,4 +159,34 @@ func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, us
 		AccountID: user.Account.ID,
 		CreatedAt: timeutil.Now(),
 	}
+}
+
+func x509Template(cert model.Certificate) (*x509.Certificate, error) {
+	now := timeutil.Now()
+	xc := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject: pkix.Name{
+			CommonName:         cert.Subject.CommonName,
+			Country:            []string{cert.Subject.Country},
+			Province:           []string{cert.Subject.State},
+			Locality:           []string{cert.Subject.Locality},
+			Organization:       []string{cert.Subject.Organization},
+			OrganizationalUnit: []string{cert.Subject.OrganizationalUnit},
+		},
+		NotBefore: now,
+		NotAfter:  now.AddDate(0, 0, 365),
+	}
+
+	switch cert.Type {
+	case model.RootCAType:
+		xc.IsCA = true
+		xc.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign
+		xc.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
+		xc.BasicConstraintsValid = true
+	default:
+		err := fmt.Errorf("unsupported certificate type: %s", cert.Type)
+		return nil, httputil.BadRequestError(err)
+	}
+
+	return xc, nil
 }

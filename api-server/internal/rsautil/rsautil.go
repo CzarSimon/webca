@@ -45,9 +45,14 @@ func (p KeyPair) Encode() model.KeyPair {
 	}
 }
 
-// CreateCertificate creates certificate based on a RSA key pair.
-func (p KeyPair) CreateCertificate(template x509.Certificate) (string, error) {
-	return "-", nil
+// PublicKey provides external access to the public key.
+func (p KeyPair) PublicKey() interface{} {
+	return p.publicKey
+}
+
+// PrivateKey provides external access to the private key.
+func (p KeyPair) PrivateKey() interface{} {
+	return p.privateKey
 }
 
 // GenerateKeys parses key options and generates an RSA KeyPair.

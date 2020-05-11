@@ -1,5 +1,6 @@
 api-server/api-server
 api-server/test.db
 api-server/cmd/test-*.db
+api-server/resources/testing/test-*.db
 
 web-ui/node_modules

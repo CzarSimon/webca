@@ -1,7 +1,6 @@
 package model
 
 import (
-	"crypto/x509"
 	"fmt"
 	"time"
 
@@ -131,10 +130,11 @@ func (c CertificateRequest) KeyRequest() KeyRequest {
 	}
 }
 
-// SignEncoder interface to encode a serialized keypair and sign certificates with it.
-type SignEncoder interface {
+// KeyEncoder interface to encode a serialized keypair and provide generic access to the public and private keys.
+type KeyEncoder interface {
 	Encode() KeyPair
-	CreateCertificate(template x509.Certificate) (string, error)
+	PublicKey() interface{}
+	PrivateKey() interface{}
 }
 
 // KeyRequest instructions for generation of a key pair.

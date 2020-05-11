@@ -66,7 +66,7 @@ func createTestEnv() (*env, context.Context) {
 	testID := id.New()
 	fmt.Println("Test ", testID)
 	cfg := config{
-		db:             dbutil.SqliteConfig{Name: fmt.Sprintf("test-%s.db", testID)},
+		db:             dbutil.SqliteConfig{Name: fmt.Sprintf("../resources/testing/test-%s.db", testID)},
 		migrationsPath: "../resources/db/sqlite",
 		jwtCredentials: getTestJWTCredentials(),
 	}

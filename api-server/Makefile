@@ -1,6 +1,6 @@
 test:
 	go test ./...
-	rm cmd/test-*.db
+	rm resources/testing/test-*.db
 
 install:
 	go mod download
@@ -9,4 +9,4 @@ run:
 	sh run-local.sh
 
 cleanup:
-	rm cmd/test-*.db
+	rm resources/testing/test-*.db
