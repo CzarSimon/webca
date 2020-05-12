@@ -29,7 +29,7 @@ func TestTestHealth(t *testing.T) {
 	req := createUnauthenticatedTestRequest("/health", http.MethodGet, nil)
 	assert.Equal(http.StatusOK, performTestRequest(server.Handler, req).Code)
 
-	e.close()
+	e.db.Close()
 	req = createUnauthenticatedTestRequest("/health", http.MethodGet, nil)
 	assert.Equal(http.StatusServiceUnavailable, performTestRequest(server.Handler, req).Code)
 }

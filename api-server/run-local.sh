@@ -17,4 +17,6 @@ export DB_DATABASE='apiserver'
 export DB_USERNAME='apiserver'
 export DB_PASSWORD='password'
 
+export JAEGER_DISABLED='true'
+
 ./api-server
