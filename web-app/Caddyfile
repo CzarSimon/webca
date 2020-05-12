@@ -1,0 +1,12 @@
+:7000
+
+route /api/* {
+    uri strip_prefix /api
+    reverse_proxy :8081
+}
+
+route /api/httplogger/* {
+    uri strip_prefix /api/httplogger
+    reverse_proxy :8080
+}
+
