@@ -1,0 +1,29 @@
+name: web-app-pipeline
+on: 
+  push:
+    paths:
+      - web-app/**
+      - .github/workflows/web-app-pipeline.yml
+
+jobs:
+  run-tests:
+    name: run-tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }} 
+    - name: Get dependencies
+      run: npm install
+      working-directory: ./web-app
+    - name: Test
+      run: npm test
+      env:
+        CI: true
+      working-directory: ./web-app
