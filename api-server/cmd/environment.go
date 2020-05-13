@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"io"
 
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/dbutil"
@@ -11,6 +12,8 @@ import (
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/opentracing/opentracing-go"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
 	"go.uber.org/zap"
 )
 
@@ -19,6 +22,7 @@ type env struct {
 	db                 *sql.DB
 	accountService     *service.AccountService
 	certificateService *service.CertificateService
+	traceCloser        io.Closer
 }
 
 func (e *env) checkHealth() error {
@@ -35,13 +39,30 @@ func (e *env) close() {
 	if err != nil {
 		log.Error("failed to close database connection", zap.Error(err))
 	}
+
+	err = e.traceCloser.Close()
+	if err != nil {
+		log.Error("failed to close tracer connection", zap.Error(err))
+	}
 }
 
 func setupEnv() *env {
+	jcfg, err := jaegercfg.FromEnv()
+	if err != nil {
+		log.Fatal("failed to create jaeger configuration", zap.Error(err))
+	}
+
+	tracer, closer, err := jcfg.NewTracer()
+	if err != nil {
+		log.Fatal("failed to create tracer", zap.Error(err))
+	}
+
+	opentracing.SetGlobalTracer(tracer)
+
 	cfg := getConfig()
 
 	db := dbutil.MustConnect(cfg.db)
-	err := dbutil.Upgrade(cfg.migrationsPath, cfg.db.Driver(), db)
+	err = dbutil.Upgrade(cfg.migrationsPath, cfg.db.Driver(), db)
 	if err != nil {
 		log.Fatal("failed to apply database migrations", zap.Error(err))
 	}
@@ -68,10 +89,12 @@ func setupEnv() *env {
 		},
 		certificateService: &service.CertificateService{
 			AuditLog:        auditLog,
+			CertRepo:        repository.NewCertificateRepository(db),
 			KeyPairRepo:     repository.NewKeyPairRepository(db),
 			UserRepo:        userRepo,
 			PasswordService: passwordSvc,
 		},
+		traceCloser: closer,
 	}
 }
 

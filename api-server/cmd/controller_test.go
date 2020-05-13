@@ -29,7 +29,7 @@ func TestTestHealth(t *testing.T) {
 	req := createUnauthenticatedTestRequest("/health", http.MethodGet, nil)
 	assert.Equal(http.StatusOK, performTestRequest(server.Handler, req).Code)
 
-	e.close()
+	e.db.Close()
 	req = createUnauthenticatedTestRequest("/health", http.MethodGet, nil)
 	assert.Equal(http.StatusServiceUnavailable, performTestRequest(server.Handler, req).Code)
 }
@@ -60,11 +60,43 @@ func testForbidden(t *testing.T, route, method string, roles []string) {
 	}
 }
 
+func testBadContentType(t *testing.T, route, method, role string) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	user := jwt.User{
+		ID:    id.New(),
+		Roles: []string{role},
+	}
+	req := createTestRequest(route, method, user, nil)
+	req.Header.Del("Content-Type")
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnsupportedMediaType, res.Code)
+
+	req = createTestRequest(route, method, user, nil)
+	req.Header.Set("Content-Type", "application/xml")
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnsupportedMediaType, res.Code)
+
+	req = createTestRequest(route, method, user, nil)
+	req.Header.Set("Content-Type", "text/plain")
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnsupportedMediaType, res.Code)
+
+	req = createTestRequest(route, method, user, nil)
+	req.Header.Set("Content-Type", "text/html")
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnsupportedMediaType, res.Code)
+}
+
 // ---- Test utils ----
 
 func createTestEnv() (*env, context.Context) {
+	testID := id.New()
+	fmt.Println("Test ", testID)
 	cfg := config{
-		db:             dbutil.SqliteConfig{},
+		db:             dbutil.SqliteConfig{Name: fmt.Sprintf("../resources/testing/test-%s.db", testID)},
 		migrationsPath: "../resources/db/sqlite",
 		jwtCredentials: getTestJWTCredentials(),
 	}
@@ -104,6 +136,7 @@ func createTestEnv() (*env, context.Context) {
 		},
 		certificateService: &service.CertificateService{
 			AuditLog:        auditLog,
+			CertRepo:        repository.NewCertificateRepository(db),
 			KeyPairRepo:     repository.NewKeyPairRepository(db),
 			UserRepo:        userRepo,
 			PasswordService: passwordSvc,
@@ -145,6 +178,7 @@ func createUnauthenticatedTestRequest(route, method string, body interface{}) *h
 		opentracing.HTTPHeadersCarrier(req.Header),
 	)
 
+	req.Header.Set("Content-Type", "application/json")
 	return req
 }
 

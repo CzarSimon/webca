@@ -130,9 +130,11 @@ func (c CertificateRequest) KeyRequest() KeyRequest {
 	}
 }
 
-// SignEncoder interface to encode a serialized keypair and sign certificates with it.
-type SignEncoder interface {
+// KeyEncoder interface to encode a serialized keypair and provide generic access to the public and private keys.
+type KeyEncoder interface {
 	Encode() KeyPair
+	PublicKey() interface{}
+	PrivateKey() interface{}
 }
 
 // KeyRequest instructions for generation of a key pair.
@@ -152,6 +154,10 @@ type CertificateSubject struct {
 	Email              string `json:"email,omitempty"`
 }
 
+func (s CertificateSubject) String() string {
+	return fmt.Sprintf("C=%s, ST=%s, L=%s, O=%s, OU=%s, CN=%s", s.Country, s.State, s.Locality, s.Organization, s.OrganizationalUnit, s.CommonName)
+}
+
 // Certificate tls certificate and metadata.
 type Certificate struct {
 	ID          string             `json:"id,omitempty"`
@@ -164,7 +170,6 @@ type Certificate struct {
 	SignatoryID string             `json:"signatoryId,omitempty"`
 	AccountID   string             `json:"accountId,omitempty"`
 	CreatedAt   time.Time          `json:"createdAt,omitempty"`
-	UpdatedAt   time.Time          `json:"updatedAt,omitempty"`
 }
 
 // KeyPair asymmetric key pair of a public and private key, the private key is encrypted.

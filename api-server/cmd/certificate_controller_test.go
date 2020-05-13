@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -51,6 +52,29 @@ func TestCreateRootCertificate(t *testing.T) {
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
 
+	var rBody model.Certificate
+	err = json.NewDecoder(res.Result().Body).Decode(&rBody)
+	assert.NoError(err)
+	assert.Len(rBody.ID, 36)
+	assert.Empty(rBody.KeyPair)
+	assert.Empty(rBody.SignatoryID)
+	assert.NotEmpty(rBody.CreatedAt)
+
+	assert.Equal("PEM", rBody.Format)
+	assert.Equal("ROOT_CA", rBody.Type)
+	assert.Equal(account.ID, rBody.AccountID)
+	assert.Equal(body.Name, rBody.Name)
+	assert.True(strings.HasPrefix(rBody.Body, "-----BEGIN CERTIFICATE-----"))
+	assert.True(strings.HasSuffix(rBody.Body, "-----END CERTIFICATE-----\n"))
+
+	certRepo := repository.NewCertificateRepository(e.db)
+	cert, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
+	assert.NoError(err)
+	assert.True(exists)
+	assert.Equal(rBody.ID, cert.ID)
+	assert.True(strings.HasPrefix(cert.Body, "-----BEGIN CERTIFICATE-----"))
+	assert.True(strings.HasSuffix(cert.Body, "-----END CERTIFICATE-----\n"))
+
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
 	assert.NoError(err)
@@ -72,6 +96,12 @@ func TestCreateRootCertificate(t *testing.T) {
 
 	auditRepo := repository.NewAuditEventRepository(e.db)
 	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:key-pair:%s", key.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("CREATE", events[0].Activity)
+	assert.Equal(user.ID, events[0].UserID)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s", cert.ID))
 	assert.NoError(err)
 	assert.Len(events, 1)
 	assert.Equal("CREATE", events[0].Activity)
@@ -154,6 +184,96 @@ func TestCreateCertificate_AuthenticatedUserMissingInDatabase(t *testing.T) {
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
 	assert.NoError(err)
 	assert.Len(keys, 0)
+}
+
+func TestCreateCertificate_UnsupportedType(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	account := model.NewAccount("test-account")
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
+	userRepo := repository.NewUserRepository(e.db)
+	err = userRepo.Save(ctx, user)
+	assert.NoError(err)
+
+	body := model.CertificateRequest{
+		Name: "test-root-ca-certificate",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "ODD_TYPE",
+		Algorithm: "RSA",
+		Password:  "04360c52972e25e9e85f71168b51f67e",
+		Options: map[string]interface{}{
+			"keySize": 2048,
+		},
+	}
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, user.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+
+	keyPairRepo := repository.NewKeyPairRepository(e.db)
+	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
+	assert.NoError(err)
+	assert.Len(keys, 0)
+
+	certRepo := repository.NewCertificateRepository(e.db)
+	_, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
+	assert.NoError(err)
+	assert.False(exists)
+}
+
+func TestCreateCertificate_UnsupportedAlgorithm(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	account := model.NewAccount("test-account")
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
+	userRepo := repository.NewUserRepository(e.db)
+	err = userRepo.Save(ctx, user)
+	assert.NoError(err)
+
+	body := model.CertificateRequest{
+		Name: "test-root-ca-certificate",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "ROOT_CA",
+		Algorithm: "ODD_ALGO",
+		Password:  "04360c52972e25e9e85f71168b51f67e",
+		Options: map[string]interface{}{
+			"keySize": 2048,
+		},
+	}
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, user.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+
+	keyPairRepo := repository.NewKeyPairRepository(e.db)
+	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
+	assert.NoError(err)
+	assert.Len(keys, 0)
+
+	certRepo := repository.NewCertificateRepository(e.db)
+	_, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
+	assert.NoError(err)
+	assert.False(exists)
+}
+
+func TestCreateCertificate_BadContentType(t *testing.T) {
+	testBadContentType(t, "/v1/certificates", http.MethodPost, model.UserRole)
 }
 
 func TestCreateCertificate_UnauthorizedAndForbidden(t *testing.T) {

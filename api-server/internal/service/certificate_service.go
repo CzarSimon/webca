@@ -2,22 +2,30 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
+	"math/big"
 
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/crypto"
+	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/webca/api-server/internal/audit"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/rsautil"
+	"github.com/CzarSimon/webca/api-server/internal/timeutil"
 	"github.com/opentracing/opentracing-go"
 )
 
 // CertificateService service responsible for certificate createion and management.
 type CertificateService struct {
 	AuditLog        audit.Logger
+	CertRepo        repository.CertificateRepository
 	KeyPairRepo     repository.KeyPairRepository
 	UserRepo        repository.UserRepository
 	PasswordService *password.Service
@@ -40,37 +48,45 @@ func (c *CertificateService) Create(ctx context.Context, req model.CertificateRe
 
 	keys, err := c.createKeys(ctx, req.KeyRequest())
 	if err != nil {
-		return model.Certificate{}, httputil.InternalServerError(err)
+		return model.Certificate{}, err
 	}
 
 	cert, err := c.createCertificate(ctx, req, keys, user)
 	if err != nil {
-		return model.Certificate{}, httputil.InternalServerError(err)
+		return model.Certificate{}, err
 	}
 
 	return cert, nil
 }
 
-func (c *CertificateService) createCertificate(ctx context.Context, req model.CertificateRequest, keys model.SignEncoder, user model.User) (model.Certificate, error) {
-	pair, err := c.encryptKeys(ctx, keys.Encode(), req.Password, user)
+func (c *CertificateService) createCertificate(ctx context.Context, req model.CertificateRequest, keys model.KeyEncoder, user model.User) (model.Certificate, error) {
+	keyPair, err := c.encryptKeys(ctx, keys.Encode(), req.Password, user)
 	if err != nil {
 		return model.Certificate{}, err
 	}
 
-	err = c.KeyPairRepo.Save(ctx, pair)
+	cert, err := signCertificate(assembleCertificate(req, keyPair, user), keys)
 	if err != nil {
 		return model.Certificate{}, err
 	}
 
-	cert := model.Certificate{KeyPair: pair}
+	err = c.CertRepo.Save(ctx, cert)
+	if err != nil {
+		return model.Certificate{}, err
+	}
 
 	c.logNewCertificate(ctx, cert, user.ID)
 	return cert, nil
 }
 
-func (c *CertificateService) createKeys(ctx context.Context, req model.KeyRequest) (model.SignEncoder, error) {
-	keys, err := rsautil.GenerateKeys(req)
-	return keys, err
+func (c *CertificateService) createKeys(ctx context.Context, req model.KeyRequest) (model.KeyEncoder, error) {
+	switch req.Algorithm {
+	case rsautil.Algorithm:
+		return rsautil.GenerateKeys(req)
+	default:
+		err := fmt.Errorf("CertificateService: unsupported KeyRequest.Algorithm=%s", req.Algorithm)
+		return nil, httputil.BadRequestError(err)
+	}
 }
 
 func (c *CertificateService) encryptKeys(ctx context.Context, keyPair model.KeyPair, pwd string, user model.User) (model.KeyPair, error) {
@@ -117,6 +133,65 @@ func (c *CertificateService) findUser(ctx context.Context, userID string) (model
 }
 
 func (c *CertificateService) logNewCertificate(ctx context.Context, cert model.Certificate, userID string) {
-	// c.AuditLog.Create(ctx, userID, "certificate:%s", cert.ID)
+	c.AuditLog.Create(ctx, userID, "certificate:%s", cert.ID)
 	c.AuditLog.Create(ctx, userID, "key-pair:%s", cert.KeyPair.ID)
+}
+
+func signCertificate(cert model.Certificate, keys model.KeyEncoder) (model.Certificate, error) {
+	template, err := x509Template(cert)
+	if err != nil {
+		return model.Certificate{}, err
+	}
+
+	b, err := x509.CreateCertificate(rand.Reader, template, template, keys.PublicKey(), keys.PrivateKey())
+	if err != nil {
+		return model.Certificate{}, fmt.Errorf("failed to create x509 certificate: %w", err)
+	}
+
+	block := &pem.Block{Type: "CERTIFICATE", Bytes: b}
+	cert.Body = string(pem.EncodeToMemory(block))
+	return cert, nil
+}
+
+func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, user model.User) model.Certificate {
+	return model.Certificate{
+		ID:        id.New(),
+		Name:      req.Name,
+		Subject:   req.Subject,
+		KeyPair:   keyPair,
+		Format:    keyPair.Format,
+		Type:      req.Type,
+		AccountID: user.Account.ID,
+		CreatedAt: timeutil.Now(),
+	}
+}
+
+func x509Template(cert model.Certificate) (*x509.Certificate, error) {
+	now := timeutil.Now()
+	xc := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject: pkix.Name{
+			CommonName:         cert.Subject.CommonName,
+			Country:            []string{cert.Subject.Country},
+			Province:           []string{cert.Subject.State},
+			Locality:           []string{cert.Subject.Locality},
+			Organization:       []string{cert.Subject.Organization},
+			OrganizationalUnit: []string{cert.Subject.OrganizationalUnit},
+		},
+		NotBefore: now,
+		NotAfter:  now.AddDate(0, 0, 365),
+	}
+
+	switch cert.Type {
+	case model.RootCAType:
+		xc.IsCA = true
+		xc.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign
+		xc.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
+		xc.BasicConstraintsValid = true
+	default:
+		err := fmt.Errorf("unsupported certificate type: %s", cert.Type)
+		return nil, httputil.BadRequestError(err)
+	}
+
+	return xc, nil
 }

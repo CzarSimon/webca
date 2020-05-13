@@ -237,3 +237,7 @@ func TestSignUp_WeekPassword(t *testing.T) {
 	assert.NoError(err)
 	assert.False(userExists)
 }
+
+func TestSignUp_BadContentType(t *testing.T) {
+	testBadContentType(t, "/v1/signup", http.MethodPost, model.UserRole)
+}
