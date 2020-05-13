@@ -17,6 +17,9 @@ export DB_DATABASE='apiserver'
 export DB_USERNAME='apiserver'
 export DB_PASSWORD='password'
 
-export JAEGER_DISABLED='true'
+export JAEGER_SERVICE_NAME='api-server'
+export JAEGER_SAMPLER_TYPE='const'
+export JAEGER_SAMPLER_PARAM=1
+export JAEGER_REPORTER_LOG_SPANS='1'
 
 ./api-server

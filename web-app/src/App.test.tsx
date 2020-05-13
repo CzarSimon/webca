@@ -4,6 +4,8 @@ import App from './App';
 
 test('renders learn react link', () => {
   const { getByText } = render(<App />);
-  const linkElement = getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  const header = getByText(/webca.io/);
+  expect(header).toBeInTheDocument();
+  const description = getByText(/Webbased CA and certificicate manager/);
+  expect(description).toBeInTheDocument();
 });

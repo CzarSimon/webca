@@ -1,23 +1,20 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect } from 'react';
+import { initState, teardown } from './state';
 import './App.css';
+import { checkBackendHealth } from './api';
 
 function App() {
+  useEffect(() => {
+    initState();
+    checkBackendHealth();
+    return teardown
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>webca.io</h1>
+        <p>Webbased CA and certificicate manager</p>
       </header>
     </div>
   );
