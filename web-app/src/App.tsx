@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { initState, teardown } from './state';
-import './App.css';
 import { checkBackendHealth } from './api';
+
+import 'antd/dist/antd.css';
+import './App.css';
 
 function App() {
   useEffect(() => {
@@ -14,7 +17,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>webca.io</h1>
-        <p>Webbased CA and certificicate manager</p>
+        <FormattedMessage id="app.description" />
       </header>
     </div>
   );

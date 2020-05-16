@@ -3,7 +3,7 @@ module github.com/CzarSimon/webca/api-server
 go 1.13
 
 require (
-	github.com/CzarSimon/httputil v0.0.0-20200512120800-1df62de09151
+	github.com/CzarSimon/httputil v0.0.0-20200516130144-91a6f82fb7fc
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-sql-driver/mysql v1.5.0

@@ -16,6 +16,7 @@
     "antd": "^4.2.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-intl": "^4.5.4",
     "react-scripts": "3.4.1",
     "typescript": "^3.7.5",
     "uuid": "^8.0.0"
@@ -42,5 +43,9 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:7000"
+  "proxy": "http://localhost:7000",
+  "devDependencies": {
+    "@types/fetch-mock": "^7.3.2",
+    "fetch-mock": "^9.9.0"
+  }
 }

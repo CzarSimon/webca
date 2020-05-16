@@ -43,7 +43,7 @@ type User struct {
 	Credentials Credentials `json:"-"`
 	CreatedAt   time.Time   `json:"createdAt,omitempty"`
 	UpdatedAt   time.Time   `json:"updatedAt,omitempty"`
-	Account     Account
+	Account     Account     `json:"account,omitempty"`
 }
 
 // NewUser creates a new user account.

@@ -1,8 +1,8 @@
 import React from 'react';
-import { render } from '@testing-library/react';
 import App from './App';
+import { render } from './testutils';
 
-test('renders learn react link', () => {
+test('renders main app', () => {
   const { getByText } = render(<App />);
   const header = getByText(/webca.io/);
   expect(header).toBeInTheDocument();
