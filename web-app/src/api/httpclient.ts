@@ -1,6 +1,6 @@
-import { HttpClient, Fetch } from "@czarsimon/httpclient";
-import { Handlers } from "@czarsimon/remotelogger";
-import { Client } from '../types';
+import { HttpClient, Fetch, MockTransport, HTTPResponse } from "@czarsimon/httpclient";
+import { ConsoleHandler, Handlers, level } from "@czarsimon/remotelogger";
+import { Client, TypedMap } from '../types';
 
 export let httpclient = new HttpClient({});
 
@@ -25,4 +25,13 @@ export function setHeader(name: string, value: string) {
     ...headers,
     [name]: value,
   })
+}
+
+type MockResponses = TypedMap<HTTPResponse<any>>;
+
+export function mockRequests(resonses: MockResponses) {
+  httpclient = new HttpClient({
+    logHandlers: { console: new ConsoleHandler(level.DEBUG) },
+    transport: new MockTransport(resonses),
+  });
 }
