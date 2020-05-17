@@ -61,7 +61,7 @@ export function SignUp(props: Props) {
           <Input.Password size="large" placeholder={formatedMessage("signup.password-placeholder")} />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button size="large" type="primary" htmlType="submit" block>
             <FormattedMessage id="signup.button" />
           </Button>
         </Form.Item>

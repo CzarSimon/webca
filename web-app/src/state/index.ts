@@ -7,11 +7,14 @@ import {
 } from "redux";
 import thunk, { ThunkAction } from "redux-thunk";
 import logger from "redux-logger";
+import user from "./user";
 import { getClientInfo, initLogAndHttpclient } from "./initState";
 import log from "@czarsimon/remotelogger";
 import { DEV_MODE } from "../constants";
 
-const reducer = combineReducers({});
+const reducer = combineReducers({
+  user,
+});
 
 export type AppState = ReturnType<typeof reducer>;
 export type Thunk<T> = ThunkAction<T, AppState, void, AnyAction>;

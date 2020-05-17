@@ -1,3 +1,16 @@
+import { ThunkAction, ThunkDispatch } from 'redux-thunk'
+import { AnyAction } from 'redux';
+
+// Redux types.
+export type Thunk<T = void> = ThunkAction<Promise<T>, {}, {}, AnyAction>;
+export type Dispatch = ThunkDispatch<{}, {}, AnyAction>;
+
+// State types
+export interface UserState {
+  user?: User;
+  loaded: boolean;
+};
+
 // Account types
 export interface AuthenticationRequest {
   accountName: string;
