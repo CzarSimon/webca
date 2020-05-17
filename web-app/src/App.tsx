@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { initState, teardown } from './state';
+import { Provider } from "react-redux";
+import { store, initState, teardown } from './state';
 import { checkBackendHealth } from './api';
 import { SignUpContainer } from './modules/signup';
 
@@ -15,7 +16,9 @@ function App() {
 
   return (
     <div className="App">
-      <SignUpContainer />
+      <Provider store={store}>
+        <SignUpContainer />
+      </Provider>
     </div>
   );
 }
