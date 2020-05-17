@@ -3,6 +3,8 @@ import { httpclient } from './httpclient';
 import { StatusBody, TypedMap } from '../types';
 import log from "@czarsimon/remotelogger";
 
+export * from './accountApi';
+
 type HealthCheck = () => Promise<HTTPResponse<StatusBody>>
 
 const checkApiServer = async (): Promise<HTTPResponse<StatusBody>> => (
