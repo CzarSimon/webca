@@ -7,6 +7,8 @@ import { Store } from 'antd/lib/form/interface';
 import { PASSWORD_MIN_LENGTH } from '../../../constants';
 import log from '@czarsimon/remotelogger';
 
+import styles from './SignUp.module.css';
+
 interface Props {
   submit: (req: AuthenticationRequest) => void
 }
@@ -19,14 +21,12 @@ export function SignUp(props: Props) {
   };
 
   const onFinishFailed = (errorInfo: any) => {
-    log.debug(`Signup failed. Error:${JSON.stringify(errorInfo.errorFields)} `);
+    log.info(`Signup failed. Error:${JSON.stringify(errorInfo.errorFields)} `);
   };
 
-  log.info("hello");
-
   return (
-    <div>
-      <h1>
+    <div className={styles.SignUp}>
+      <h1 className={styles.SignFormTitle}>
         <FormattedMessage id="signup.title" />
       </h1>
       <Form
@@ -38,7 +38,7 @@ export function SignUp(props: Props) {
           name="accountName"
           rules={[{ required: true, message: formatedMessage("signup.accountName-required") }]}
         >
-          <Input placeholder={formatedMessage("signup.accountName-placeholder")} />
+          <Input size="large" placeholder={formatedMessage("signup.accountName-placeholder")} />
         </Form.Item>
         <Form.Item
           name="email"
@@ -48,7 +48,7 @@ export function SignUp(props: Props) {
             message: formatedMessage("signup.email-required")
           }]}
         >
-          <Input placeholder={formatedMessage("signup.email-placeholder")} />
+          <Input size="large" placeholder={formatedMessage("signup.email-placeholder")} />
         </Form.Item>
         <Form.Item
           name="password"
@@ -58,7 +58,7 @@ export function SignUp(props: Props) {
             message: formatedMessage("signup.password-required")
           }]}
         >
-          <Input.Password placeholder={formatedMessage("signup.password-placeholder")} />
+          <Input.Password size="large" placeholder={formatedMessage("signup.password-placeholder")} />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">

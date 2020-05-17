@@ -32,6 +32,15 @@ function render(ui, { locale = "en-US", ...renderOptions } = {}) {
   return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
 }
 
+export function assertNotPresent(lookupFn, regex) {
+  try {
+    lookupFn(regex);
+    fail(new Error("element was found but should not have been"));
+  } catch (error) {
+    log.error(`element should not be pressent: ${error}`);
+  }
+}
+
 // re-export everything
 export * from '@testing-library/react';
 
