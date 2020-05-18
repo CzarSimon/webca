@@ -14,6 +14,7 @@ import (
 type CertificateRepository interface {
 	Save(ctx context.Context, cert model.Certificate) error
 	FindByNameAndAccountID(ctx context.Context, name, accountID string) (model.Certificate, bool, error)
+	FindTypes(ctx context.Context) ([]model.CertificateType, error)
 }
 
 // NewCertificateRepository creates an CertificateRepository using the default implementation.
@@ -78,7 +79,7 @@ const findCertificateByNameAndAccountIDQuery = `
 		AND account_id = ?`
 
 func (r *certRepo) FindByNameAndAccountID(ctx context.Context, name, accountID string) (model.Certificate, bool, error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "key_pair_repo_find_by_account_id")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "cert_repo_find_by_name_and_account_id")
 	defer span.Finish()
 
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -145,4 +146,38 @@ func findKeyPair(ctx context.Context, tx *sql.Tx, id string) (model.KeyPair, boo
 	}
 
 	return k, true, nil
+}
+
+const findCertificateTypesQuery = `
+	SELECT 
+		name,
+		active,
+		created_at,
+		updated_at
+	FROM 
+		certificate_type
+	WHERE
+		active = 1`
+
+func (r *certRepo) FindTypes(ctx context.Context) ([]model.CertificateType, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "cert_repo_find_types")
+	defer span.Finish()
+
+	types := make([]model.CertificateType, 0)
+	rows, err := r.db.QueryContext(ctx, findCertificateTypesQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query certificate_type where active=1: %w", err)
+	}
+	defer rows.Close()
+
+	var t model.CertificateType
+	for rows.Next() {
+		err = rows.Scan(&t.Name, &t.Active, &t.CreatedAt, &t.UpdatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row for certificate_type where active=1: %w", err)
+		}
+		types = append(types, t)
+	}
+
+	return types, nil
 }

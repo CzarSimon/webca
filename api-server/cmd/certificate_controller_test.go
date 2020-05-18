@@ -282,3 +282,48 @@ func TestCreateCertificate_UnauthorizedAndForbidden(t *testing.T) {
 		jwt.AnonymousRole,
 	})
 }
+
+func TestGetCertificateOptions(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	account := model.NewAccount("test-account")
+	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
+
+	req := createTestRequest("/v1/certificate-options", http.MethodGet, user.JWTUser(), nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var rBody model.CertificateOptions
+	err := json.NewDecoder(res.Result().Body).Decode(&rBody)
+	assert.NoError(err)
+
+	assert.Len(rBody.Algorithms, 1)
+	assert.Equal(rBody.Algorithms[0], rsautil.Algorithm)
+	assert.Len(rBody.Formats, 1)
+	assert.Equal(rBody.Formats[0], "PEM")
+
+	assert.Len(rBody.Types, 3)
+	tm := make(map[string]model.CertificateType)
+	for _, t := range rBody.Types {
+		tm[t.Name] = t
+	}
+
+	for _, name := range []string{model.RootCAType, model.IntermediateCAType, model.UserCertificateType} {
+		t, ok := tm[name]
+		assert.True(ok)
+		assert.True(t.Active)
+	}
+}
+
+func TestGetCertificateOptions_BadContentType(t *testing.T) {
+	testBadContentType(t, "/v1/certificate-options", http.MethodGet, model.UserRole)
+}
+
+func TestGetCertificateTypes_UnauthorizedAndForbidden(t *testing.T) {
+	testUnauthorized(t, "/v1/certificate-options", http.MethodGet)
+	testForbidden(t, "/v1/certificate-options", http.MethodGet, []string{
+		jwt.AnonymousRole,
+	})
+}

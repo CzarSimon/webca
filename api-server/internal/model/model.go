@@ -11,9 +11,9 @@ import (
 
 // Certificate types
 const (
-	RootCAType         = "ROOT_CA"
-	IntermediateCAType = "INTERMEDIATE_CA"
-	CertificateType    = "CERTIFICATE"
+	RootCAType          = "ROOT_CA"
+	IntermediateCAType  = "INTERMEDIATE_CA"
+	UserCertificateType = "CERTIFICATE"
 )
 
 // User roles
@@ -170,6 +170,25 @@ type Certificate struct {
 	SignatoryID string             `json:"signatoryId,omitempty"`
 	AccountID   string             `json:"accountId,omitempty"`
 	CreatedAt   time.Time          `json:"createdAt,omitempty"`
+}
+
+// CertificateType description of a certificate type and its status.
+type CertificateType struct {
+	Name      string    `json:"name,omitempty"`
+	Active    bool      `json:"active,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+}
+
+func (t CertificateType) String() string {
+	return fmt.Sprintf("CertificateType(name=%s, active=%t, createdAt=%v, updatedAt=%v)", t.Name, t.Active, t.CreatedAt, t.UpdatedAt)
+}
+
+// CertificateOptions options for creation of certificates.
+type CertificateOptions struct {
+	Types      []CertificateType
+	Algorithms []string
+	Formats    []string
 }
 
 // KeyPair asymmetric key pair of a public and private key, the private key is encrypted.

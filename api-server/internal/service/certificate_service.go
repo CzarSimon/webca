@@ -31,6 +31,24 @@ type CertificateService struct {
 	PasswordService *password.Service
 }
 
+// GetOptions fetches certificate creation options.
+func (c *CertificateService) GetOptions(ctx context.Context) (model.CertificateOptions, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_options")
+	defer span.Finish()
+
+	types, err := c.CertRepo.FindTypes(ctx)
+	if err != nil {
+		return model.CertificateOptions{}, err
+	}
+
+	opts := model.CertificateOptions{
+		Types:      types,
+		Algorithms: []string{rsautil.Algorithm},
+		Formats:    []string{"PEM"},
+	}
+	return opts, nil
+}
+
 // Create creates and stores a certificate and private key.
 func (c *CertificateService) Create(ctx context.Context, req model.CertificateRequest) (model.Certificate, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_create")

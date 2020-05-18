@@ -42,3 +42,17 @@ func (e *env) createCertificate(c *gin.Context) {
 
 	c.JSON(http.StatusOK, res)
 }
+
+func (e *env) getCertificateOptions(c *gin.Context) {
+	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_get_certificate_options")
+	defer span.Finish()
+
+	opts, err := e.certificateService.GetOptions(ctx)
+	if err != nil {
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, opts)
+}

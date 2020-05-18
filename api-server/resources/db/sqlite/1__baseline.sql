@@ -28,7 +28,9 @@ CREATE TABLE `user_account` (
 );
 CREATE TABLE `certificate_type` (
   `name` VARCHAR(50) NOT NULL,
+  `active` BOOLEAN NOT NULL,
   `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
   PRIMARY KEY (`name`)
 );
 CREATE TABLE `key_pair` (
@@ -74,11 +76,26 @@ CREATE TABLE `audit_log` (
   `created_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`)
 );
-INSERT INTO `certificate_type`(`name`, `created_at`)
+INSERT INTO `certificate_type`(`name`, `active`, `created_at`, `updated_at`)
 VALUES
-  ('ROOT_CA', CURRENT_TIMESTAMP),
-  ('INTERMEDIATE_CA', CURRENT_TIMESTAMP),
-  ('CERTIFICATE', CURRENT_TIMESTAMP);
+  (
+    'ROOT_CA',
+    1,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+  ),
+  (
+    'INTERMEDIATE_CA',
+    1,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+  ),
+  (
+    'CERTIFICATE',
+    1,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+  );
 INSERT INTO `role`(`name`, `created_at`)
 VALUES
   ('ADMIN', CURRENT_TIMESTAMP),
