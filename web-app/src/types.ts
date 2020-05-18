@@ -12,6 +12,11 @@ export interface UserState {
   loaded: boolean;
 };
 
+export interface CertificateState {
+  certificates: Certificate[];
+  options?: CertificateOptions;
+}
+
 // Account types
 export interface AuthenticationRequest {
   accountName: string;
@@ -36,6 +41,42 @@ export interface User {
 export interface Account {
   id: string;
   name: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Certificate types
+export interface Certificate {
+  id: string;
+  name: string;
+  body: string;
+  subject: CertificateSubject;
+  format: string;
+  type: string;
+  signatoryId: string;
+  accountId: string;
+  createdAt: string;
+};
+
+export interface CertificateSubject {
+  commonName: string;
+  country: string;
+  state: string;
+  locality: string;
+  organization: string;
+  organizationalUnit: string;
+  email: string;
+};
+
+export interface CertificateOptions {
+  types: CertificateType[];
+  algorithms: string[];
+  formats: string[];
+};
+
+export interface CertificateType {
+  name: string;
+  active: boolean;
   createdAt: string;
   updatedAt: string;
 };

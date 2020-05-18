@@ -186,9 +186,9 @@ func (t CertificateType) String() string {
 
 // CertificateOptions options for creation of certificates.
 type CertificateOptions struct {
-	Types      []CertificateType
-	Algorithms []string
-	Formats    []string
+	Types      []CertificateType `json:"types,omitempty"`
+	Algorithms []string          `json:"algorithms,omitempty"`
+	Formats    []string          `json:"formats,omitempty"`
 }
 
 // KeyPair asymmetric key pair of a public and private key, the private key is encrypted.
