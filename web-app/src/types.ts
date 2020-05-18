@@ -4,6 +4,7 @@ import { AnyAction } from 'redux';
 // Redux types.
 export type Thunk<T = void> = ThunkAction<Promise<T>, {}, {}, AnyAction>;
 export type Dispatch = ThunkDispatch<{}, {}, AnyAction>;
+export type successCallback = (success: boolean) => void
 
 // State types
 export interface UserState {

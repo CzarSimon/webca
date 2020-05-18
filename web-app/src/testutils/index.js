@@ -2,6 +2,7 @@ import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { IntlProvider } from "react-intl";
 import { Provider } from "react-redux";
+import { BrowserRouter as Router } from 'react-router-dom';
 import { store } from '../state';
 import { messages } from "../translations";
 import log, { ConsoleHandler, level } from "@czarsimon/remotelogger";
@@ -28,7 +29,9 @@ function render(ui, { locale = "en-US", ...renderOptions } = {}) {
     return (
       <IntlProvider locale={locale} messages={messages[locale]}>
         <Provider store={store}>
-          {children}
+          <Router>
+            {children}
+          </Router>
         </Provider>
       </IntlProvider>
     );

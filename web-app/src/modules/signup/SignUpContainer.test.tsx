@@ -4,7 +4,7 @@ import { render, fireEvent, wait } from '../../testutils';
 import { mockRequests, httpclient } from '../../api/httpclient';
 import { store } from '../../state';
 
-test('signup: renders form', () => {
+test('signup: renders form', async () => {
   const user = {
     id: "a56b7c59-3b40-4d44-b264-21d4d9800f2c",
     email: "test@mail.com",
@@ -31,8 +31,7 @@ test('signup: renders form', () => {
         url: '/api/v1/signup',
       }
     }
-  })
-
+  });
 
   const r = render(<SignUpContainer />);
   const title = r.getByText(/webca.io/);
@@ -63,10 +62,11 @@ test('signup: renders form', () => {
   expect(passwordInput.value).toBe("68630b4dbe30f4a3cc62e3d69552dee2");
 
   fireEvent.click(signupButton);
-  wait(() => {
+  await wait(() => {
     const state = store.getState();
     expect(state.user.loaded).toBe(true);
     expect(state.user.user).toBe(user);
-    expect(httpclient.getHeaders()["Authentication"]).toBe("Bearer header.body.signature");
+    expect(httpclient.getHeaders()["Authorization"]).toBe("Bearer header.body.signature");
+    expect(window.location.pathname).toBe("/certificates/add");
   }, { timeout: 1 });
 });

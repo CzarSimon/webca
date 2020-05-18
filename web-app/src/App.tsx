@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Provider } from "react-redux";
 import { store, initState, teardown } from './state';
 import { checkBackendHealth } from './api';
-import { SignUpContainer } from './modules/signup';
+import { Routes } from './routes';
 
 import 'antd/dist/antd.css';
 import './App.css';
@@ -17,7 +17,7 @@ function App() {
   return (
     <div className="App">
       <Provider store={store}>
-        <SignUpContainer />
+        <Routes />
       </Provider>
     </div>
   );
