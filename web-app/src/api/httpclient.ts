@@ -9,7 +9,8 @@ export function initHttpclient(client: Client, handlers: Handlers) {
     logHandlers: handlers,
     baseHeaders: {
       "X-Client-ID": client.id,
-      "X-Session-ID": client.sessionId
+      "X-Session-ID": client.sessionId,
+      "Content-Type": "application/json",
     },
     transport: new Fetch(),
   });

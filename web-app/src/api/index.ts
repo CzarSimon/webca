@@ -4,6 +4,7 @@ import { StatusBody, TypedMap } from '../types';
 import log from "@czarsimon/remotelogger";
 
 export * from './accountApi';
+export * from './certificateApi';
 
 type HealthCheck = () => Promise<HTTPResponse<StatusBody>>
 

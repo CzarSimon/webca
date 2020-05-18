@@ -6,22 +6,20 @@ import {
   AnyAction
 } from "redux";
 import thunk, { ThunkAction } from "redux-thunk";
-import logger from "redux-logger";
+import certificates from "./certificates";
 import user from "./user";
 import { getClientInfo, initLogAndHttpclient } from "./initState";
 import log from "@czarsimon/remotelogger";
-import { DEV_MODE } from "../constants";
 
 const reducer = combineReducers({
+  certificates,
   user,
 });
 
 export type AppState = ReturnType<typeof reducer>;
 export type Thunk<T> = ThunkAction<T, AppState, void, AnyAction>;
 
-export const store = createStore(reducer, compose(
-  (DEV_MODE) ? applyMiddleware(thunk, logger) : applyMiddleware(thunk)
-));
+export const store = createStore(reducer, compose(applyMiddleware(thunk)));
 
 export function initState() {
   const client = getClientInfo();

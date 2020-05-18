@@ -1,0 +1,16 @@
+.NewCertificate {
+  width: 400px;
+}
+
+.SubjectTitle {
+  text-align: left;
+}
+
+.DropdownRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.Dropdown {
+  width: 48%;
+}
