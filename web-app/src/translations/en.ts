@@ -13,4 +13,6 @@ export const enUS: TextMap = {
   "signup.email-required": "A valid email is required",
   "signup.password-placeholder": "Password",
   "signup.password-required": `At least ${PASSWORD_MIN_LENGTH} charactes are required in password`,
+
+  "newCertificate.title": "Create new certificate",
 };
