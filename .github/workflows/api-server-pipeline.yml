@@ -6,6 +6,24 @@ on:
       - .github/workflows/api-server-pipeline.yml
 
 jobs:
+  parse-version:
+    name: parse-version
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: parse version info
+      run: |
+        NAME=$(cat package.json | jq .name --raw-output)
+        VERSION=$(cat package.json | jq .version --raw-output)
+        printf "$NAME:$VERSION" > pacakge-name.txt  
+    - name: Upload package name file
+      uses: actions/upload-artifact@v1
+      with:
+        name: pacakge-name
+        path: pacakge-name.txt 
+      working-directory: ./api-server 
+
   run-tests:
     name: run-tests
     runs-on: ubuntu-latest
@@ -23,3 +41,20 @@ jobs:
     - name: Test
       run: go test ./...
       working-directory: ./api-server
+
+  build-image:
+    name: build-image
+    needs:
+      - parse-version
+      - run-tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Download package name file
+      uses: actions/download-artifact@v1
+      with:
+        name: pacakge-name
+      working-directory: ./api-server
+    - name: Echo package name
+      run: cat pacakge-name.txt
