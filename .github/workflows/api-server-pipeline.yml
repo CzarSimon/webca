@@ -54,7 +54,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Docker build
       run: |
+        echo "Package version: ${{needs.parse-version.outputs.full-package-name}}"
         IMAGE_NAME="docker.pkg.github.com/CzarSimon/webca/${{needs.parse-version.outputs.full-package-name}}"
-        docker build -t $IMAGE_NAME .
-        docker push $IMAGE_NAME
+        echo $IMAGE_NAME
       working-directory: ./api-server

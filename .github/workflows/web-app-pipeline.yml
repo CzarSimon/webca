@@ -44,3 +44,19 @@ jobs:
     - name: Test
       run: npm test
       working-directory: ./web-app
+
+  build-image:
+    name: build-image
+    needs:
+      - parse-version
+      - run-tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Docker build
+      run: |
+        echo "Package version: ${{needs.parse-version.outputs.full-package-name}}"
+        IMAGE_NAME="docker.pkg.github.com/CzarSimon/webca/${{needs.parse-version.outputs.full-package-name}}"
+        echo $IMAGE_NAME
+      working-directory: ./web-app
