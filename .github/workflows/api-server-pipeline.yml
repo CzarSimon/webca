@@ -10,8 +10,8 @@ jobs:
     name: parse-version
     runs-on: ubuntu-latest
     outputs:
-      package-name: ${{ steps.parse.outputs.pacakge-name }}
-      full-package-name: ${{ steps.parse.outputs.pacakge-name }}
+      package-name: ${{ steps.parse.outputs.package-name }}
+      full-package-name: ${{ steps.parse.outputs.full-package-name }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -55,6 +55,6 @@ jobs:
     - name: Docker build
       run: |
         echo "Package version: ${{needs.parse-version.outputs.full-package-name}}"
-        IMAGE_NAME="docker.pkg.github.com/CzarSimon/webca/${{needs.parse-version.outputs.full-package-name}}"
+        IMAGE_NAME="docker.pkg.github.com/czarsimon/webca/${{needs.parse-version.outputs.full-package-name}}"
         echo $IMAGE_NAME
       working-directory: ./api-server
