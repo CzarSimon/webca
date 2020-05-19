@@ -10,16 +10,19 @@ jobs:
     name: parse-version
     runs-on: ubuntu-latest
     outputs:
-      pacakge-name: ${{ steps.parse.outputs.pacakge-name }}
+      package-name: ${{ steps.parse.outputs.pacakge-name }}
+      full-package-name: ${{ steps.parse.outputs.pacakge-name }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
     - id: parse
-      name: parse version info
+      name: Parse version info
       run: |
         NAME=$(cat package.json | jq .name --raw-output)
         VERSION=$(cat package.json | jq .version --raw-output)
-        echo "::set-output name=pacakge-name::$NAME:$VERSION"
+        COMMIT_ID=${GITHUB_SHA:0:7}
+        echo "::set-output name=package-name::$NAME:$VERSION"
+        echo "::set-output name=full-package-name::$NAME:$VERSION-$COMMIT_ID"
       working-directory: ./api-server 
 
   run-tests:
@@ -49,7 +52,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Echo package name
+    - name: Docker build
       run: |
-        echo "Package name: ${{needs.parse-version.outputs.pacakge-name}}"
+        IMAGE_NAME="docker.pkg.github.com/CzarSimon/webca/${{needs.parse-version.outputs.pacakge-name}}"
+        docker build -t $IMAGE_NAME .
+        docker push $IMAGE_NAME
       working-directory: ./api-server
