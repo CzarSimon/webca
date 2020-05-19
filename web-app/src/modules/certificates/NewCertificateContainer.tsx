@@ -12,8 +12,6 @@ export function NewCertificateContainer() {
     dispatch(getCertificatesOptions());
   }, [dispatch]);
 
-  console.log(options);
-
   return options ?
     <NewCertificate options={options} /> :
     <NewCertificateSkeleton />;

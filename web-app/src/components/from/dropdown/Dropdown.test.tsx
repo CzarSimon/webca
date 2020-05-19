@@ -13,11 +13,16 @@ test('dropdown', async () => {
 
   const r = render(<Dropdown {...props} />);
 
-  const dropdown = r.getByText(/ph/);
-  expect(dropdown).toBeInTheDocument();
+  const select = r.getByText(/ph/);
+  expect(select).toBeInTheDocument();
 
   expect(r.queryByText(/Value 1/)).toBeFalsy();
   expect(r.queryByText(/Value 2/)).toBeFalsy();
+
+  fireEvent.mouseDown(select);
+
+  expect(r.queryByText(/Value 1/)).toBeTruthy();
+  expect(r.queryByText(/Value 2/)).toBeTruthy();
 });
 
 test('dropdown: one value', async () => {
