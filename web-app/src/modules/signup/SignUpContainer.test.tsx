@@ -1,8 +1,9 @@
 import React from 'react';
 import { SignUpContainer } from './SignUpContainer';
-import { render, fireEvent, wait } from '../../testutils';
+import { render, fireEvent, wait, act } from '../../testutils';
 import { mockRequests, httpclient } from '../../api/httpclient';
 import { store } from '../../state';
+import { removeUser } from '../../state/user/actions';
 
 test('signup: renders form', async () => {
   const user = {
@@ -69,4 +70,39 @@ test('signup: renders form', async () => {
     expect(httpclient.getHeaders()["Authorization"]).toBe("Bearer header.body.signature");
     expect(window.location.pathname).toBe("/certificates/add");
   }, { timeout: 1 });
+});
+
+test('signup: test required fields', async () => {
+  store.dispatch(removeUser());
+
+  let r: ReturnType<typeof render>;
+  await act(async () => {
+    r = render(<SignUpContainer />);
+  });
+
+  await wait(() => {
+    const title = r.getByText(/webca.io/);
+    expect(title).toBeInTheDocument();
+
+    // Check that required warning texts ARE NOT displayed.
+    expect(r.queryByText(/Please provide an account name/)).toBeFalsy();
+    expect(r.queryByText(/A valid email is required/)).toBeFalsy();
+    expect(r.queryByText(/At least 16 charactes are required in password/)).toBeFalsy();
+  }, { timeout: 1000 });
+
+  await wait(() => {
+    const signupButton = r.getByText(/Sign Up/);
+    expect(signupButton).toBeInTheDocument();
+    fireEvent.click(signupButton);
+
+    // Check that required warning texts ARE displayed.
+    expect(r.queryByText(/Please provide an account name/)).toBeTruthy();
+    expect(r.queryByText(/A valid email is required/)).toBeTruthy();
+    expect(r.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
+  }, { timeout: 1000 });
+
+
+  const state = store.getState();
+  expect(state.user.loaded).toBe(false);
+  expect(state.user.user).toBeUndefined();
 });

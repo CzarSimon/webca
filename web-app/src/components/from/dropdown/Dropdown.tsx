@@ -2,6 +2,8 @@ import React from 'react';
 import { Select } from 'antd';
 import { SelectOption, Sizes } from '../types';
 
+const { Option } = Select;
+
 export interface Props {
   size?: Sizes;
   placeholder?: string;
@@ -23,9 +25,9 @@ export function Dropdown({ placeholder, options, onSelect, size = "middle" }: Pr
       onSelect={onSelect}
     >
       {options.map(opt => (
-        <Select.Option key={opt.id} value={opt.id}>
+        <Option key={opt.id} value={opt.id}>
           {opt.text}
-        </Select.Option>
+        </Option>
       ))}
     </Select>
   );

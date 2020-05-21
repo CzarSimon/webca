@@ -1,6 +1,6 @@
 import React from 'react';
 import { NewCertificateContainer } from './NewCertificateContainer';
-import { render, wait, fireEvent } from '../../testutils';
+import { render, wait, fireEvent, act } from '../../testutils';
 import { mockRequests } from '../../api/httpclient';
 import { store } from '../../state';
 import { CertificateOptions } from '../../types';
@@ -80,6 +80,51 @@ test('new certificate: renders form', async () => {
     expect(r.queryByText(/Intermediate CA/)).toBeTruthy();
 
   }, { timeout: 1000 })
+});
+
+test('new certificate: test required fields', async () => {
+  mockRequests({
+    "/api/v1/certificate-options": {
+      body: opts,
+      metadata: {
+        method: "GET",
+        requestId: "signup-request-id",
+        status: 200,
+        url: '/api/v1/certificate-options',
+      }
+    }
+  });
+
+  let r: ReturnType<typeof render>;
+  await act(async () => {
+    r = render(<NewCertificateContainer />);
+  });
+
+  await wait(() => {
+    expect(r.getByText(/Create new certificate/)).toBeInTheDocument();
+
+    // Check that required warning texts ARE NOT displayed.
+    expect(r.queryByText(/Certificate name is required/)).toBeFalsy();
+    expect(r.queryByText(/Certificate type is required/)).toBeFalsy();
+    expect(r.queryByText(/Signature algorithm is required/)).toBeFalsy();
+    expect(r.queryByText(/Subject common name is required/)).toBeFalsy();
+    expect(r.queryByText(/At least 16 charactes are required in password/)).toBeFalsy();
+
+  }, { timeout: 1000 });
+
+  await wait(() => {
+    const createButton = r.getByText(/Create certificate/);
+    expect(createButton).toBeInTheDocument();
+
+    fireEvent.click(createButton);
+
+    // Check that required warning texts ARE displayed.
+    expect(r.queryByText(/Certificate name is required/)).toBeTruthy();
+    expect(r.queryByText(/Certificate type is required/)).toBeTruthy();
+    expect(r.queryByText(/Subject common name is required/)).toBeTruthy();
+    expect(r.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
+
+  }, { timeout: 1000 });
 });
 
 test('new certificate: no data', async () => {

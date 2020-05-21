@@ -4,6 +4,7 @@ import log from '@czarsimon/remotelogger';
 import { Store } from 'antd/lib/form/interface';
 import { Form, Input, Button } from 'antd';
 import { useFormatedMessage } from '../../../translations';
+import { useFormSelect } from '../../../state/hooks';
 import { Dropdown } from '../../../components/from';
 import { CertificateOptions, CertificateRequest } from '../../../types';
 import { PASSWORD_MIN_LENGTH } from '../../../constants';
@@ -16,7 +17,9 @@ interface Props {
 }
 
 export function NewCertificate({ options }: Props) {
+  const { form, onSelect } = useFormSelect();
   const formatedMessage = useFormatedMessage();
+
   const typeOptions = options.types.map(t => ({
     id: t.name,
     text: formatedMessage(`certificate.type-${t.name}`),
@@ -40,7 +43,7 @@ export function NewCertificate({ options }: Props) {
       <h1>
         <FormattedMessage id="newCertificate.title" />
       </h1>
-      <Form onFinish={onFinish} onFinishFailed={onFinishFailed}>
+      <Form form={form} onFinish={onFinish} onFinishFailed={onFinishFailed}>
         <Form.Item
           name="name"
           rules={[{ required: true, message: formatedMessage("newCertificate.name-required") }]}
@@ -51,23 +54,25 @@ export function NewCertificate({ options }: Props) {
           <Form.Item
             className={styles.Dropdown}
             name="type"
-          // rules={[{ required: true, message: formatedMessage("newCertificate.type-required") }]}
+            rules={[{ required: true, message: formatedMessage("newCertificate.type-required") }]}
           >
             <Dropdown
               size="large"
               placeholder={formatedMessage("newCertificate.type-placeholder")}
               options={typeOptions}
+              onSelect={onSelect("type")}
             />
           </Form.Item>
           <Form.Item
             className={styles.Dropdown}
             name="algorithm"
-          // rules={[{ required: true, message: formatedMessage("newCertificate.algorithm-required") }]}
+            rules={[{ required: true, message: formatedMessage("newCertificate.algorithm-required") }]}
           >
             <Dropdown
               size="large"
               placeholder={formatedMessage("newCertificate.algorithm-placeholder")}
               options={algoOptions}
+              onSelect={onSelect("algorithm")}
             />
           </Form.Item>
         </div>
@@ -96,6 +101,6 @@ export function NewCertificate({ options }: Props) {
           </Button>
         </Form.Item>
       </Form>
-    </div>
+    </div >
   );
 }
