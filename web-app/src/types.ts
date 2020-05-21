@@ -60,12 +60,12 @@ export interface Certificate {
 
 export interface CertificateSubject {
   commonName: string;
-  country: string;
-  state: string;
-  locality: string;
-  organization: string;
-  organizationalUnit: string;
-  email: string;
+  country?: string;
+  state?: string;
+  locality?: string;
+  organization?: string;
+  organizationalUnit?: string;
+  email?: string;
 };
 
 export interface CertificateOptions {
@@ -79,6 +79,16 @@ export interface CertificateType {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+};
+
+export interface CertificateRequest {
+  name: string;
+  subject: CertificateSubject;
+  type: string;
+  algorithm: string;
+  signatoryId?: string;
+  password: string;
+  options: TypedMap<any>;
 };
 
 // Utility types

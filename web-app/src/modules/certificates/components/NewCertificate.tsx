@@ -5,12 +5,14 @@ import { Store } from 'antd/lib/form/interface';
 import { Form, Input, Button } from 'antd';
 import { useFormatedMessage } from '../../../translations';
 import { Dropdown } from '../../../components/from';
-import { CertificateOptions } from '../../../types';
+import { CertificateOptions, CertificateRequest } from '../../../types';
+import { PASSWORD_MIN_LENGTH } from '../../../constants';
 
 import styles from './NewCertificate.module.css';
 
 interface Props {
   options: CertificateOptions;
+  submit: (req: CertificateRequest) => void;
 }
 
 export function NewCertificate({ options }: Props) {
@@ -26,7 +28,7 @@ export function NewCertificate({ options }: Props) {
   }));
 
   const onFinish = (res: Store) => {
-    log.info(res);
+    log.info(JSON.stringify(res));
   };
 
   const onFinishFailed = (errorInfo: any) => {
@@ -49,7 +51,7 @@ export function NewCertificate({ options }: Props) {
           <Form.Item
             className={styles.Dropdown}
             name="type"
-            rules={[{ required: true, message: formatedMessage("newCertificate.type-required") }]}
+          // rules={[{ required: true, message: formatedMessage("newCertificate.type-required") }]}
           >
             <Dropdown
               size="large"
@@ -59,8 +61,8 @@ export function NewCertificate({ options }: Props) {
           </Form.Item>
           <Form.Item
             className={styles.Dropdown}
-            name="type"
-            rules={[{ required: true, message: formatedMessage("newCertificate.algorithm-required") }]}
+            name="algorithm"
+          // rules={[{ required: true, message: formatedMessage("newCertificate.algorithm-required") }]}
           >
             <Dropdown
               size="large"
@@ -77,6 +79,16 @@ export function NewCertificate({ options }: Props) {
           rules={[{ required: true, message: formatedMessage("newCertificate.subject.commonName-required") }]}
         >
           <Input size="large" placeholder={formatedMessage("newCertificate.subject.commonName-placeholder")} />
+        </Form.Item>
+        <Form.Item
+          name="password"
+          rules={[{
+            required: true,
+            min: PASSWORD_MIN_LENGTH,
+            message: formatedMessage("newCertificate.password-required")
+          }]}
+        >
+          <Input.Password size="large" placeholder={formatedMessage("newCertificate.password-placeholder")} />
         </Form.Item>
         <Form.Item>
           <Button size="large" type="primary" htmlType="submit" block>

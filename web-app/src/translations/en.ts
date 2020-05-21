@@ -25,6 +25,8 @@ export const enUS: TextMap = {
   "newCertificate.subject.commonName-placeholder": "Common name",
   "newCertificate.subject.commonName-required": "Subject common name is required",
   "newCertificate.button": "Create certificate",
+  "newCertificate.password-placeholder": "Private key password",
+  "newCertificate.password-required": `At least ${PASSWORD_MIN_LENGTH} charactes are required in password`,
 
   "certificate.type-ROOT_CA": "Root CA",
   "certificate.type-INTERMEDIATE_CA": "Intermediate CA",

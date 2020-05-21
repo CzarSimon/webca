@@ -1,6 +1,6 @@
 import React from 'react';
 import { NewCertificateContainer } from './NewCertificateContainer';
-import { render, wait } from '../../testutils';
+import { render, wait, fireEvent } from '../../testutils';
 import { mockRequests } from '../../api/httpclient';
 import { store } from '../../state';
 import { CertificateOptions } from '../../types';
@@ -66,8 +66,19 @@ test('new certificate: renders form', async () => {
     const typeDropdown = r.getByText(/Certificate type/);
     expect(typeDropdown).toBeInTheDocument();
 
+    expect(r.queryByText(/Root CA/)).toBeFalsy();
+    expect(r.queryByText(/Intermediate CA/)).toBeFalsy();
+
     const algoDropdown = r.getByText(/RSA/);
     expect(algoDropdown).toBeInTheDocument();
+
+    const passwordInput = r.getByPlaceholderText(/Private key password/);
+    expect(passwordInput).toBeInTheDocument();
+
+    fireEvent.mouseDown(typeDropdown);
+    expect(r.queryByText(/Root CA/)).toBeTruthy();
+    expect(r.queryByText(/Intermediate CA/)).toBeTruthy();
+
   }, { timeout: 1000 })
 });
 

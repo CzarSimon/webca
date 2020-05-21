@@ -55,5 +55,7 @@
     ]
   },
   "proxy": "http://localhost:7000",
-  "devDependencies": {}
+  "devDependencies": {
+    "react-select-event": "^4.1.4"
+  }
 }
