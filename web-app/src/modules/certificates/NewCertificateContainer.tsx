@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import { NewCertificate } from './components/NewCertificate';
-import { getCertificatesOptions } from '../../state/certificates';
+import { getCertificatesOptions, createCertificate } from '../../state/certificates';
 import { useCertificateOptions } from '../../state/hooks';
 import { NewCertificateSkeleton } from './components/NewCertificateSkeleton';
 import { CertificateRequest } from '../../types';
-import log from '@czarsimon/remotelogger';
 
 export function NewCertificateContainer() {
   const dispatch = useDispatch();
@@ -14,11 +14,18 @@ export function NewCertificateContainer() {
     dispatch(getCertificatesOptions());
   }, [dispatch]);
 
+  const history = useHistory();
+  const onCreateSuccess = (success: boolean, id?: string) => {
+    if (success) {
+      history.push(`/certificates/${id}`);
+    }
+  };
+
   const onRequest = (req: CertificateRequest) => {
-    log.info(`CertificateRequest: ${JSON.stringify(req)}`)
-  }
+    dispatch(createCertificate(req, onCreateSuccess));
+  };
 
   return options ?
     <NewCertificate options={options} submit={onRequest} /> :
     <NewCertificateSkeleton />;
-}
+};

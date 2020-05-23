@@ -1,9 +1,11 @@
-import { Thunk, AuthenticationRequest, Dispatch, Optional, successCallback } from "../../types";
+import { Thunk, AuthenticationRequest, Dispatch, Optional, successCallback, AuthenticationResponse } from "../../types";
 import { signupUser } from "../../api";
 import { ResponseMetadata } from "@czarsimon/httpclient";
 import log from '@czarsimon/remotelogger';
 import { setToken } from "../../api/httpclient";
 import { addUser } from "./actions";
+import { logError } from "../../utils/apiutil";
+import { USER_ID_KEY, AUTH_TOKEN_KEY } from "../../constants";
 
 export function signUp(req: AuthenticationRequest, callback: successCallback): Thunk {
   return async (dispatch: Dispatch): Promise<void> => {
@@ -13,19 +15,23 @@ export function signUp(req: AuthenticationRequest, callback: successCallback): T
       callback(false);
       return;
     }
+
     log.debug(`Successfully created new user for account: ${req.accountName}`);
-    setToken(body.token);
+    storeAuthResponse(body);
     dispatch(addUser(body.user));
     callback(true);
   };
+};
+
+function storeAuthResponse(auth: AuthenticationResponse) {
+  const { token, user } = auth;
+
+  setToken(token);
+  sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+  sessionStorage.setItem(USER_ID_KEY, user.id);
 };
 
 function handleSignupError(req: AuthenticationRequest, error: Optional<Error>, metadata: ResponseMetadata) {
   logError(`Failed to create user/account. accountName=${req.accountName}`, error, metadata);
 };
 
-function logError(messge: string, error: Optional<Error>, metadata: ResponseMetadata) {
-  const { requestId, status } = metadata;
-  const errorDescription = error ? `error=[${error}]` : `error=[undefined]`;
-  log.error(`${messge} Error(${errorDescription}, requestId=${requestId}): Status: ${status}`);
-}
