@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dropdown } from './Dropdown';
-import { render, fireEvent, act, wait } from '@testing-library/react';
+import { render, fireEvent, act } from '@testing-library/react';
 import selectEvent from 'react-select-event';
 
 test('dropdown', async () => {

@@ -44,42 +44,49 @@ test('new certificate: renders form', async () => {
     }
   });
 
-  const r = render(<NewCertificateContainer />);
+  let r: ReturnType<typeof render>;
+  await act(async () => {
+    r = render(<NewCertificateContainer />);
+  });
 
   await wait(() => {
     const state = store.getState();
     expect(state.certificates.options).toBe(opts);
 
     expect(r.getByText(/Create new certificate/)).toBeInTheDocument();
+  }, { timeout: 1000 });
 
-    const nameInput = r.getByPlaceholderText(/Name/);
-    expect(nameInput).toBeInTheDocument();
+  const nameInput = r.getByPlaceholderText(/Name/);
+  expect(nameInput).toBeInTheDocument();
+  expect(nameInput.value).toBe("");
+  fireEvent.change(nameInput, { target: { value: "test-root-ca" } });
+  expect(nameInput.value).toBe("test-root-ca");
 
-    expect(r.getByText(/Subject/)).toBeInTheDocument();
+  expect(r.getByText(/Subject/)).toBeInTheDocument();
 
-    const commonNameInput = r.getByPlaceholderText(/Common name/);
-    expect(commonNameInput).toBeInTheDocument();
+  const commonNameInput = r.getByPlaceholderText(/Common name/);
+  expect(commonNameInput).toBeInTheDocument();
+  expect(commonNameInput.value).toBe("");
+  fireEvent.change(commonNameInput, { target: { value: "test-root-ca" } });
+  expect(commonNameInput.value).toBe("test-root-ca");
 
-    const createButton = r.getByText(/Create certificate/);
-    expect(createButton).toBeInTheDocument();
+  const algoDropdown = r.getByText(/RSA/);
+  expect(algoDropdown).toBeInTheDocument();
 
-    const typeDropdown = r.getByText(/Certificate type/);
-    expect(typeDropdown).toBeInTheDocument();
+  const passwordInput = r.getByPlaceholderText(/Private key password/);
+  expect(passwordInput).toBeInTheDocument();
+  expect(passwordInput.value).toBe("");
+  fireEvent.change(passwordInput, { target: { value: "super-secret-password" } });
+  expect(passwordInput.value).toBe("super-secret-password");
 
-    expect(r.queryByText(/Root CA/)).toBeFalsy();
-    expect(r.queryByText(/Intermediate CA/)).toBeFalsy();
+  const typeDropdown = r.getByText(/Certificate type/);
+  expect(typeDropdown).toBeInTheDocument();
+  fireEvent.mouseDown(typeDropdown);
+  expect(r.queryByText(/Root CA/)).toBeTruthy();
+  expect(r.queryByText(/Intermediate CA/)).toBeTruthy();
 
-    const algoDropdown = r.getByText(/RSA/);
-    expect(algoDropdown).toBeInTheDocument();
-
-    const passwordInput = r.getByPlaceholderText(/Private key password/);
-    expect(passwordInput).toBeInTheDocument();
-
-    fireEvent.mouseDown(typeDropdown);
-    expect(r.queryByText(/Root CA/)).toBeTruthy();
-    expect(r.queryByText(/Intermediate CA/)).toBeTruthy();
-
-  }, { timeout: 1000 })
+  const createButton = r.getByText(/Create certificate/);
+  expect(createButton).toBeInTheDocument();
 });
 
 test('new certificate: test required fields', async () => {

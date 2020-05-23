@@ -14,6 +14,7 @@ export interface UserState {
 
 export interface CertificateState {
   certificates: Certificate[];
+  selected?: Certificate;
   options?: CertificateOptions;
 }
 
@@ -53,7 +54,7 @@ export interface Certificate {
   subject: CertificateSubject;
   format: string;
   type: string;
-  signatoryId: string;
+  signatoryId?: string;
   accountId: string;
   createdAt: string;
 };

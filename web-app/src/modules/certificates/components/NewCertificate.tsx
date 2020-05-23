@@ -8,6 +8,7 @@ import { useFormSelect } from '../../../state/hooks';
 import { Dropdown } from '../../../components/from';
 import { CertificateOptions, CertificateRequest } from '../../../types';
 import { PASSWORD_MIN_LENGTH } from '../../../constants';
+import { suggestKeySize } from '../../../utils/rsautil';
 
 import styles from './NewCertificate.module.css';
 
@@ -16,7 +17,7 @@ interface Props {
   submit: (req: CertificateRequest) => void;
 }
 
-export function NewCertificate({ options }: Props) {
+export function NewCertificate({ options, submit }: Props) {
   const { form, onSelect } = useFormSelect();
   const formatedMessage = useFormatedMessage();
 
@@ -30,8 +31,19 @@ export function NewCertificate({ options }: Props) {
     text: formatedMessage(`certificate.algorithm-${a}`),
   }));
 
-  const onFinish = (res: Store) => {
-    log.info(JSON.stringify(res));
+  const onFinish = ({ name, type, algorithm, commonName, password }: Store) => {
+    submit({
+      name,
+      type,
+      algorithm,
+      password,
+      subject: {
+        commonName
+      },
+      options: {
+        keySize: suggestKeySize(type),
+      }
+    });
   };
 
   const onFinishFailed = (errorInfo: any) => {
