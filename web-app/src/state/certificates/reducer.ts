@@ -1,4 +1,4 @@
-import { ActionType, createReducer } from "typesafe-actions";
+import { ActionType, createReducer, getType, PayloadAction } from "typesafe-actions";
 import { CertificateState, Certificate, CertificateOptions } from "../../types";
 import * as actions from "./actions";
 
@@ -11,10 +11,23 @@ const initalState: CertificateState = {
 };
 
 const reducer = createReducer<CertificateState, CertificateAction>(initalState)
-  .handleAction(actions.selectCertificate, (state, action) => selectCertificate(state, action.payload))
-  .handleAction(actions.addCertificate, (state, action) => addCertificate(state, action.payload))
+  .handleAction([
+    actions.selectCertificate,
+    actions.addCertificate
+  ], (state, action) => certificateReducer(state, action))
   .handleAction(actions.addOptions, (state, action) => addOptions(state, action.payload))
   .handleAction(actions.removeOptions, (state, _) => removeOptions(state));
+
+function certificateReducer(state: CertificateState = initalState, action: PayloadAction<string, Certificate>): CertificateState {
+  switch (action.type) {
+    case getType(actions.selectCertificate):
+      return selectCertificate(state, action.payload);
+    case getType(actions.addCertificate):
+      return addCertificate(state, action.payload);
+    default:
+      return state;
+  }
+};
 
 function addCertificate(state: CertificateState, cert: Certificate): CertificateState {
   return {
