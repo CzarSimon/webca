@@ -15,7 +15,7 @@ import (
 
 const tokenLifetime = 12 * time.Hour
 
-// AccountService service responsible for account and user business logic.
+// AccountService service responsible for account and authentication business logic.
 type AccountService struct {
 	JwtIssuer       jwt.Issuer
 	AuditLog        audit.Logger

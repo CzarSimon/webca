@@ -36,6 +36,7 @@ func newServer(e *env) *http.Server {
 	r.POST("/v1/signup", e.signup)
 	secured.POST("/v1/certificates", e.createCertificate)
 	secured.GET("/v1/certificate-options", e.getCertificateOptions)
+	secured.GET("/v1/users/:id", e.getUser)
 
 	return &http.Server{
 		Addr:    ":" + e.cfg.port,

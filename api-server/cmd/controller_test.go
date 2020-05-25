@@ -141,6 +141,10 @@ func createTestEnv() (*env, context.Context) {
 			UserRepo:        userRepo,
 			PasswordService: passwordSvc,
 		},
+		userService: &service.UserService{
+			AuditLog: auditLog,
+			UserRepo: userRepo,
+		},
 	}
 
 	return e, context.Background()

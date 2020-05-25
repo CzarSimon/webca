@@ -22,6 +22,7 @@ type env struct {
 	db                 *sql.DB
 	accountService     *service.AccountService
 	certificateService *service.CertificateService
+	userService        *service.UserService
 	traceCloser        io.Closer
 }
 
@@ -93,6 +94,10 @@ func setupEnv() *env {
 			KeyPairRepo:     repository.NewKeyPairRepository(db),
 			UserRepo:        userRepo,
 			PasswordService: passwordSvc,
+		},
+		userService: &service.UserService{
+			AuditLog: auditLog,
+			UserRepo: userRepo,
 		},
 		traceCloser: closer,
 	}
