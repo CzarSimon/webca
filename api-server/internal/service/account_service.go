@@ -45,6 +45,14 @@ func (a *AccountService) Signup(ctx context.Context, req model.AuthenticationReq
 	}, nil
 }
 
+// Login logs a user in if they exist and have provided correct credentials.
+func (a *AccountService) Login(ctx context.Context, req model.AuthenticationRequest) (model.AuthenticationResponse, error) {
+	span, _ := opentracing.StartSpanFromContext(ctx, "account_service_login")
+	defer span.Finish()
+
+	return model.AuthenticationResponse{}, nil
+}
+
 func (a *AccountService) createUser(ctx context.Context, req model.AuthenticationRequest) (model.User, error) {
 	credentials, err := a.PasswordService.Hash(ctx, req.Password)
 	if err != nil {

@@ -41,11 +41,18 @@ func TestGetUser(t *testing.T) {
 	assert.Equal(user.Role, rBody.Role)
 	assert.Equal(account.ID, rBody.Account.ID)
 	assert.Empty(rBody.Credentials)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:user:%s", user.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("READ", events[0].Activity)
+	assert.Equal(user.ID, events[0].UserID)
 }
 
 func TestGetUser_NotFound(t *testing.T) {
 	assert := assert.New(t)
-	e, _ := createTestEnv()
+	e, ctx := createTestEnv()
 	server := newServer(e)
 
 	account := model.NewAccount("test-account")
@@ -55,6 +62,11 @@ func TestGetUser_NotFound(t *testing.T) {
 	req := createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusNotFound, res.Code)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:user:%s", user.ID))
+	assert.NoError(err)
+	assert.Len(events, 0)
 }
 
 func TestGetUser_OtherUser(t *testing.T) {
@@ -99,6 +111,13 @@ func TestGetUser_OtherUser(t *testing.T) {
 	req = createTestRequest(path, http.MethodGet, userPrincipal, nil)
 	res = performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusForbidden, res.Code)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:user:%s", user.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("READ", events[0].Activity)
+	assert.Equal(adminPrincipal.ID, events[0].UserID)
 }
 
 func TestGetUser_BadContentType(t *testing.T) {

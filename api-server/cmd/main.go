@@ -34,6 +34,7 @@ func newServer(e *env) *http.Server {
 	secured := r.Group("", rbac.Secure(model.AdminRole, model.UserRole))
 
 	r.POST("/v1/signup", e.signup)
+	r.POST("/v1/login", e.login)
 	secured.POST("/v1/certificates", e.createCertificate)
 	secured.GET("/v1/certificate-options", e.getCertificateOptions)
 	secured.GET("/v1/users/:id", e.getUser)

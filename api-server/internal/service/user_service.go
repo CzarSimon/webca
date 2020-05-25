@@ -19,7 +19,7 @@ type UserService struct {
 }
 
 // GetUser retrieves users from database if exists.
-func (a *UserService) GetUser(ctx context.Context, principal jwt.User, id string) (model.User, error) {
+func (u *UserService) GetUser(ctx context.Context, principal jwt.User, id string) (model.User, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "user_service_get_user")
 	defer span.Finish()
 
@@ -28,7 +28,7 @@ func (a *UserService) GetUser(ctx context.Context, principal jwt.User, id string
 		return model.User{}, err
 	}
 
-	user, found, err := a.UserRepo.Find(ctx, id)
+	user, found, err := u.UserRepo.Find(ctx, id)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -38,6 +38,7 @@ func (a *UserService) GetUser(ctx context.Context, principal jwt.User, id string
 		return model.User{}, httputil.NotFoundError(err)
 	}
 
+	u.AuditLog.Read(ctx, principal.ID, "user:%s", id)
 	return user, nil
 }
 
