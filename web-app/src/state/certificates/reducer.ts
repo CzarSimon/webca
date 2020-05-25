@@ -1,40 +1,35 @@
-import { ActionType, createReducer, getType, PayloadAction } from "typesafe-actions";
-import { CertificateState, Certificate, CertificateOptions } from "../../types";
+import { ActionType, createReducer, PayloadAction, getType } from "typesafe-actions";
+import { CertificateState, Certificate, CertificateOptions, Page } from "../../types";
 import * as actions from "./actions";
 
 type CertificateAction = ActionType<typeof actions>;
 
 const initalState: CertificateState = {
-  certificates: [],
+  certificates: {
+    items: undefined,
+    loaded: false,
+  },
   selected: undefined,
   options: undefined,
 };
 
 const reducer = createReducer<CertificateState, CertificateAction>(initalState)
-  .handleAction([
-    actions.selectCertificate,
-    actions.addCertificate
-  ], (state, action) => certificateReducer(state, action))
+  .handleAction(actions.addCertificates, (state, action) => addCertificates(state, action.payload))
+  .handleAction(actions.selectCertificate, (state, action) => selectCertificate(state, action.payload))
   .handleAction(actions.addOptions, (state, action) => addOptions(state, action.payload))
-  .handleAction(actions.removeOptions, (state, _) => removeOptions(state));
+  .handleAction([
+    actions.removeCertificates,
+    actions.removeOptions
+  ], voidReducer);
 
-function certificateReducer(state: CertificateState = initalState, action: PayloadAction<string, Certificate>): CertificateState {
-  switch (action.type) {
-    case getType(actions.selectCertificate):
-      return selectCertificate(state, action.payload);
-    case getType(actions.addCertificate):
-      return addCertificate(state, action.payload);
-    default:
-      return state;
-  }
-};
-
-function addCertificate(state: CertificateState, cert: Certificate): CertificateState {
+function addCertificates(state: CertificateState, items: Page<Certificate>): CertificateState {
   return {
     ...state,
-    certificates: [
-      ...state.certificates, cert
-    ],
+    certificates: {
+      ...state.certificates,
+      loaded: true,
+      items,
+    }
   }
 };
 
@@ -49,6 +44,28 @@ function addOptions(state: CertificateState, options: CertificateOptions): Certi
   return {
     ...state,
     options,
+  }
+};
+
+function voidReducer(state: CertificateState, action: PayloadAction<string, void>): CertificateState {
+  switch (action.type) {
+    case getType(actions.removeCertificates):
+      return removeCertificates(state);
+    case getType(actions.removeOptions):
+      return removeOptions(state);
+    default:
+      return state;
+  }
+}
+
+function removeCertificates(state: CertificateState): CertificateState {
+  return {
+    ...state,
+    certificates: {
+      ...state.certificates,
+      items: undefined,
+      loaded: false
+    }
   }
 };
 

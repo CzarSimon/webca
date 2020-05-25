@@ -1,5 +1,5 @@
 import React from 'react';
 
-export function NewCertificateContainer() {
+export function CertificateListContainer() {
   return <div />
 };

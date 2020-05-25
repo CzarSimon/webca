@@ -13,7 +13,10 @@ export interface UserState {
 };
 
 export interface CertificateState {
-  certificates: Certificate[];
+  certificates: {
+    items?: Page<Certificate>
+    loaded: boolean,
+  };
   selected?: Certificate;
   options?: CertificateOptions;
 }
@@ -92,6 +95,8 @@ export interface CertificateRequest {
   options: TypedMap<any>;
 };
 
+export type CertificatePage = Page<Certificate>;
+
 // Utility types
 
 export type TypedMap<T> = Record<string, T>;
@@ -102,6 +107,14 @@ export type Optional<T> = (T | undefined);
 
 export interface StatusBody {
   status: string;
+}
+
+export interface Page<T> {
+  currentPage: number;
+  totalPages: number;
+  totalResults: number;
+  resultsPerPage: number;
+  results: T[];
 }
 
 // Client

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { NewCertificate, NewCertificateSkeleton } from './components/NewCertificate';
-import { getCertificatesOptions, createCertificate } from '../../state/certificates';
+import { getCertificateOptions, createCertificate } from '../../state/certificates';
 import { useCertificateOptions } from '../../state/hooks';
 import { CertificateRequest } from '../../types';
 
@@ -10,7 +10,7 @@ export function NewCertificateContainer() {
   const dispatch = useDispatch();
   const options = useCertificateOptions();
   useEffect(() => {
-    dispatch(getCertificatesOptions());
+    dispatch(getCertificateOptions());
   }, [dispatch]);
 
   const history = useHistory();

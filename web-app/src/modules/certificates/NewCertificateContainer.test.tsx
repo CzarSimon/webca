@@ -37,7 +37,7 @@ test('new certificate: renders form', async () => {
       body: opts,
       metadata: {
         method: "GET",
-        requestId: "signup-request-id",
+        requestId: "get-certificate-options-request-id",
         status: 200,
         url: '/api/v1/certificate-options',
       }
@@ -95,7 +95,7 @@ test('new certificate: test required fields', async () => {
       body: opts,
       metadata: {
         method: "GET",
-        requestId: "signup-request-id",
+        requestId: "get-certificate-options-request-id",
         status: 200,
         url: '/api/v1/certificate-options',
       }

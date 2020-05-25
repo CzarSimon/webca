@@ -1,5 +1,5 @@
 import { Thunk, AuthenticationRequest, Dispatch, Optional, successCallback, AuthenticationResponse } from "../../types";
-import { signupUser } from "../../api";
+import * as api from "../../api";
 import { ResponseMetadata } from "@czarsimon/httpclient";
 import log from '@czarsimon/remotelogger';
 import { setToken } from "../../api/httpclient";
@@ -9,9 +9,25 @@ import { USER_ID_KEY, AUTH_TOKEN_KEY } from "../../constants";
 
 export function signUp(req: AuthenticationRequest, callback: successCallback): Thunk {
   return async (dispatch: Dispatch): Promise<void> => {
-    const { body, error, metadata } = await signupUser(req);
+    const { body, error, metadata } = await api.signup(req);
     if (!body) {
       handleSignupError(req, error, metadata);
+      callback(false);
+      return;
+    }
+
+    log.debug(`Successfully created new user for account: ${req.accountName}`);
+    storeAuthResponse(body);
+    dispatch(addUser(body.user));
+    callback(true);
+  };
+};
+
+export function login(req: AuthenticationRequest, callback: successCallback): Thunk {
+  return async (dispatch: Dispatch): Promise<void> => {
+    const { body, error, metadata } = await api.login(req);
+    if (!body) {
+      handleLoginError(req, error, metadata);
       callback(false);
       return;
     }
@@ -33,5 +49,9 @@ function storeAuthResponse(auth: AuthenticationResponse) {
 
 function handleSignupError(req: AuthenticationRequest, error: Optional<Error>, metadata: ResponseMetadata) {
   logError(`Failed to create user/account. accountName=${req.accountName}`, error, metadata);
+};
+
+function handleLoginError(req: AuthenticationRequest, error: Optional<Error>, metadata: ResponseMetadata) {
+  logError(`Failed to login user. accountName=${req.accountName}`, error, metadata);
 };
 

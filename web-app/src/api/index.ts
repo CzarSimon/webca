@@ -8,11 +8,11 @@ export * from './certificateApi';
 
 type HealthCheck = () => Promise<HTTPResponse<StatusBody>>
 
-const checkApiServer = async (): Promise<HTTPResponse<StatusBody>> => (
+const checkApiServer = (): Promise<HTTPResponse<StatusBody>> => (
   httpclient.get<StatusBody>({ url: "/api/health" })
 );
 
-const checkHttplogger = async (): Promise<HTTPResponse<StatusBody>> => (
+const checkHttplogger = (): Promise<HTTPResponse<StatusBody>> => (
   httpclient.get<StatusBody>({ url: "/api/httplogger/health" })
 );
 
