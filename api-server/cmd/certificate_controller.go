@@ -66,6 +66,35 @@ func (e *env) getCertificate(c *gin.Context) {
 	c.JSON(http.StatusOK, cert)
 }
 
+func (e *env) getCertificates(c *gin.Context) {
+	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_get_certificate")
+	defer span.Finish()
+
+	accountID, err := httputil.ParseQueryValue(c, "accountId")
+	if err != nil {
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	principal, ok := httputil.GetPrincipal(c)
+	if !ok {
+		err := httputil.InternalServerError(fmt.Errorf("failed to parse prinipal from authenticated request"))
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	certs, err := e.certificateService.GetCertificates(ctx, principal, accountID)
+	if err != nil {
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, certs)
+}
+
 func (e *env) getCertificateOptions(c *gin.Context) {
 	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_get_certificate_options")
 	defer span.Finish()

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/httputil/jwt"
@@ -445,6 +446,154 @@ func TestGetCertificate_BadContentType(t *testing.T) {
 
 func TestGetCertificate_UnauthorizedAndForbidden(t *testing.T) {
 	path := fmt.Sprintf("/v1/certificates/%s", id.New())
+	testUnauthorized(t, path, http.MethodGet)
+	testForbidden(t, path, http.MethodGet, []string{
+		jwt.AnonymousRole,
+	})
+}
+
+func TestGetCertificates(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	account := model.NewAccount("test-account")
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	userRepo := repository.NewUserRepository(e.db)
+	admin := model.NewUser("admin@mail.com", model.AdminRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, admin)
+	assert.NoError(err)
+
+	user := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, user)
+	assert.NoError(err)
+
+	path := fmt.Sprintf("/v1/certificates?accountId=%s", account.ID)
+	req := createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var p model.CertificatePage
+	err = json.NewDecoder(res.Result().Body).Decode(&p)
+	assert.NoError(err)
+
+	assert.Len(p.Results, 0)
+	assert.Equal(p.TotalResults, 0)
+	assert.Equal(p.ResultsPerPage, 0)
+	assert.Equal(p.CurrentPage, 1)
+	assert.Equal(p.TotalPages, 1)
+
+	body := model.CertificateRequest{
+		Name: "cert-1",
+		Subject: model.CertificateSubject{
+			CommonName: "Cert 1",
+		},
+		Type:      "ROOT_CA",
+		Algorithm: "RSA",
+		Password:  "8e13d01c9e540a267cd2920ee749f398a66d66e2",
+		Options: map[string]interface{}{
+			"keySize": 512,
+		},
+	}
+	req = createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	body.Name = "cert-2"
+	req = createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	req = createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	err = json.NewDecoder(res.Result().Body).Decode(&p)
+	assert.NoError(err)
+
+	assert.Len(p.Results, 2)
+	assert.Equal(p.TotalResults, 2)
+	assert.Equal(p.ResultsPerPage, 2)
+	assert.Equal(p.CurrentPage, 1)
+	assert.Equal(p.TotalPages, 1)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+
+	certMap := make(map[string]model.Certificate)
+	for _, cert := range p.Results {
+		certMap[cert.Name] = cert
+	}
+
+	time.Sleep(100 * time.Millisecond)
+	for _, name := range []string{"cert-1", "cert-2"} {
+		cert, ok := certMap[name]
+		assert.True(ok)
+		assert.Equal(account.ID, cert.AccountID)
+
+		events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s", cert.ID))
+		assert.NoError(err)
+		assert.Len(events, 2)
+		assert.Equal("CREATE", events[0].Activity)
+		assert.Equal(admin.ID, events[0].UserID)
+		assert.Equal("READ", events[1].Activity)
+		assert.Equal(user.ID, events[1].UserID)
+	}
+}
+
+func TestGetCertificates_WrongAccount(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	account := model.NewAccount("test-account")
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	userRepo := repository.NewUserRepository(e.db)
+	admin := model.NewUser("admin@mail.com", model.AdminRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, admin)
+	assert.NoError(err)
+
+	wrongAccountID := id.New()
+	path := fmt.Sprintf("/v1/certificates?accountId=%s", wrongAccountID)
+	req := createTestRequest(path, http.MethodGet, admin.JWTUser(), nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusForbidden, res.Code)
+
+	principalThatDoesNotExist := jwt.User{
+		ID:    id.New(),
+		Roles: []string{model.AdminRole},
+	}
+
+	req = createTestRequest(path, http.MethodGet, principalThatDoesNotExist, nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnauthorized, res.Code)
+}
+
+func TestGetCertificates_MissingAccountID(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	account := model.NewAccount("test-account")
+	user := model.NewUser("admin@mail.com", model.AdminRole, model.Credentials{}, account)
+
+	req := createTestRequest("/v1/certificates", http.MethodGet, user.JWTUser(), nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+}
+
+func TestGetCertificates_BadContentType(t *testing.T) {
+	path := fmt.Sprintf("/v1/certificates?accountId=%s", id.New())
+	testBadContentType(t, path, http.MethodGet, model.UserRole)
+}
+
+func TestGetCertificates_UnauthorizedAndForbidden(t *testing.T) {
+	path := fmt.Sprintf("/v1/certificates?accountId=%s", id.New())
 	testUnauthorized(t, path, http.MethodGet)
 	testForbidden(t, path, http.MethodGet, []string{
 		jwt.AnonymousRole,

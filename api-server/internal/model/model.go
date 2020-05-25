@@ -208,6 +208,15 @@ func (k KeyPair) String() string {
 	return fmt.Sprintf("KeyPair(id=%s, format=%s, algorithm=%s, accountId=%s, createdAt=%v)", k.ID, k.Format, k.Algorithm, k.AccountID, k.CreatedAt)
 }
 
+// CertificatePage paginated list of certificates.
+type CertificatePage struct {
+	CurrentPage    int           `json:"currentPage,omitempty"`
+	TotalPages     int           `json:"totalPages,omitempty"`
+	TotalResults   int           `json:"totalResults,omitempty"`
+	ResultsPerPage int           `json:"resultsPerPage,omitempty"`
+	Results        []Certificate `json:"results,omitempty"`
+}
+
 // AuditEvent sensitive activity performed in the system.
 type AuditEvent struct {
 	ID        string    `json:"id,omitempty"`

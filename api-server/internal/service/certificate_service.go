@@ -47,13 +47,40 @@ func (c *CertificateService) GetCertificate(ctx context.Context, principal jwt.U
 		return model.Certificate{}, httputil.NotFoundError(err)
 	}
 
-	err = c.assertCertificateAccess(ctx, cert, principal)
+	err = c.assertAccountCertificatesAccess(ctx, cert.AccountID, principal)
 	if err != nil {
 		return model.Certificate{}, err
 	}
 
 	c.logCertificateReading(ctx, cert, principal.ID)
 	return cert, nil
+}
+
+// GetCertificates retrieves a list of certificates based on account id.
+func (c *CertificateService) GetCertificates(ctx context.Context, principal jwt.User, accountID string) (model.CertificatePage, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificates")
+	defer span.Finish()
+
+	err := c.assertAccountCertificatesAccess(ctx, accountID, principal)
+	if err != nil {
+		return model.CertificatePage{}, err
+	}
+
+	certs, err := c.CertRepo.FindByAccountID(ctx, accountID)
+	if err != nil {
+		return model.CertificatePage{}, err
+	}
+
+	go c.logCertificatesReading(ctx, certs, principal.ID)
+	rlen := len(certs)
+	return model.CertificatePage{
+
+		CurrentPage:    1,
+		TotalPages:     1,
+		TotalResults:   rlen,
+		ResultsPerPage: rlen,
+		Results:        certs,
+	}, nil
 }
 
 // GetOptions fetches certificate creation options.
@@ -161,14 +188,14 @@ func (c *CertificateService) encryptKeys(ctx context.Context, keyPair model.KeyP
 	return keyPair, nil
 }
 
-func (c *CertificateService) assertCertificateAccess(ctx context.Context, cert model.Certificate, principal jwt.User) error {
+func (c *CertificateService) assertAccountCertificatesAccess(ctx context.Context, accountID string, principal jwt.User) error {
 	user, err := c.findUser(ctx, principal.ID)
 	if err != nil {
 		return err
 	}
 
-	if user.Account.ID != cert.AccountID {
-		err = fmt.Errorf("%s is not alowed to access %s. wrong account", user, cert)
+	if user.Account.ID != accountID {
+		err = fmt.Errorf("%s is not alowed to access certificates for account(id=%s)", user, accountID)
 		return httputil.ForbiddenError(err)
 	}
 
@@ -196,6 +223,12 @@ func (c *CertificateService) logNewCertificate(ctx context.Context, cert model.C
 
 func (c *CertificateService) logCertificateReading(ctx context.Context, cert model.Certificate, userID string) {
 	c.AuditLog.Read(ctx, userID, "certificate:%s", cert.ID)
+}
+
+func (c *CertificateService) logCertificatesReading(ctx context.Context, certs []model.Certificate, userID string) {
+	for _, cert := range certs {
+		c.logCertificateReading(ctx, cert, userID)
+	}
 }
 
 func signCertificate(cert model.Certificate, keys model.KeyEncoder) (model.Certificate, error) {

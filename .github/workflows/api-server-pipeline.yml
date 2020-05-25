@@ -56,8 +56,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Docker build
       run: |
-        echo "GITHUB_REF=$GITHUB_REF v=${{needs.parse-version.outputs.version}}"
-        if [[ "$GITHUB_REF" != "refs/tags/${{needs.parse-version.outputs.version}}" ]]; then
+        echo "GITHUB_REF=$GITHUB_REF v=${{needs.parse-version.outputs.package-name}}"
+        if [[ "$GITHUB_REF" != "refs/tags/${{needs.parse-version.outputs.package-name}}" ]]; then
           echo "Skipping docker build on branch $GITHUB_REF"
           exit 0
         fi

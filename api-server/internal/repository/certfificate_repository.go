@@ -15,6 +15,7 @@ type CertificateRepository interface {
 	Save(ctx context.Context, cert model.Certificate) error
 	Find(ctx context.Context, id string) (model.Certificate, bool, error)
 	FindByNameAndAccountID(ctx context.Context, name, accountID string) (model.Certificate, bool, error)
+	FindByAccountID(ctx context.Context, accountID string) ([]model.Certificate, error)
 	FindTypes(ctx context.Context) ([]model.CertificateType, error)
 }
 
@@ -182,6 +183,46 @@ func findKeyPair(ctx context.Context, tx *sql.Tx, id string) (model.KeyPair, boo
 	}
 
 	return k, true, nil
+}
+
+const findCertificatesByAccountIDQuery = `
+	SELECT 
+		id, 
+		name,
+		body,
+		format,
+		type,
+		signatory_id,
+		account_id,
+		created_at
+	FROM 
+		certificate
+	WHERE
+		account_id = ?`
+
+func (r *certRepo) FindByAccountID(ctx context.Context, accountID string) ([]model.Certificate, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "cert_repo_find_by_account_id")
+	defer span.Finish()
+
+	certs := make([]model.Certificate, 0)
+	rows, err := r.db.QueryContext(ctx, findCertificatesByAccountIDQuery, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query certificate by accountId=%s: %w", accountID, err)
+	}
+	defer rows.Close()
+
+	var c model.Certificate
+	sigID := sql.NullString{}
+	for rows.Next() {
+		err = rows.Scan(&c.ID, &c.Name, &c.Body, &c.Format, &c.Type, &sigID, &c.AccountID, &c.CreatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row for certificate by accountId=%s: %w", accountID, err)
+		}
+		c.SignatoryID = sigID.String
+		certs = append(certs, c)
+	}
+
+	return certs, nil
 }
 
 const findCertificateTypesQuery = `
