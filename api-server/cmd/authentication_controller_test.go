@@ -212,6 +212,32 @@ func TestSignUp_SameUser_NewAccount(t *testing.T) {
 	assert.NotEqual(oldUser.Account.ID, newUser.Account.ID)
 }
 
+func TestSignUp_SameUser_SameAccount(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	existingAccount := model.NewAccount("existing-account")
+	err := accountRepo.Save(ctx, existingAccount)
+	assert.NoError(err)
+
+	existingUser := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, existingAccount)
+	userRepo := repository.NewUserRepository(e.db)
+	err = userRepo.Save(ctx, existingUser)
+	assert.NoError(err)
+
+	body := model.AuthenticationRequest{
+		AccountName: existingAccount.Name,
+		Email:       existingUser.Email,
+		Password:    "a5f3feccb16822dcfaa50c9fba91cab3",
+	}
+
+	req := createUnauthenticatedTestRequest("/v1/signup", http.MethodPost, body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusConflict, res.Code)
+}
+
 func TestSignUp_WeekPassword(t *testing.T) {
 	assert := assert.New(t)
 	e, ctx := createTestEnv()

@@ -30,6 +30,11 @@ func (a *AccountService) Signup(ctx context.Context, req model.AuthenticationReq
 	span, ctx := opentracing.StartSpanFromContext(ctx, "account_service_signup")
 	defer span.Finish()
 
+	err := a.assertNewUser(ctx, req)
+	if err != nil {
+		return model.AuthenticationResponse{}, err
+	}
+
 	user, err := a.createUser(ctx, req)
 	if err != nil {
 		return model.AuthenticationResponse{}, err
@@ -116,6 +121,20 @@ func (a *AccountService) getOrCreateAccount(ctx context.Context, name string) (m
 	}
 
 	return account, false, nil
+}
+
+func (a *AccountService) assertNewUser(ctx context.Context, req model.AuthenticationRequest) error {
+	user, found, err := a.UserRepo.FindByAccountNameAndEmail(ctx, req.AccountName, req.Email)
+	if err != nil {
+		return err
+	}
+
+	if found {
+		err = fmt.Errorf("%s already exists", user)
+		return httputil.ConflictError(err)
+	}
+
+	return nil
 }
 
 func (a *AccountService) findUser(ctx context.Context, req model.AuthenticationRequest) (model.User, error) {

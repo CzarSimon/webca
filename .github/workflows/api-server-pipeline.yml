@@ -57,7 +57,7 @@ jobs:
     - name: Docker build
       run: |
         echo "GITHUB_REF=$GITHUB_REF v=${{needs.parse-version.outputs.version}}"
-        if [[ "$GITHUB_REF" != "refs/tags/${{needs.parse-version.outputs.version}}" ]] then;
+        if [[ "$GITHUB_REF" != "refs/tags/${{needs.parse-version.outputs.version}}" ]]; then
           echo "Skipping docker build on branch $GITHUB_REF"
           exit 0
         fi
