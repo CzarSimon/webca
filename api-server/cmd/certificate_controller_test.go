@@ -327,3 +327,126 @@ func TestGetCertificateTypes_UnauthorizedAndForbidden(t *testing.T) {
 		jwt.AnonymousRole,
 	})
 }
+
+func TestGetCertificate(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	account := model.NewAccount("test-account")
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	otherAccount := model.NewAccount("other-account")
+	err = accountRepo.Save(ctx, otherAccount)
+	assert.NoError(err)
+
+	userRepo := repository.NewUserRepository(e.db)
+	admin := model.NewUser("admin@mail.com", model.AdminRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, admin)
+	assert.NoError(err)
+
+	user := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, user)
+	assert.NoError(err)
+
+	otherUser := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, otherAccount)
+	err = userRepo.Save(ctx, otherUser)
+	assert.NoError(err)
+
+	body := model.CertificateRequest{
+		Name: "test-root-ca-certificate",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "ROOT_CA",
+		Algorithm: "RSA",
+		Password:  "edcc550504ad1e531a5a008644932355",
+		Options: map[string]interface{}{
+			"keySize": 512,
+		},
+	}
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	certRepo := repository.NewCertificateRepository(e.db)
+	cert, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
+	assert.NoError(err)
+	assert.True(exists)
+
+	path := fmt.Sprintf("/v1/certificates/%s", cert.ID)
+	req = createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var rBody model.Certificate
+	err = json.NewDecoder(res.Result().Body).Decode(&rBody)
+	assert.NoError(err)
+
+	assert.Empty(rBody.KeyPair)
+	assert.NotEmpty(rBody.Body)
+	assert.Equal(cert.ID, rBody.ID)
+	assert.Equal("ROOT_CA", rBody.Type)
+	assert.Equal(account.ID, rBody.AccountID)
+	assert.Equal(body.Name, rBody.Name)
+
+	req = createTestRequest(path, http.MethodGet, admin.JWTUser(), nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s", cert.ID))
+	assert.NoError(err)
+	assert.Len(events, 3)
+	assert.Equal("CREATE", events[0].Activity)
+	assert.Equal(admin.ID, events[0].UserID)
+	assert.Equal("READ", events[1].Activity)
+	assert.Equal(user.ID, events[1].UserID)
+	assert.Equal("READ", events[2].Activity)
+	assert.Equal(admin.ID, events[2].UserID)
+
+	req = createTestRequest(path, http.MethodGet, otherUser.JWTUser(), nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusForbidden, res.Code)
+
+	principalThatDoesNotExist := jwt.User{
+		ID:    id.New(),
+		Roles: []string{model.AdminRole},
+	}
+
+	req = createTestRequest(path, http.MethodGet, principalThatDoesNotExist, nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnauthorized, res.Code)
+}
+
+func TestGetCertificate_NotFound(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	principal := jwt.User{
+		ID:    id.New(),
+		Roles: []string{model.UserRole},
+	}
+
+	path := fmt.Sprintf("/v1/certificates/%s", id.New())
+	req := createTestRequest(path, http.MethodGet, principal, nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusNotFound, res.Code)
+}
+
+func TestGetCertificate_BadContentType(t *testing.T) {
+	path := fmt.Sprintf("/v1/certificates/%s", id.New())
+	testBadContentType(t, path, http.MethodGet, model.UserRole)
+}
+
+func TestGetCertificate_UnauthorizedAndForbidden(t *testing.T) {
+	path := fmt.Sprintf("/v1/certificates/%s", id.New())
+	testUnauthorized(t, path, http.MethodGet)
+	testForbidden(t, path, http.MethodGet, []string{
+		jwt.AnonymousRole,
+	})
+}

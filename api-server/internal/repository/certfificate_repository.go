@@ -13,6 +13,7 @@ import (
 // CertificateRepository data access layer for certificates.
 type CertificateRepository interface {
 	Save(ctx context.Context, cert model.Certificate) error
+	Find(ctx context.Context, id string) (model.Certificate, bool, error)
 	FindByNameAndAccountID(ctx context.Context, name, accountID string) (model.Certificate, bool, error)
 	FindTypes(ctx context.Context) ([]model.CertificateType, error)
 }
@@ -59,6 +60,41 @@ func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 	}
 
 	return tx.Commit()
+}
+
+const findCertificateQuery = `
+	SELECT 
+		id, 
+		name,
+		body,
+		format,
+		type,
+		signatory_id,
+		account_id,
+		created_at
+	FROM 
+		certificate
+	WHERE
+		id = ?`
+
+func (r *certRepo) Find(ctx context.Context, id string) (model.Certificate, bool, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "cert_repo_find_by_name_and_account_id")
+	defer span.Finish()
+
+	var c model.Certificate
+	sigID := sql.NullString{}
+	err := r.db.QueryRowContext(ctx, findCertificateQuery, id).Scan(
+		&c.ID, &c.Name, &c.Body, &c.Format, &c.Type, &sigID, &c.AccountID, &c.CreatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return model.Certificate{}, false, nil
+	}
+	if err != nil {
+		return model.Certificate{}, false, fmt.Errorf("failed to query certificate(id=%s): %w", id, err)
+	}
+
+	c.SignatoryID = sigID.String
+	return c, true, nil
 }
 
 const findCertificateByNameAndAccountIDQuery = `

@@ -13,6 +13,7 @@ import (
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/crypto"
 	"github.com/CzarSimon/httputil/id"
+	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/audit"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/password"
@@ -29,6 +30,30 @@ type CertificateService struct {
 	KeyPairRepo     repository.KeyPairRepository
 	UserRepo        repository.UserRepository
 	PasswordService *password.Service
+}
+
+// GetCertificate retrieves certificate if it exists.
+func (c *CertificateService) GetCertificate(ctx context.Context, principal jwt.User, id string) (model.Certificate, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificate")
+	defer span.Finish()
+
+	cert, found, err := c.CertRepo.Find(ctx, id)
+	if err != nil {
+		return model.Certificate{}, err
+	}
+
+	if !found {
+		err = fmt.Errorf("certificate with id %s does not exist", id)
+		return model.Certificate{}, httputil.NotFoundError(err)
+	}
+
+	err = c.assertCertificateAccess(ctx, cert, principal)
+	if err != nil {
+		return model.Certificate{}, err
+	}
+
+	c.logCertificateReading(ctx, cert, principal.ID)
+	return cert, nil
 }
 
 // GetOptions fetches certificate creation options.
@@ -136,6 +161,20 @@ func (c *CertificateService) encryptKeys(ctx context.Context, keyPair model.KeyP
 	return keyPair, nil
 }
 
+func (c *CertificateService) assertCertificateAccess(ctx context.Context, cert model.Certificate, principal jwt.User) error {
+	user, err := c.findUser(ctx, principal.ID)
+	if err != nil {
+		return err
+	}
+
+	if user.Account.ID != cert.AccountID {
+		err = fmt.Errorf("%s is not alowed to access %s. wrong account", user, cert)
+		return httputil.ForbiddenError(err)
+	}
+
+	return nil
+}
+
 func (c *CertificateService) findUser(ctx context.Context, userID string) (model.User, error) {
 	user, exists, err := c.UserRepo.Find(ctx, userID)
 	if err != nil {
@@ -153,6 +192,10 @@ func (c *CertificateService) findUser(ctx context.Context, userID string) (model
 func (c *CertificateService) logNewCertificate(ctx context.Context, cert model.Certificate, userID string) {
 	c.AuditLog.Create(ctx, userID, "certificate:%s", cert.ID)
 	c.AuditLog.Create(ctx, userID, "key-pair:%s", cert.KeyPair.ID)
+}
+
+func (c *CertificateService) logCertificateReading(ctx context.Context, cert model.Certificate, userID string) {
+	c.AuditLog.Read(ctx, userID, "certificate:%s", cert.ID)
 }
 
 func signCertificate(cert model.Certificate, keys model.KeyEncoder) (model.Certificate, error) {
