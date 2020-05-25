@@ -56,5 +56,6 @@ jobs:
       run: |
         echo "Package version: ${{needs.parse-version.outputs.full-package-name}}"
         IMAGE_NAME="docker.pkg.github.com/czarsimon/webca/${{needs.parse-version.outputs.full-package-name}}"
-        echo $IMAGE_NAME
+        docker build -t $IMAGE_NAME .
+        docker push $IMAGE_NAMEs
       working-directory: ./api-server
