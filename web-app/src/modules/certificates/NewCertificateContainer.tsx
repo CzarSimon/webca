@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { NewCertificate } from './components/NewCertificate';
+import { NewCertificate, NewCertificateSkeleton } from './components/NewCertificate';
 import { getCertificatesOptions, createCertificate } from '../../state/certificates';
 import { useCertificateOptions } from '../../state/hooks';
-import { NewCertificateSkeleton } from './components/NewCertificateSkeleton';
 import { CertificateRequest } from '../../types';
 
 export function NewCertificateContainer() {

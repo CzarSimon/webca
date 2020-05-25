@@ -3,12 +3,12 @@ import { FormattedMessage } from 'react-intl';
 import log from '@czarsimon/remotelogger';
 import { Store } from 'antd/lib/form/interface';
 import { Form, Input, Button } from 'antd';
-import { useFormatedMessage } from '../../../translations';
-import { useFormSelect } from '../../../state/hooks';
-import { Dropdown } from '../../../components/from';
-import { CertificateOptions, CertificateRequest } from '../../../types';
-import { PASSWORD_MIN_LENGTH } from '../../../constants';
-import { suggestKeySize } from '../../../utils/rsautil';
+import { useFormatedMessage } from '../../../../translations';
+import { useFormSelect } from '../../../../state/hooks';
+import { Dropdown } from '../../../../components/from';
+import { CertificateOptions, CertificateRequest } from '../../../../types';
+import { PASSWORD_MIN_LENGTH } from '../../../../constants';
+import { suggestKeySize } from '../../../../utils/rsautil';
 
 import styles from './NewCertificate.module.css';
 
