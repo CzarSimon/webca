@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/CzarSimon/httputil"
@@ -47,10 +48,29 @@ func (a *AccountService) Signup(ctx context.Context, req model.AuthenticationReq
 
 // Login logs a user in if they exist and have provided correct credentials.
 func (a *AccountService) Login(ctx context.Context, req model.AuthenticationRequest) (model.AuthenticationResponse, error) {
-	span, _ := opentracing.StartSpanFromContext(ctx, "account_service_login")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "account_service_login")
 	defer span.Finish()
 
-	return model.AuthenticationResponse{}, nil
+	user, err := a.findUser(ctx, req)
+	if err != nil {
+		return model.AuthenticationResponse{}, err
+	}
+
+	err = a.PasswordService.Verify(ctx, user.Credentials, req.Password)
+	if err != nil {
+		return model.AuthenticationResponse{}, err
+	}
+
+	token, err := a.JwtIssuer.Issue(user.JWTUser(), tokenLifetime)
+	if err != nil {
+		return model.AuthenticationResponse{}, err
+	}
+
+	a.AuditLog.Read(ctx, user.ID, "user:%s", user.ID)
+	return model.AuthenticationResponse{
+		Token: token,
+		User:  user,
+	}, nil
 }
 
 func (a *AccountService) createUser(ctx context.Context, req model.AuthenticationRequest) (model.User, error) {
@@ -96,6 +116,20 @@ func (a *AccountService) getOrCreateAccount(ctx context.Context, name string) (m
 	}
 
 	return account, false, nil
+}
+
+func (a *AccountService) findUser(ctx context.Context, req model.AuthenticationRequest) (model.User, error) {
+	user, found, err := a.UserRepo.FindByAccountNameAndEmail(ctx, req.AccountName, req.Email)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	if !found {
+		err = fmt.Errorf("no such user found for account(name=%s)", req.AccountName)
+		return model.User{}, httputil.UnauthorizedError(err)
+	}
+
+	return user, nil
 }
 
 func (a *AccountService) logNewUser(ctx context.Context, user model.User, newAccount bool) {

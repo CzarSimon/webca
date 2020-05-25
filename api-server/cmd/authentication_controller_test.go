@@ -241,3 +241,81 @@ func TestSignUp_WeekPassword(t *testing.T) {
 func TestSignUp_BadContentType(t *testing.T) {
 	testBadContentType(t, "/v1/signup", http.MethodPost, model.UserRole)
 }
+
+func TestLogin(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	body := model.AuthenticationRequest{
+		AccountName: "test-account",
+		Email:       "mail@mail.com",
+		Password:    "a5f3feccb16822dcfaa50c9fba91cab3",
+	}
+
+	req := createUnauthenticatedTestRequest("/v1/signup", http.MethodPost, body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	req = createUnauthenticatedTestRequest("/v1/login", http.MethodPost, body)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var rBody model.AuthenticationResponse
+	err := json.NewDecoder(res.Result().Body).Decode(&rBody)
+	assert.NoError(err)
+
+	// Check JWT
+	user, err := jwt.NewVerifier(e.cfg.jwtCredentials, 0).Verify(rBody.Token)
+	assert.NoError(err)
+	assert.Equal(rBody.User.ID, user.ID)
+	assert.True(user.HasRole(model.AdminRole)) // Should be ADMIN since account was created.
+
+	// Check response body.
+	assert.Equal(model.AdminRole, rBody.User.Role)
+	assert.Equal(body.Email, rBody.User.Email)
+	assert.Equal(body.AccountName, rBody.User.Account.Name)
+	assert.Empty(rBody.User.Credentials.Password)
+	assert.Empty(rBody.User.Credentials.Salt)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:user:%s", user.ID))
+	assert.NoError(err)
+	assert.Len(events, 2)
+	assert.Equal("READ", events[1].Activity)
+	assert.Equal(user.ID, events[1].UserID)
+
+	wrong := model.AuthenticationRequest{
+		AccountName: "test-account",
+		Email:       "mail@mail.com",
+		Password:    "this-is-the-wrong-password",
+	}
+
+	req = createUnauthenticatedTestRequest("/v1/login", http.MethodPost, wrong)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnauthorized, res.Code)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:user:%s", user.ID))
+	assert.NoError(err)
+	assert.Len(events, 2)
+}
+
+func TestLogin_NoSuchUser(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	body := model.AuthenticationRequest{
+		AccountName: "test-account",
+		Email:       "mail@mail.com",
+		Password:    "a5f3feccb16822dcfaa50c9fba91cab3",
+	}
+
+	req := createUnauthenticatedTestRequest("/v1/login", http.MethodPost, body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnauthorized, res.Code)
+}
+
+func TestLogin_BadContentType(t *testing.T) {
+	testBadContentType(t, "/v1/login", http.MethodPost, model.UserRole)
+}
