@@ -1,10 +1,10 @@
 import React from 'react';
-import { NewCertificateContainer } from './NewCertificateContainer';
-import { render, wait, fireEvent, act } from '../../testutils';
-import { mockRequests } from '../../api/httpclient';
-import { store } from '../../state';
+import { act, fireEvent, render, wait } from '../../testutils';
 import { CertificateOptions } from '../../types';
+import { NewCertificateContainer } from './NewCertificateContainer';
+import { mockRequests } from '../../api/httpclient';
 import { removeOptions } from '../../state/certificates';
+import { store } from '../../state';
 
 const opts: CertificateOptions = {
   types: [

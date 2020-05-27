@@ -1,16 +1,15 @@
 import React from 'react';
-import { FormattedMessage } from 'react-intl';
-import log from '@czarsimon/remotelogger';
-import { Store } from 'antd/lib/form/interface';
-import { Form, Input, Button } from 'antd';
-import { useFormatedMessage } from '../../../../translations';
-import { useFormSelect } from '../../../../state/hooks';
-import { Dropdown } from '../../../../components/from';
+import { Button, Form, Input } from 'antd';
 import { CertificateOptions, CertificateRequest } from '../../../../types';
+import { Dropdown } from '../../../../components/from';
+import { FormattedMessage } from 'react-intl';
 import { PASSWORD_MIN_LENGTH } from '../../../../constants';
-import { suggestKeySize } from '../../../../utils/rsautil';
-
+import { Store } from 'antd/lib/form/interface';
+import log from '@czarsimon/remotelogger';
 import styles from './NewCertificate.module.css';
+import { suggestKeySize } from '../../../../utils/rsautil';
+import { useFormSelect } from '../../../../state/hooks';
+import { useFormatedMessage } from '../../../../translations';
 
 interface Props {
   options: CertificateOptions;

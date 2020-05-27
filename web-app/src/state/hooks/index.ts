@@ -1,7 +1,9 @@
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { CertificateOptions, Optional, CertificateState } from '../../types';
 import { AppState } from '..';
 import Form, { FormInstance } from 'antd/lib/form';
+import { useEffect } from 'react';
+import { getCertificateOptions } from '../certificates';
 
 export const useCertificateOptions = (): Optional<CertificateOptions> => useSelector(certificatesSelector).options;
 
@@ -22,4 +24,14 @@ export function useFormSelect(): UseFormSelectHook {
     form,
     onSelect,
   };
+}
+
+export function useFetchCertificateOptions(): Optional<CertificateOptions> {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getCertificateOptions());
+  }, []);
+
+  return useCertificateOptions();
 }

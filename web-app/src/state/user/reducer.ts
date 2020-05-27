@@ -11,7 +11,7 @@ const initalState: UserState = {
 
 const reducer = createReducer<UserState, UserAction>(initalState)
   .handleAction(actions.addUser, (state, action) => addUser(state, action.payload))
-  .handleAction(actions.removeUser, (state, _) => removeUser(state));
+  .handleAction(actions.removeUser, (state) => removeUser(state));
 
 function addUser(state: UserState, user: User): UserState {
   return {

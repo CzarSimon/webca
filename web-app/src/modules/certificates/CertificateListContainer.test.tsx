@@ -1,6 +1,6 @@
 import React from 'react';
 import { CertificateListContainer } from './CertificateListContainer';
-import { render, wait, fireEvent, act } from '../../testutils';
+import { render, act } from '../../testutils';
 import { mockRequests } from '../../api/httpclient';
 import { store } from '../../state';
 import { CertificatePage, User } from '../../types';
@@ -68,8 +68,8 @@ test('new certificate: renders form', async () => {
     },
   });
 
-  let r: ReturnType<typeof render>;
+  // let r: ReturnType<typeof render>;
   await act(async () => {
-    r = render(<CertificateListContainer />);
+    render(<CertificateListContainer />);
   });
 });

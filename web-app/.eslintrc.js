@@ -12,6 +12,7 @@ module.exports = {
       version: 'detect',
     },
   },
+  plugins: ['unused-imports'],
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',
@@ -26,6 +27,9 @@ module.exports = {
     semi: ['error', 'always'],
     indent: ['error', 2, { SwitchCase: 1 }],
     'no-multi-spaces': ['error'],
+    'no-unused-vars': 'off',
+    'unused-imports/no-unused-imports': 'error',
+    '@typescript-eslint/no-unused-vars': ['error'],
   },
   overrides: [
     {

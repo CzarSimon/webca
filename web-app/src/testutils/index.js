@@ -37,7 +37,7 @@ function render(ui, { locale = 'en-US', ...renderOptions } = {}) {
   }
 
   Wrapper.propTypes = {
-    children: PropTypes.func,
+    children: PropTypes.any,
   };
   return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
 }
