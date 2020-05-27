@@ -4,16 +4,16 @@ import { render, fireEvent, act } from '@testing-library/react';
 import selectEvent from 'react-select-event';
 
 test('dropdown', async () => {
-  let setValue: string = "";
+  let setValue = '';
   const props = {
-    placeholder: "ph",
+    placeholder: 'ph',
     options: [
-      { id: "id-1", text: "Value 1" },
-      { id: "id-2", text: "Value 2" },
+      { id: 'id-1', text: 'Value 1' },
+      { id: 'id-2', text: 'Value 2' },
     ],
     onSelect: (val: string) => {
       setValue = val;
-    }
+    },
   };
 
   let r: ReturnType<typeof render>;
@@ -35,29 +35,27 @@ test('dropdown', async () => {
   expect(r.queryByText(/Value 2/)).toBeTruthy();
 
   // Select value 2, check that selected value changed.
-  expect(setValue).toBe("");
-  await selectEvent.select(select, "Value 2");
-  expect(setValue).toBe("id-2");
+  expect(setValue).toBe('');
+  await selectEvent.select(select, 'Value 2');
+  expect(setValue).toBe('id-2');
 });
 
 test('dropdown: one value', async () => {
-  let setValue: string = "";
+  let setValue = '';
   const props = {
-    placeholder: "ph",
-    options: [
-      { id: "id-1", text: "Value 1" },
-    ],
+    placeholder: 'ph',
+    options: [{ id: 'id-1', text: 'Value 1' }],
     onSelect: (val: string) => {
       setValue = val;
-    }
+    },
   };
 
-  expect(setValue).toBe("");
+  expect(setValue).toBe('');
   const r = render(<Dropdown {...props} />);
 
   const dropdown = r.getByText(/Value 1/);
   expect(dropdown).toBeInTheDocument();
   expect(r.queryByText(/ph/)).toBeFalsy();
 
-  expect(setValue).toBe("id-1");
+  expect(setValue).toBe('id-1');
 });

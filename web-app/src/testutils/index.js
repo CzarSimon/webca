@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { render as rtlRender } from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
 import { Provider } from 'react-redux';
@@ -34,16 +35,11 @@ function render(ui, { locale = 'en-US', ...renderOptions } = {}) {
       </IntlProvider>
     );
   }
-  return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
-}
 
-export function assertNotPresent(lookupFn, regex) {
-  try {
-    lookupFn(regex);
-    fail(new Error('element was found but should not have been'));
-  } catch (error) {
-    log.error(`element should not be pressent: ${error}`);
-  }
+  Wrapper.propTypes = {
+    children: PropTypes.func,
+  };
+  return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
 }
 
 // re-export everything

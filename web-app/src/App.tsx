@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Provider } from "react-redux";
+import { Provider } from 'react-redux';
 import { store, initState, teardown } from './state';
 import { checkBackendHealth } from './api';
 import { Routes } from './routes';
@@ -11,7 +11,7 @@ function App() {
   useEffect(() => {
     initState();
     checkBackendHealth();
-    return teardown
+    return teardown;
   }, []);
 
   return (

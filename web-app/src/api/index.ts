@@ -19,7 +19,7 @@ export async function checkBackendHealth(): Promise<void> {
     httplogger: checkHttplogger,
   };
 
-  for (let [service, check] of Object.entries(healthChecks)) {
+  for (const [service, check] of Object.entries(healthChecks)) {
     checkHealth(service, check);
   }
 }

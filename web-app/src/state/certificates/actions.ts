@@ -1,11 +1,11 @@
 import { createAction } from 'typesafe-actions';
 import { Certificate, CertificateOptions, Page } from '../../types';
 
-const ADD_CERTIFICATES: string = '@webca/certificates/ADD';
-const REMOVE_CERTIFICATES: string = '@webca/certificates/REMOVE';
-const SELECT_CERTIFICATE: string = '@webca/certificates/SELECT';
-const ADD_OPTIONS: string = '@webca/certificates/ADD_OPTIONS';
-const REMOVE_OPTIONS: string = '@webca/certificates/REMOVE_OPTIONS';
+const ADD_CERTIFICATES = '@webca/certificates/ADD';
+const REMOVE_CERTIFICATES = '@webca/certificates/REMOVE';
+const SELECT_CERTIFICATE = '@webca/certificates/SELECT';
+const ADD_OPTIONS = '@webca/certificates/ADD_OPTIONS';
+const REMOVE_OPTIONS = '@webca/certificates/REMOVE_OPTIONS';
 
 export const addCertificates = createAction(ADD_CERTIFICATES)<Page<Certificate>>();
 export const removeCertificates = createAction(REMOVE_CERTIFICATES)<void>();

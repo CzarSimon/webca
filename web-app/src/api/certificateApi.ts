@@ -2,8 +2,8 @@ import { httpclient } from './httpclient';
 import { CertificateOptions, CertificateRequest, Certificate, CertificatePage } from '../types';
 import { HTTPResponse } from '@czarsimon/httpclient';
 
-const CERTIFICATES_URL: string = '/api/v1/certificates';
-const OPTIONS_URL: string = '/api/v1/certificate-options';
+const CERTIFICATES_URL = '/api/v1/certificates';
+const OPTIONS_URL = '/api/v1/certificate-options';
 
 export const createCertificate = (req: CertificateRequest): Promise<HTTPResponse<Certificate>> =>
   httpclient.post<Certificate>({ url: CERTIFICATES_URL, body: req });

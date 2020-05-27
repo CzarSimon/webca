@@ -21,12 +21,12 @@ export function NewCertificate({ options, submit }: Props) {
   const { form, onSelect } = useFormSelect();
   const formatedMessage = useFormatedMessage();
 
-  const typeOptions = options.types.map(t => ({
+  const typeOptions = options.types.map((t) => ({
     id: t.name,
     text: formatedMessage(`certificate.type-${t.name}`),
   }));
 
-  const algoOptions = options.algorithms.map(a => ({
+  const algoOptions = options.algorithms.map((a) => ({
     id: a,
     text: formatedMessage(`certificate.algorithm-${a}`),
   }));
@@ -38,11 +38,11 @@ export function NewCertificate({ options, submit }: Props) {
       algorithm,
       password,
       subject: {
-        commonName
+        commonName,
       },
       options: {
         keySize: suggestKeySize(type),
-      }
+      },
     });
   };
 
@@ -56,35 +56,32 @@ export function NewCertificate({ options, submit }: Props) {
         <FormattedMessage id="newCertificate.title" />
       </h1>
       <Form form={form} onFinish={onFinish} onFinishFailed={onFinishFailed}>
-        <Form.Item
-          name="name"
-          rules={[{ required: true, message: formatedMessage("newCertificate.name-required") }]}
-        >
-          <Input size="large" placeholder={formatedMessage("newCertificate.name-placeholder")} />
+        <Form.Item name="name" rules={[{ required: true, message: formatedMessage('newCertificate.name-required') }]}>
+          <Input size="large" placeholder={formatedMessage('newCertificate.name-placeholder')} />
         </Form.Item>
         <div className={styles.DropdownRow}>
           <Form.Item
             className={styles.Dropdown}
             name="type"
-            rules={[{ required: true, message: formatedMessage("newCertificate.type-required") }]}
+            rules={[{ required: true, message: formatedMessage('newCertificate.type-required') }]}
           >
             <Dropdown
               size="large"
-              placeholder={formatedMessage("newCertificate.type-placeholder")}
+              placeholder={formatedMessage('newCertificate.type-placeholder')}
               options={typeOptions}
-              onSelect={onSelect("type")}
+              onSelect={onSelect('type')}
             />
           </Form.Item>
           <Form.Item
             className={styles.Dropdown}
             name="algorithm"
-            rules={[{ required: true, message: formatedMessage("newCertificate.algorithm-required") }]}
+            rules={[{ required: true, message: formatedMessage('newCertificate.algorithm-required') }]}
           >
             <Dropdown
               size="large"
-              placeholder={formatedMessage("newCertificate.algorithm-placeholder")}
+              placeholder={formatedMessage('newCertificate.algorithm-placeholder')}
               options={algoOptions}
-              onSelect={onSelect("algorithm")}
+              onSelect={onSelect('algorithm')}
             />
           </Form.Item>
         </div>
@@ -93,19 +90,21 @@ export function NewCertificate({ options, submit }: Props) {
         </h3>
         <Form.Item
           name="commonName"
-          rules={[{ required: true, message: formatedMessage("newCertificate.subject.commonName-required") }]}
+          rules={[{ required: true, message: formatedMessage('newCertificate.subject.commonName-required') }]}
         >
-          <Input size="large" placeholder={formatedMessage("newCertificate.subject.commonName-placeholder")} />
+          <Input size="large" placeholder={formatedMessage('newCertificate.subject.commonName-placeholder')} />
         </Form.Item>
         <Form.Item
           name="password"
-          rules={[{
-            required: true,
-            min: PASSWORD_MIN_LENGTH,
-            message: formatedMessage("newCertificate.password-required")
-          }]}
+          rules={[
+            {
+              required: true,
+              min: PASSWORD_MIN_LENGTH,
+              message: formatedMessage('newCertificate.password-required'),
+            },
+          ]}
         >
-          <Input.Password size="large" placeholder={formatedMessage("newCertificate.password-placeholder")} />
+          <Input.Password size="large" placeholder={formatedMessage('newCertificate.password-placeholder')} />
         </Form.Item>
         <Form.Item>
           <Button size="large" type="primary" htmlType="submit" block>
@@ -113,6 +112,6 @@ export function NewCertificate({ options, submit }: Props) {
           </Button>
         </Form.Item>
       </Form>
-    </div >
+    </div>
   );
 }

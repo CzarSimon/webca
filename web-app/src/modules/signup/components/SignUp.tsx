@@ -10,7 +10,7 @@ import log from '@czarsimon/remotelogger';
 import styles from './SignUp.module.css';
 
 interface Props {
-  submit: (req: AuthenticationRequest) => void
+  submit: (req: AuthenticationRequest) => void;
 }
 
 export function SignUp(props: Props) {
@@ -29,36 +29,36 @@ export function SignUp(props: Props) {
       <h1 className={styles.SignFormTitle}>
         <FormattedMessage id="signup.title" />
       </h1>
-      <Form
-        initialValues={{ remember: true }}
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
-      >
+      <Form initialValues={{ remember: true }} onFinish={onFinish} onFinishFailed={onFinishFailed}>
         <Form.Item
           name="accountName"
-          rules={[{ required: true, message: formatedMessage("signup.accountName-required") }]}
+          rules={[{ required: true, message: formatedMessage('signup.accountName-required') }]}
         >
-          <Input size="large" placeholder={formatedMessage("signup.accountName-placeholder")} />
+          <Input size="large" placeholder={formatedMessage('signup.accountName-placeholder')} />
         </Form.Item>
         <Form.Item
           name="email"
-          rules={[{
-            required: true,
-            type: "email",
-            message: formatedMessage("signup.email-required")
-          }]}
+          rules={[
+            {
+              required: true,
+              type: 'email',
+              message: formatedMessage('signup.email-required'),
+            },
+          ]}
         >
-          <Input size="large" placeholder={formatedMessage("signup.email-placeholder")} />
+          <Input size="large" placeholder={formatedMessage('signup.email-placeholder')} />
         </Form.Item>
         <Form.Item
           name="password"
-          rules={[{
-            required: true,
-            min: PASSWORD_MIN_LENGTH,
-            message: formatedMessage("signup.password-required")
-          }]}
+          rules={[
+            {
+              required: true,
+              min: PASSWORD_MIN_LENGTH,
+              message: formatedMessage('signup.password-required'),
+            },
+          ]}
         >
-          <Input.Password size="large" placeholder={formatedMessage("signup.password-placeholder")} />
+          <Input.Password size="large" placeholder={formatedMessage('signup.password-placeholder')} />
         </Form.Item>
         <Form.Item>
           <Button size="large" type="primary" htmlType="submit" block>
@@ -66,6 +66,6 @@ export function SignUp(props: Props) {
           </Button>
         </Form.Item>
       </Form>
-    </div >
-  )
+    </div>
+  );
 }

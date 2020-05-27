@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDispatch } from "react-redux";
+import { useDispatch } from 'react-redux';
 import { AuthenticationRequest } from '../../types';
 import { SignUp } from './components/SignUp';
 import { signUp } from '../../state/user';
@@ -10,13 +10,13 @@ export function SignUpContainer() {
   const history = useHistory();
   const onSignUp = (success: boolean) => {
     if (success) {
-      history.push("/certificates/add");
+      history.push('/certificates/add');
     }
   };
 
   const handleSignup = (req: AuthenticationRequest) => {
     dispatch(signUp(req, onSignUp));
-  }
+  };
 
-  return <SignUp submit={handleSignup} />
+  return <SignUp submit={handleSignup} />;
 }

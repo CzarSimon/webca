@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { SignUpContainer } from "../modules/signup";
-import { NewCertificateContainer } from "../modules/certificates";
+import { SignUpContainer } from '../modules/signup';
+import { NewCertificateContainer } from '../modules/certificates';
 
 export function Routes() {
   return (

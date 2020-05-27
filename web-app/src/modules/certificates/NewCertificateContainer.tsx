@@ -24,7 +24,5 @@ export function NewCertificateContainer() {
     dispatch(createCertificate(req, onCreateSuccess));
   };
 
-  return options ?
-    <NewCertificate options={options} submit={onRequest} /> :
-    <NewCertificateSkeleton />;
-};
+  return options ? <NewCertificate options={options} submit={onRequest} /> : <NewCertificateSkeleton />;
+}

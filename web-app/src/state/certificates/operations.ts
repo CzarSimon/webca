@@ -57,7 +57,7 @@ export function getCertificateOptions(): Thunk {
 }
 
 function handleCreateCertificateError(error: Optional<Error>, metadata: ResponseMetadata) {
-  logError(`Failed create certificate.`, error, metadata);
+  logError('Failed create certificate.', error, metadata);
 }
 
 function handleGetCertificateError(id: string, error: Optional<Error>, metadata: ResponseMetadata) {
@@ -69,5 +69,5 @@ function handleGetCertificatesError(accountId: string, error: Optional<Error>, m
 }
 
 function handleFetchOptionsError(error: Optional<Error>, metadata: ResponseMetadata) {
-  logError(`Failed get certificate options.`, error, metadata);
+  logError('Failed get certificate options.', error, metadata);
 }

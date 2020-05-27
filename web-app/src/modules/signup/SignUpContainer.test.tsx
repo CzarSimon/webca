@@ -7,31 +7,31 @@ import { removeUser } from '../../state/user/actions';
 
 test('signup: renders form', async () => {
   const user = {
-    id: "a56b7c59-3b40-4d44-b264-21d4d9800f2c",
-    email: "test@mail.com",
-    role: "ADMIN",
-    createdAt: "2020-05-16 08:30:20",
-    updatedAt: "2020-05-16 08:30:20",
+    id: 'a56b7c59-3b40-4d44-b264-21d4d9800f2c',
+    email: 'test@mail.com',
+    role: 'ADMIN',
+    createdAt: '2020-05-16 08:30:20',
+    updatedAt: '2020-05-16 08:30:20',
     account: {
-      id: "8c804f01-2b26-4732-b22e-cb5fa15f29ca",
-      name: "test-account-name",
-      createdAt: "2020-05-16 08:30:20",
-      updatedAt: "2020-05-16 08:30:20",
+      id: '8c804f01-2b26-4732-b22e-cb5fa15f29ca',
+      name: 'test-account-name',
+      createdAt: '2020-05-16 08:30:20',
+      updatedAt: '2020-05-16 08:30:20',
     },
-  }
+  };
   mockRequests({
-    "/api/v1/signup": {
+    '/api/v1/signup': {
       body: {
-        token: "header.body.signature",
+        token: 'header.body.signature',
         user,
       },
       metadata: {
-        method: "GET",
-        requestId: "signup-request-id",
+        method: 'GET',
+        requestId: 'signup-request-id',
         status: 200,
         url: '/api/v1/signup',
-      }
-    }
+      },
+    },
   });
 
   const r = render(<SignUpContainer />);
@@ -50,26 +50,29 @@ test('signup: renders form', async () => {
   const signupButton = r.getByText(/Sign Up/);
   expect(signupButton).toBeInTheDocument();
 
-  expect(accountNameInput.value).toBe("");
-  fireEvent.change(accountNameInput, { target: { value: "test-account-name" } });
-  expect(accountNameInput.value).toBe("test-account-name");
+  expect(accountNameInput.value).toBe('');
+  fireEvent.change(accountNameInput, { target: { value: 'test-account-name' } });
+  expect(accountNameInput.value).toBe('test-account-name');
 
-  expect(emailInput.value).toBe("");
-  fireEvent.change(emailInput, { target: { value: "test@mail.com" } });
-  expect(emailInput.value).toBe("test@mail.com");
+  expect(emailInput.value).toBe('');
+  fireEvent.change(emailInput, { target: { value: 'test@mail.com' } });
+  expect(emailInput.value).toBe('test@mail.com');
 
-  expect(passwordInput.value).toBe("");
-  fireEvent.change(passwordInput, { target: { value: "68630b4dbe30f4a3cc62e3d69552dee2" } });
-  expect(passwordInput.value).toBe("68630b4dbe30f4a3cc62e3d69552dee2");
+  expect(passwordInput.value).toBe('');
+  fireEvent.change(passwordInput, { target: { value: '68630b4dbe30f4a3cc62e3d69552dee2' } });
+  expect(passwordInput.value).toBe('68630b4dbe30f4a3cc62e3d69552dee2');
 
   fireEvent.click(signupButton);
-  await wait(() => {
-    const state = store.getState();
-    expect(state.user.loaded).toBe(true);
-    expect(state.user.user).toBe(user);
-    expect(httpclient.getHeaders()["Authorization"]).toBe("Bearer header.body.signature");
-    expect(window.location.pathname).toBe("/certificates/add");
-  }, { timeout: 1 });
+  await wait(
+    () => {
+      const state = store.getState();
+      expect(state.user.loaded).toBe(true);
+      expect(state.user.user).toBe(user);
+      expect(httpclient.getHeaders()['Authorization']).toBe('Bearer header.body.signature');
+      expect(window.location.pathname).toBe('/certificates/add');
+    },
+    { timeout: 1 },
+  );
 });
 
 test('signup: test required fields', async () => {
@@ -80,27 +83,32 @@ test('signup: test required fields', async () => {
     r = render(<SignUpContainer />);
   });
 
-  await wait(() => {
-    const title = r.getByText(/webca.io/);
-    expect(title).toBeInTheDocument();
+  await wait(
+    () => {
+      const title = r.getByText(/webca.io/);
+      expect(title).toBeInTheDocument();
 
-    // Check that required warning texts ARE NOT displayed.
-    expect(r.queryByText(/Please provide an account name/)).toBeFalsy();
-    expect(r.queryByText(/A valid email is required/)).toBeFalsy();
-    expect(r.queryByText(/At least 16 charactes are required in password/)).toBeFalsy();
-  }, { timeout: 1000 });
+      // Check that required warning texts ARE NOT displayed.
+      expect(r.queryByText(/Please provide an account name/)).toBeFalsy();
+      expect(r.queryByText(/A valid email is required/)).toBeFalsy();
+      expect(r.queryByText(/At least 16 charactes are required in password/)).toBeFalsy();
+    },
+    { timeout: 1000 },
+  );
 
-  await wait(() => {
-    const signupButton = r.getByText(/Sign Up/);
-    expect(signupButton).toBeInTheDocument();
-    fireEvent.click(signupButton);
+  await wait(
+    () => {
+      const signupButton = r.getByText(/Sign Up/);
+      expect(signupButton).toBeInTheDocument();
+      fireEvent.click(signupButton);
 
-    // Check that required warning texts ARE displayed.
-    expect(r.queryByText(/Please provide an account name/)).toBeTruthy();
-    expect(r.queryByText(/A valid email is required/)).toBeTruthy();
-    expect(r.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
-  }, { timeout: 1000 });
-
+      // Check that required warning texts ARE displayed.
+      expect(r.queryByText(/Please provide an account name/)).toBeTruthy();
+      expect(r.queryByText(/A valid email is required/)).toBeTruthy();
+      expect(r.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
+    },
+    { timeout: 1000 },
+  );
 
   const state = store.getState();
   expect(state.user.loaded).toBe(false);

@@ -1,5 +1,5 @@
 name: web-app-pipeline
-on: 
+on:
   push:
     paths:
       - web-app/**
@@ -14,18 +14,18 @@ jobs:
       package-name: ${{ steps.parse.outputs.package-name }}
       full-package-name: ${{ steps.parse.outputs.full-package-name }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - id: parse
-      name: Parse version info
-      run: |
-        NAME=$(cat package.json | jq .name --raw-output)
-        VERSION=$(cat package.json | jq .version --raw-output)
-        COMMIT_ID=${GITHUB_SHA:0:7}
-        echo "::set-output name=version::$VERSION"
-        echo "::set-output name=package-name::$NAME:$VERSION"
-        echo "::set-output name=full-package-name::$NAME:$VERSION-$COMMIT_ID"
-      working-directory: ./web-app
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - id: parse
+        name: Parse version info
+        run: |
+          NAME=$(cat package.json | jq .name --raw-output)
+          VERSION=$(cat package.json | jq .version --raw-output)
+          COMMIT_ID=${GITHUB_SHA:0:7}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=package-name::$NAME:$VERSION"
+          echo "::set-output name=full-package-name::$NAME:$VERSION-$COMMIT_ID"
+        working-directory: ./web-app
 
   run-tests:
     name: run-tests
@@ -34,21 +34,24 @@ jobs:
       matrix:
         node-version: [10.x, 12.x]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }} 
-    - name: Get dependencies
-      run: npm install
-      working-directory: ./web-app
-    - name: Check formating
-      run: npm run check-format
-      working-directory: ./web-app
-    - name: Test
-      run: npm test
-      working-directory: ./web-app
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Get dependencies
+        run: npm install
+        working-directory: ./web-app
+      - name: Check formating
+        run: npm run check-format
+        working-directory: ./web-app
+      - name: Check linting
+        run: npm run check-linting
+        working-directory: ./web-app
+      - name: Test
+        run: npm test
+        working-directory: ./web-app
 
   build-image:
     name: build-image
@@ -57,19 +60,19 @@ jobs:
       - run-tests
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Docker build
-      run: |
-        echo "GITHUB_REF=$GITHUB_REF v=${{needs.parse-version.outputs.package-name}}"
-        if [[ "$GITHUB_REF" != "refs/tags/${{needs.parse-version.outputs.package-name}}" ]]; then
-          echo "Skipping docker build on branch $GITHUB_REF"
-          exit 0
-        fi
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Docker build
+        run: |
+          echo "GITHUB_REF=$GITHUB_REF v=${{needs.parse-version.outputs.package-name}}"
+          if [[ "$GITHUB_REF" != "refs/tags/${{needs.parse-version.outputs.package-name}}" ]]; then
+            echo "Skipping docker build on branch $GITHUB_REF"
+            exit 0
+          fi
 
-        echo "Package version: ${{needs.parse-version.outputs.full-package-name}}"
-        IMAGE_NAME="docker.pkg.github.com/czarsimon/webca/${{needs.parse-version.outputs.full-package-name}}"
-        docker login https://docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
-        docker build -t $IMAGE_NAME .
-        docker push $IMAGE_NAME
-      working-directory: ./web-app
+          echo "Package version: ${{needs.parse-version.outputs.full-package-name}}"
+          IMAGE_NAME="docker.pkg.github.com/czarsimon/webca/${{needs.parse-version.outputs.full-package-name}}"
+          docker login https://docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+        working-directory: ./web-app
