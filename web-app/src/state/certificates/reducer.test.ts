@@ -15,27 +15,27 @@ test('certificate reducer: add options', () => {
   const opts: CertificateOptions = {
     types: [
       {
-        name: "ROOT_CA",
+        name: 'ROOT_CA',
         active: true,
-        createdAt: "some-date",
-        updatedAt: "some-date",
+        createdAt: 'some-date',
+        updatedAt: 'some-date',
       },
       {
-        name: "INTERMEDIATE_CA",
+        name: 'INTERMEDIATE_CA',
         active: true,
-        createdAt: "some-date",
-        updatedAt: "some-date",
+        createdAt: 'some-date',
+        updatedAt: 'some-date',
       },
       {
-        name: "CERTIFICATE",
+        name: 'CERTIFICATE',
         active: true,
-        createdAt: "some-date",
-        updatedAt: "some-date",
-      }
+        createdAt: 'some-date',
+        updatedAt: 'some-date',
+      },
     ],
-    algorithms: ["RSA"],
-    formats: ["PEM"],
-  }
+    algorithms: ['RSA'],
+    formats: ['PEM'],
+  };
 
   const state = reducer(initalState, addOptions(opts));
   expect(state.certificates.items).toBeUndefined();
@@ -48,27 +48,27 @@ test('certificate reducer: remove options', () => {
   const opts: CertificateOptions = {
     types: [
       {
-        name: "ROOT_CA",
+        name: 'ROOT_CA',
         active: true,
-        createdAt: "some-date",
-        updatedAt: "some-date",
+        createdAt: 'some-date',
+        updatedAt: 'some-date',
       },
       {
-        name: "INTERMEDIATE_CA",
+        name: 'INTERMEDIATE_CA',
         active: true,
-        createdAt: "some-date",
-        updatedAt: "some-date",
+        createdAt: 'some-date',
+        updatedAt: 'some-date',
       },
       {
-        name: "CERTIFICATE",
+        name: 'CERTIFICATE',
         active: true,
-        createdAt: "some-date",
-        updatedAt: "some-date",
-      }
+        createdAt: 'some-date',
+        updatedAt: 'some-date',
+      },
     ],
-    algorithms: ["RSA"],
-    formats: ["PEM"],
-  }
+    algorithms: ['RSA'],
+    formats: ['PEM'],
+  };
 
   const initalState: CertificateState = {
     certificates: {
@@ -90,15 +90,15 @@ test('certificate reducer: select certificate', () => {
   const opts: CertificateOptions = {
     types: [
       {
-        name: "ROOT_CA",
+        name: 'ROOT_CA',
         active: true,
-        createdAt: "some-date",
-        updatedAt: "some-date",
-      }
+        createdAt: 'some-date',
+        updatedAt: 'some-date',
+      },
     ],
-    algorithms: ["RSA"],
-    formats: ["PEM"],
-  }
+    algorithms: ['RSA'],
+    formats: ['PEM'],
+  };
 
   const initalState: CertificateState = {
     certificates: {
@@ -110,16 +110,16 @@ test('certificate reducer: select certificate', () => {
   };
 
   const cert: Certificate = {
-    id: "14597ed1-281f-495a-8366-4f8a411a20bc",
-    name: "test root ca",
-    body: "pem formated certificate body",
+    id: '14597ed1-281f-495a-8366-4f8a411a20bc',
+    name: 'test root ca',
+    body: 'pem formated certificate body',
     subject: {
-      commonName: "test root ca",
+      commonName: 'test root ca',
     },
     format: opts.formats[0],
     type: opts.types[0].name,
-    accountId: "51f5435d-0841-4538-a484-7489257f6245",
-    createdAt: "some-date",
+    accountId: '51f5435d-0841-4538-a484-7489257f6245',
+    createdAt: 'some-date',
   };
 
   const state = reducer(initalState, selectCertificate(cert));
@@ -146,31 +146,31 @@ test('certificate reducer: add and remove certificates', () => {
     resultsPerPage: 2,
     results: [
       {
-        id: "d1b9c1e9-ce8f-4296-8671-3411105ceb45",
-        name: "cert-1",
-        body: "pem formated certificate body",
+        id: 'd1b9c1e9-ce8f-4296-8671-3411105ceb45',
+        name: 'cert-1',
+        body: 'pem formated certificate body',
         subject: {
-          commonName: "test root ca",
+          commonName: 'test root ca',
         },
-        format: "PEM",
-        type: "ROOT_CA",
-        accountId: "51f5435d-0841-4538-a484-7489257f6245",
-        createdAt: "some-date",
+        format: 'PEM',
+        type: 'ROOT_CA',
+        accountId: '51f5435d-0841-4538-a484-7489257f6245',
+        createdAt: 'some-date',
       },
       {
-        id: "26b679f0-ad89-4290-84a3-02f16ee23c09",
-        name: "cert-2",
-        body: "pem formated certificate body",
+        id: '26b679f0-ad89-4290-84a3-02f16ee23c09',
+        name: 'cert-2',
+        body: 'pem formated certificate body',
         subject: {
-          commonName: "test root ca",
+          commonName: 'test root ca',
         },
-        format: "PEM",
-        type: "CERTIFICATE",
-        accountId: "51f5435d-0841-4538-a484-7489257f6245",
-        createdAt: "some-other-date",
-      }
+        format: 'PEM',
+        type: 'CERTIFICATE',
+        accountId: '51f5435d-0841-4538-a484-7489257f6245',
+        createdAt: 'some-other-date',
+      },
     ],
-  }
+  };
 
   let state = reducer(initalState, addCertificates(certs));
   expect(state.certificates.items).toBe(certs);

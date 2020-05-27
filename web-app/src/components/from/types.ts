@@ -3,4 +3,4 @@ export interface SelectOption {
   text: string;
 }
 
-export type Sizes = "large" | "middle" | "small";
+export type Sizes = 'large' | 'middle' | 'small';

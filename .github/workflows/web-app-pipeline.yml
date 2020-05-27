@@ -43,6 +43,9 @@ jobs:
     - name: Get dependencies
       run: npm install
       working-directory: ./web-app
+    - name: Check formating
+      run: npm run check-format
+      working-directory: ./web-app
     - name: Test
       run: npm test
       working-directory: ./web-app

@@ -37,7 +37,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "proxy": "caddy start -config Caddyfile"
+    "proxy": "caddy start -config Caddyfile",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "check-format": "prettier --check \"src/**/*.ts\" \"src/**/*.js\""
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -56,6 +58,7 @@
   },
   "proxy": "http://localhost:7000",
   "devDependencies": {
+    "prettier": "2.0.5",
     "react-select-event": "^4.1.4"
   }
 }

@@ -1,31 +1,28 @@
 import { HTTPResponse } from '@czarsimon/httpclient';
 import { httpclient } from './httpclient';
 import { StatusBody, TypedMap } from '../types';
-import log from "@czarsimon/remotelogger";
+import log from '@czarsimon/remotelogger';
 
 export * from './accountApi';
 export * from './certificateApi';
 
-type HealthCheck = () => Promise<HTTPResponse<StatusBody>>
+type HealthCheck = () => Promise<HTTPResponse<StatusBody>>;
 
-const checkApiServer = (): Promise<HTTPResponse<StatusBody>> => (
-  httpclient.get<StatusBody>({ url: "/api/health" })
-);
+const checkApiServer = (): Promise<HTTPResponse<StatusBody>> => httpclient.get<StatusBody>({ url: '/api/health' });
 
-const checkHttplogger = (): Promise<HTTPResponse<StatusBody>> => (
-  httpclient.get<StatusBody>({ url: "/api/httplogger/health" })
-);
+const checkHttplogger = (): Promise<HTTPResponse<StatusBody>> =>
+  httpclient.get<StatusBody>({ url: '/api/httplogger/health' });
 
 export async function checkBackendHealth(): Promise<void> {
   const healthChecks: TypedMap<HealthCheck> = {
-    "api-server": checkApiServer,
-    "httplogger": checkHttplogger,
+    'api-server': checkApiServer,
+    httplogger: checkHttplogger,
   };
 
   for (let [service, check] of Object.entries(healthChecks)) {
     checkHealth(service, check);
   }
-};
+}
 
 async function checkHealth(service: string, check: HealthCheck) {
   try {

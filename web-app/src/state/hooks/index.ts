@@ -1,13 +1,11 @@
-import { useSelector } from "react-redux";
-import { CertificateOptions, Optional, CertificateState } from "../../types";
-import { AppState } from "..";
-import Form, { FormInstance } from "antd/lib/form";
+import { useSelector } from 'react-redux';
+import { CertificateOptions, Optional, CertificateState } from '../../types';
+import { AppState } from '..';
+import Form, { FormInstance } from 'antd/lib/form';
 
-export const useCertificateOptions = (): Optional<CertificateOptions> =>
-  useSelector(certificatesSelector).options;
+export const useCertificateOptions = (): Optional<CertificateOptions> => useSelector(certificatesSelector).options;
 
-const certificatesSelector = (state: AppState): CertificateState =>
-  state.certificates;
+const certificatesSelector = (state: AppState): CertificateState => state.certificates;
 
 interface UseFormSelectHook {
   form: FormInstance;
@@ -16,14 +14,12 @@ interface UseFormSelectHook {
 
 export function useFormSelect(): UseFormSelectHook {
   const [form] = Form.useForm();
-  const onSelect = (key: string) => (
-    (value: string) => {
-      form.setFieldsValue({ [key]: value });
-    }
-  );
+  const onSelect = (key: string) => (value: string) => {
+    form.setFieldsValue({ [key]: value });
+  };
 
   return {
     form,
     onSelect,
-  }
-};
+  };
+}

@@ -1,21 +1,21 @@
-import { ThunkAction, ThunkDispatch } from 'redux-thunk'
+import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 
 // Redux types.
 export type Thunk<T = void> = ThunkAction<Promise<T>, {}, {}, AnyAction>;
 export type Dispatch = ThunkDispatch<{}, {}, AnyAction>;
-export type successCallback = (success: boolean) => void
+export type successCallback = (success: boolean) => void;
 
 // State types
 export interface UserState {
   user?: User;
   loaded: boolean;
-};
+}
 
 export interface CertificateState {
   certificates: {
-    items?: Page<Certificate>
-    loaded: boolean,
+    items?: Page<Certificate>;
+    loaded: boolean;
   };
   selected?: Certificate;
   options?: CertificateOptions;
@@ -26,12 +26,12 @@ export interface AuthenticationRequest {
   accountName: string;
   email: string;
   password: string;
-};
+}
 
 export interface AuthenticationResponse {
   token: string;
   user: User;
-};
+}
 
 export interface User {
   id: string;
@@ -40,14 +40,14 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   account: Account;
-};
+}
 
 export interface Account {
   id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
-};
+}
 
 // Certificate types
 export interface Certificate {
@@ -60,7 +60,7 @@ export interface Certificate {
   signatoryId?: string;
   accountId: string;
   createdAt: string;
-};
+}
 
 export interface CertificateSubject {
   commonName: string;
@@ -70,20 +70,20 @@ export interface CertificateSubject {
   organization?: string;
   organizationalUnit?: string;
   email?: string;
-};
+}
 
 export interface CertificateOptions {
   types: CertificateType[];
   algorithms: string[];
   formats: string[];
-};
+}
 
 export interface CertificateType {
   name: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;
-};
+}
 
 export interface CertificateRequest {
   name: string;
@@ -93,7 +93,7 @@ export interface CertificateRequest {
   signatoryId?: string;
   password: string;
   options: TypedMap<any>;
-};
+}
 
 export type CertificatePage = Page<Certificate>;
 
@@ -103,7 +103,7 @@ export type TypedMap<T> = Record<string, T>;
 
 export type TextMap = TypedMap<string>;
 
-export type Optional<T> = (T | undefined);
+export type Optional<T> = T | undefined;
 
 export interface StatusBody {
   status: string;

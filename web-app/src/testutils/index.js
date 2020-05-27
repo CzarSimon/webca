@@ -1,18 +1,18 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
-import { IntlProvider } from "react-intl";
-import { Provider } from "react-redux";
+import { IntlProvider } from 'react-intl';
+import { Provider } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { store } from '../state';
-import { messages } from "../translations";
-import log, { ConsoleHandler, level } from "@czarsimon/remotelogger";
+import { messages } from '../translations';
+import log, { ConsoleHandler, level } from '@czarsimon/remotelogger';
 
-const logHandlers = { console: new ConsoleHandler(level.DEBUG) }
+const logHandlers = { console: new ConsoleHandler(level.DEBUG) };
 log.configure(logHandlers);
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -24,14 +24,12 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-function render(ui, { locale = "en-US", ...renderOptions } = {}) {
+function render(ui, { locale = 'en-US', ...renderOptions } = {}) {
   function Wrapper({ children }) {
     return (
       <IntlProvider locale={locale} messages={messages[locale]}>
         <Provider store={store}>
-          <Router>
-            {children}
-          </Router>
+          <Router>{children}</Router>
         </Provider>
       </IntlProvider>
     );
@@ -42,7 +40,7 @@ function render(ui, { locale = "en-US", ...renderOptions } = {}) {
 export function assertNotPresent(lookupFn, regex) {
   try {
     lookupFn(regex);
-    fail(new Error("element was found but should not have been"));
+    fail(new Error('element was found but should not have been'));
   } catch (error) {
     log.error(`element should not be pressent: ${error}`);
   }
