@@ -1,7 +1,14 @@
 import React, { FormEvent } from 'react';
-import { Props as DropdownProps } from '../components/from';
+import { SelectOption, Sizes } from '../../types';
 
-export function MockDropdown({ placeholder, options, onSelect }: DropdownProps) {
+export interface Props {
+  size?: Sizes;
+  placeholder?: string;
+  options: SelectOption[];
+  onSelect?: (value: string) => void;
+}
+
+export function Dropdown({ placeholder, options, onSelect }: Props) {
   const defaultVal = options.length === 1 ? options[0].id : undefined;
   if (defaultVal && onSelect) {
     onSelect(defaultVal);

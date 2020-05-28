@@ -2,11 +2,13 @@ import React from 'react';
 import { act, wait, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render } from '../../testutils';
-import { CertificateOptions } from '../../types';
+import { CertificateOptions, Certificate } from '../../types';
 import { NewCertificateContainer } from './NewCertificateContainer';
 import { mockRequests } from '../../api/httpclient';
 import { removeOptions } from '../../state/certificates';
 import { store } from '../../state';
+
+jest.mock('../../components/from/dropdown/Dropdown');
 
 const opts: CertificateOptions = {
   types: [
@@ -33,6 +35,19 @@ const opts: CertificateOptions = {
   formats: ['PEM'],
 };
 
+const cert: Certificate = {
+  id: '14597ed1-281f-495a-8366-4f8a411a20bc',
+  name: 'test root ca',
+  body: 'pem formated certificate body',
+  subject: {
+    commonName: 'test root ca',
+  },
+  format: opts.formats[0],
+  type: opts.types[0].name,
+  accountId: '51f5435d-0841-4538-a484-7489257f6245',
+  createdAt: '2020-05-16 08:30:20',
+};
+
 test('new certificate: renders form', async () => {
   mockRequests({
     '/api/v1/certificate-options': {
@@ -42,6 +57,15 @@ test('new certificate: renders form', async () => {
         requestId: 'get-certificate-options-request-id',
         status: 200,
         url: '/api/v1/certificate-options',
+      },
+    },
+    '/api/v1/certificates': {
+      body: cert,
+      metadata: {
+        method: 'POST',
+        requestId: 'post-certificate-req-id',
+        status: 200,
+        url: '/api/v1/certificates',
       },
     },
   });
@@ -81,16 +105,27 @@ test('new certificate: renders form', async () => {
   fireEvent.change(passwordInput, { target: { value: 'super-secret-password' } });
   expect(passwordInput.value).toBe('super-secret-password');
 
-  const typeDropdown = screen.getByText(/Certificate type/) as HTMLInputElement;
+  const typeDropdown = screen.getByPlaceholderText(/Certificate type/) as HTMLInputElement;
   expect(typeDropdown).toBeInTheDocument();
   await act(async () => userEvent.click(typeDropdown));
   expect(screen.queryByText(/Root CA/)).toBeTruthy();
   expect(screen.queryByText(/Intermediate CA/)).toBeTruthy();
 
-  userEvent.selectOptions(typeDropdown, 'Root CA');
+  fireEvent.change(typeDropdown, { target: { value: 'ROOT_CA' } });
 
   const createButton = screen.getByText(/Create certificate/);
   expect(createButton).toBeInTheDocument();
+
+  userEvent.click(createButton);
+
+  await wait(
+    () => {
+      const { selected } = store.getState().certificates;
+      expect(selected).toBe(cert);
+      expect(window.location.pathname).toBe(`/certificates/${cert.id}`);
+    },
+    { timeout: 1 },
+  );
 });
 
 test('new certificate: test required fields', async () => {

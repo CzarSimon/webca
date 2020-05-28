@@ -46,7 +46,7 @@ export function NewCertificate({ options, submit }: Props) {
   };
 
   const onFinishFailed = (errorInfo: any) => {
-    log.info(`Signup failed. Error: ${JSON.stringify(errorInfo.errorFields)} `);
+    log.info(`Certificate request input failed. Error: ${JSON.stringify(errorInfo.errorFields)} `);
   };
 
   return (

@@ -1,19 +1,22 @@
 import { CERTIFICATE_TYPES } from '../constants';
 import log from '@czarsimon/remotelogger';
 
+const baseKeySize = 1024;
+
+export const keySizes = [1, 2, 4, 8].map((n) => n * baseKeySize);
+
 export function suggestKeySize(certificateType: string): number {
-  const defaultKeySize = 2048;
   switch (certificateType) {
     case CERTIFICATE_TYPES.ROOT:
-      return 4 * defaultKeySize;
+      return 8 * baseKeySize;
     case CERTIFICATE_TYPES.INTERMEDIATE:
-      return 2 * defaultKeySize;
+      return 4 * baseKeySize;
     case CERTIFICATE_TYPES.USER_CERTIFICATE:
-      return 1 * defaultKeySize;
+      return 2 * baseKeySize;
     default:
       break;
   }
 
-  log.info(`Unexpected certificateType: ${certificateType}. Suggesting RSA key size: ${defaultKeySize}`);
-  return defaultKeySize;
+  log.info(`Unexpected certificateType: ${certificateType}. Suggesting RSA key size: ${baseKeySize * 2}`);
+  return baseKeySize * 2;
 }
