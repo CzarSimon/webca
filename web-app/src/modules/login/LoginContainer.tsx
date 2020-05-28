@@ -2,7 +2,7 @@ import React from 'react';
 import { useDispatch } from 'react-redux';
 import { AuthenticationRequest } from '../../types';
 import { Login } from './components/Login';
-import { login } from '../../state/user/operations';
+import { login } from '../../state/user';
 import { useHistory } from 'react-router-dom';
 
 export function LoginContainer() {

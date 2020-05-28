@@ -5,6 +5,7 @@ import log from '@czarsimon/remotelogger';
 
 export * from './accountApi';
 export * from './certificateApi';
+export * from './userApi';
 
 type HealthCheck = () => Promise<HTTPResponse<StatusBody>>;
 

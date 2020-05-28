@@ -39,6 +39,19 @@ export function login(req: AuthenticationRequest, callback: successCallback): Th
   };
 }
 
+export function getUser(id: string): Thunk {
+  return async (dispatch: Dispatch): Promise<void> => {
+    const { body, error, metadata } = await api.getUser(id);
+    if (!body) {
+      handleGetUserError(id, error, metadata);
+      return;
+    }
+
+    log.debug(`Successfully retrieved user(id=${id}, accountId=${body.account.id})`);
+    dispatch(addUser(body));
+  };
+}
+
 function storeAuthResponse(auth: AuthenticationResponse) {
   const { token, user } = auth;
 
@@ -53,4 +66,8 @@ function handleSignupError(req: AuthenticationRequest, error: Optional<Error>, m
 
 function handleLoginError(req: AuthenticationRequest, error: Optional<Error>, metadata: ResponseMetadata) {
   logError(`Failed to login user. accountName=${req.accountName}`, error, metadata);
+}
+
+function handleGetUserError(userId: string, error: Optional<Error>, metadata: ResponseMetadata) {
+  logError(`Failed to retrieve user(id=${userId}).`, error, metadata);
 }
