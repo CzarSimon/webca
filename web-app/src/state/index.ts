@@ -13,7 +13,11 @@ const reducer = combineReducers({
 export type AppState = ReturnType<typeof reducer>;
 export type Thunk<T> = ThunkAction<T, AppState, void, AnyAction>;
 
-export const store = createStore(reducer, compose(applyMiddleware(thunk)));
+export function initStore() {
+  return createStore(reducer, compose(applyMiddleware(thunk)));
+}
+
+export const store = initStore();
 
 export function initState() {
   const client = getClientInfo();
