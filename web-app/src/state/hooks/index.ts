@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { CertificateOptions, Optional, CertificateState, UserState } from '../../types';
 import { AppState } from '..';
 import Form, { FormInstance } from 'antd/lib/form';
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { getCertificateOptions } from '../certificates';
 import { AUTH_TOKEN_KEY, USER_ID_KEY } from '../../constants';
 import { setToken } from '../../api/httpclient';
@@ -51,13 +51,14 @@ export function useIsAuthenticated(): boolean {
   const userId = sessionStorage.getItem(USER_ID_KEY);
   const authToken = sessionStorage.getItem(AUTH_TOKEN_KEY);
 
-  useCallback(() => {
-    if (loaded || !userId || !authToken) {
+  useEffect(() => {
+    if (!userId || !authToken) {
       return;
     }
 
     setToken(authToken);
     dispatch(getUser(userId));
+    // eslint-disable-next-line
   }, [loaded, userId, authToken]);
 
   return loaded;

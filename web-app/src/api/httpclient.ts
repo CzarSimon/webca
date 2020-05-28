@@ -2,15 +2,19 @@ import { HttpClient, Fetch, MockTransport, HTTPResponse } from '@czarsimon/httpc
 import { ConsoleHandler, Handlers, level } from '@czarsimon/remotelogger';
 import { Client, TypedMap } from '../types';
 
-export let httpclient = new HttpClient({});
+export let httpclient = new HttpClient({
+  baseHeaders: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export function initHttpclient(client: Client, handlers: Handlers) {
   httpclient = new HttpClient({
     logHandlers: handlers,
     baseHeaders: {
+      ...httpclient.getHeaders(),
       'X-Client-ID': client.id,
       'X-Session-ID': client.sessionId,
-      'Content-Type': 'application/json',
     },
     transport: new Fetch(),
   });
@@ -21,9 +25,8 @@ export function setToken(token: string) {
 }
 
 export function setHeader(name: string, value: string) {
-  const headers = httpclient.getHeaders();
   httpclient.setHeaders({
-    ...headers,
+    ...httpclient.getHeaders(),
     [name]: value,
   });
 }

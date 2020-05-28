@@ -37,8 +37,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "proxy": "caddy start -config Caddyfile",
-    "format": "prettier --write \"src/**/*.{js,ts,tsx,css}\"",
-    "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
+    "lint": "prettier --write \"src/**/*.{js,ts,tsx,css}\" && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "check-format": "prettier --check \"src/**/*.{js,ts,tsx,css}\"",
     "check-linting": "eslint 'src/**/*.{js,ts,tsx}' --quiet"
   },
