@@ -32,7 +32,7 @@ export function login(req: AuthenticationRequest, callback: successCallback): Th
       return;
     }
 
-    log.debug(`Successfully created new user for account: ${req.accountName}`);
+    log.debug(`Successfully logged in user for account: ${req.accountName}`);
     storeAuthResponse(body);
     dispatch(addUser(body.user));
     callback(true);

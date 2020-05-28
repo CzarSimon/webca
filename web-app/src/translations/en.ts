@@ -12,6 +12,17 @@ export const enUS: TextMap = {
   'signup.password-placeholder': 'Password',
   'signup.password-required': `At least ${PASSWORD_MIN_LENGTH} charactes are required in password`,
   'signup.button': 'Sign Up',
+  'signup.login-link': 'Log in',
+
+  'login.title': 'webca.io',
+  'login.accountName-placeholder': 'Account name',
+  'login.accountName-required': 'Account name is required',
+  'login.email-placeholder': 'Email',
+  'login.email-required': 'Email is required',
+  'login.password-placeholder': 'Password',
+  'login.password-required': 'Password is required',
+  'login.button': 'Log in',
+  'login.signup-link': 'Sign up',
 
   'newCertificate.title': 'Create new certificate',
   'newCertificate.name-placeholder': 'Name',

@@ -2,19 +2,18 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import { Form, Input, Button } from 'antd';
-import { AuthenticationRequest } from '../../../types';
-import { useFormatedMessage } from '../../../translations';
 import { Store } from 'antd/lib/form/interface';
-import { PASSWORD_MIN_LENGTH } from '../../../constants';
+import { useFormatedMessage } from '../../../translations';
+import { AuthenticationRequest } from '../../../types';
 import log from '@czarsimon/remotelogger';
 
-import styles from './SignUp.module.css';
+import styles from './Login.module.css';
 
 interface Props {
   submit: (req: AuthenticationRequest) => void;
 }
 
-export function SignUp({ submit }: Props) {
+export function Login({ submit }: Props) {
   const formatedMessage = useFormatedMessage();
 
   const onFinish = ({ accountName, email, password }: Store) => {
@@ -22,20 +21,20 @@ export function SignUp({ submit }: Props) {
   };
 
   const onFinishFailed = (errorInfo: any) => {
-    log.info(`Signup input failed. Error:${JSON.stringify(errorInfo.errorFields)} `);
+    log.info(`Login input failed. Error:${JSON.stringify(errorInfo.errorFields)} `);
   };
 
   return (
-    <div className={styles.SignUp}>
-      <h1 className={styles.SignFormTitle}>
-        <FormattedMessage id="signup.title" />
+    <div className={styles.Login}>
+      <h1 className={styles.LoginTitle}>
+        <FormattedMessage id="login.title" />
       </h1>
       <Form initialValues={{ remember: true }} onFinish={onFinish} onFinishFailed={onFinishFailed}>
         <Form.Item
           name="accountName"
-          rules={[{ required: true, message: formatedMessage('signup.accountName-required') }]}
+          rules={[{ required: true, message: formatedMessage('login.accountName-required') }]}
         >
-          <Input size="large" placeholder={formatedMessage('signup.accountName-placeholder')} />
+          <Input size="large" placeholder={formatedMessage('login.accountName-placeholder')} />
         </Form.Item>
         <Form.Item
           name="email"
@@ -43,32 +42,31 @@ export function SignUp({ submit }: Props) {
             {
               required: true,
               type: 'email',
-              message: formatedMessage('signup.email-required'),
+              message: formatedMessage('login.email-required'),
             },
           ]}
         >
-          <Input size="large" placeholder={formatedMessage('signup.email-placeholder')} />
+          <Input size="large" placeholder={formatedMessage('login.email-placeholder')} />
         </Form.Item>
         <Form.Item
           name="password"
           rules={[
             {
               required: true,
-              min: PASSWORD_MIN_LENGTH,
-              message: formatedMessage('signup.password-required'),
+              message: formatedMessage('login.password-required'),
             },
           ]}
         >
-          <Input.Password size="large" placeholder={formatedMessage('signup.password-placeholder')} />
+          <Input.Password size="large" placeholder={formatedMessage('login.password-placeholder')} />
         </Form.Item>
         <Form.Item>
           <Button size="large" type="primary" htmlType="submit" block>
-            <FormattedMessage id="signup.button" />
+            <FormattedMessage id="login.button" />
           </Button>
         </Form.Item>
       </Form>
-      <Link to="/login">
-        <FormattedMessage id="signup.login-link" />
+      <Link to="/signup">
+        <FormattedMessage id="login.signup-link" />
       </Link>
     </div>
   );

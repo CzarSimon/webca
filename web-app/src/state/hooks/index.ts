@@ -31,6 +31,7 @@ export function useFetchCertificateOptions(): Optional<CertificateOptions> {
 
   useEffect(() => {
     dispatch(getCertificateOptions());
+    // eslint-disable-next-line
   }, []);
 
   return useCertificateOptions();

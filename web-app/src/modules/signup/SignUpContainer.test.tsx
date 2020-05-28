@@ -1,11 +1,21 @@
 import React from 'react';
+import { screen, wait } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
+import userEvent from '@testing-library/user-event';
 import { SignUpContainer } from './SignUpContainer';
-import { render, fireEvent, wait, act } from '../../testutils';
+import { render, fireEvent } from '../../testutils';
 import { mockRequests, httpclient } from '../../api/httpclient';
 import { store } from '../../state';
 import { removeUser } from '../../state/user/actions';
 
+beforeEach(() => {
+  store.dispatch(removeUser());
+});
+
 test('signup: renders form', async () => {
+  // Assert being state
+  expect(store.getState().user.user).toBeUndefined();
+
   const user = {
     id: 'a56b7c59-3b40-4d44-b264-21d4d9800f2c',
     email: 'test@mail.com',
@@ -76,7 +86,8 @@ test('signup: renders form', async () => {
 });
 
 test('signup: test required fields', async () => {
-  store.dispatch(removeUser());
+  // Assert being state
+  expect(store.getState().user.user).toBeUndefined();
 
   let r: ReturnType<typeof render>;
   await act(async () => {
@@ -113,4 +124,20 @@ test('signup: test required fields', async () => {
   const state = store.getState();
   expect(state.user.loaded).toBe(false);
   expect(state.user.user).toBeUndefined();
+});
+
+test('login: redirect to signup works', async () => {
+  // Assert being state
+  expect(store.getState().user.user).toBeUndefined();
+
+  render(<SignUpContainer />);
+
+  const signupButton = screen.getByRole('button', { name: /sign up/i });
+  expect(signupButton).toBeInTheDocument();
+
+  const loginLink = screen.getByRole('link', { name: /log in/i });
+  expect(loginLink).toBeInTheDocument();
+
+  userEvent.click(loginLink);
+  expect(window.location.pathname).toBe('/login');
 });

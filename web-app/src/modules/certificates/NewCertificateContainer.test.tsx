@@ -1,5 +1,7 @@
 import React from 'react';
-import { act, fireEvent, render, wait } from '../../testutils';
+import { act, wait, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { render } from '../../testutils';
 import { CertificateOptions } from '../../types';
 import { NewCertificateContainer } from './NewCertificateContainer';
 import { mockRequests } from '../../api/httpclient';
@@ -84,9 +86,11 @@ test('new certificate: renders form', async () => {
 
   const typeDropdown = r.getByText(/Certificate type/);
   expect(typeDropdown).toBeInTheDocument();
-  fireEvent.mouseDown(typeDropdown);
+  await act(async () => userEvent.click(typeDropdown));
   expect(r.queryByText(/Root CA/)).toBeTruthy();
   expect(r.queryByText(/Intermediate CA/)).toBeTruthy();
+
+  userEvent.selectOptions(typeDropdown, 'Root CA');
 
   const createButton = r.getByText(/Create certificate/);
   expect(createButton).toBeInTheDocument();

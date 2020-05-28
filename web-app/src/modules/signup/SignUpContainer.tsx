@@ -1,9 +1,9 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import { AuthenticationRequest } from '../../types';
 import { SignUp } from './components/SignUp';
 import { signUp } from '../../state/user';
-import { useHistory } from 'react-router-dom';
 
 export function SignUpContainer() {
   const dispatch = useDispatch();

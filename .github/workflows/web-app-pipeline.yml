@@ -49,6 +49,9 @@ jobs:
       - name: Check linting
         run: npm run check-linting
         working-directory: ./web-app
+      - name: Compile
+        run: tsc
+        working-directory: ./web-app
       - name: Test
         run: npm test
         working-directory: ./web-app
