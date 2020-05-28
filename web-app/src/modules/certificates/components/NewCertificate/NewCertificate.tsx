@@ -2,7 +2,6 @@ import React from 'react';
 import { Button, Form, Input } from 'antd';
 import { CertificateOptions, CertificateRequest } from '../../../../types';
 import { Dropdown } from '../../../../components/from';
-// import { MockDropdown as Dropdown } from '../../../../testutils/MockDropdown';
 import { FormattedMessage } from 'react-intl';
 import { PASSWORD_MIN_LENGTH } from '../../../../constants';
 import { Store } from 'antd/lib/form/interface';

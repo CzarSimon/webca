@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react';
+import React, { FormEvent } from 'react';
 import { Props as DropdownProps } from '../components/from';
 
 export function MockDropdown({ placeholder, options, onSelect }: DropdownProps) {
@@ -7,9 +7,9 @@ export function MockDropdown({ placeholder, options, onSelect }: DropdownProps) 
     onSelect(defaultVal);
   }
 
-  const onChange = (e: ChangeEvent) => {
+  const onChange = (e: FormEvent<HTMLSelectElement>) => {
     if (onSelect) {
-      onSelect(e.target.id);
+      onSelect(e.currentTarget.value);
     }
   };
 
