@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, wait, fireEvent } from '@testing-library/react';
+import { act, wait, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render } from '../../testutils';
 import { CertificateOptions } from '../../types';
@@ -46,53 +46,50 @@ test('new certificate: renders form', async () => {
     },
   });
 
-  let r: ReturnType<typeof render>;
-  await act(async () => {
-    r = render(<NewCertificateContainer />);
-  });
+  await act(async () => render(<NewCertificateContainer />));
 
   await wait(
     () => {
       const state = store.getState();
       expect(state.certificates.options).toBe(opts);
 
-      expect(r.getByText(/Create new certificate/)).toBeInTheDocument();
+      expect(screen.getByText(/Create new certificate/)).toBeInTheDocument();
     },
     { timeout: 1000 },
   );
 
-  const nameInput = r.getByPlaceholderText(/Name/);
+  const nameInput = screen.getByPlaceholderText(/Name/) as HTMLInputElement;
   expect(nameInput).toBeInTheDocument();
   expect(nameInput.value).toBe('');
   fireEvent.change(nameInput, { target: { value: 'test-root-ca' } });
   expect(nameInput.value).toBe('test-root-ca');
 
-  expect(r.getByText(/Subject/)).toBeInTheDocument();
+  expect(screen.getByText(/Subject/)).toBeInTheDocument();
 
-  const commonNameInput = r.getByPlaceholderText(/Common name/);
+  const commonNameInput = screen.getByPlaceholderText(/Common name/) as HTMLInputElement;
   expect(commonNameInput).toBeInTheDocument();
   expect(commonNameInput.value).toBe('');
   fireEvent.change(commonNameInput, { target: { value: 'test-root-ca' } });
   expect(commonNameInput.value).toBe('test-root-ca');
 
-  const algoDropdown = r.getByText(/RSA/);
+  const algoDropdown = screen.getByText(/RSA/);
   expect(algoDropdown).toBeInTheDocument();
 
-  const passwordInput = r.getByPlaceholderText(/Private key password/);
+  const passwordInput = screen.getByPlaceholderText(/Private key password/) as HTMLInputElement;
   expect(passwordInput).toBeInTheDocument();
   expect(passwordInput.value).toBe('');
   fireEvent.change(passwordInput, { target: { value: 'super-secret-password' } });
   expect(passwordInput.value).toBe('super-secret-password');
 
-  const typeDropdown = r.getByText(/Certificate type/);
+  const typeDropdown = screen.getByText(/Certificate type/) as HTMLInputElement;
   expect(typeDropdown).toBeInTheDocument();
   await act(async () => userEvent.click(typeDropdown));
-  expect(r.queryByText(/Root CA/)).toBeTruthy();
-  expect(r.queryByText(/Intermediate CA/)).toBeTruthy();
+  expect(screen.queryByText(/Root CA/)).toBeTruthy();
+  expect(screen.queryByText(/Intermediate CA/)).toBeTruthy();
 
   userEvent.selectOptions(typeDropdown, 'Root CA');
 
-  const createButton = r.getByText(/Create certificate/);
+  const createButton = screen.getByText(/Create certificate/);
   expect(createButton).toBeInTheDocument();
 });
 
@@ -109,37 +106,34 @@ test('new certificate: test required fields', async () => {
     },
   });
 
-  let r: ReturnType<typeof render>;
-  await act(async () => {
-    r = render(<NewCertificateContainer />);
-  });
+  await act(async () => render(<NewCertificateContainer />));
 
   await wait(
     () => {
-      expect(r.getByText(/Create new certificate/)).toBeInTheDocument();
+      expect(screen.getByText(/Create new certificate/)).toBeInTheDocument();
 
       // Check that required warning texts ARE NOT displayed.
-      expect(r.queryByText(/Certificate name is required/)).toBeFalsy();
-      expect(r.queryByText(/Certificate type is required/)).toBeFalsy();
-      expect(r.queryByText(/Signature algorithm is required/)).toBeFalsy();
-      expect(r.queryByText(/Subject common name is required/)).toBeFalsy();
-      expect(r.queryByText(/At least 16 charactes are required in password/)).toBeFalsy();
+      expect(screen.queryByText(/Certificate name is required/)).toBeFalsy();
+      expect(screen.queryByText(/Certificate type is required/)).toBeFalsy();
+      expect(screen.queryByText(/Signature algorithm is required/)).toBeFalsy();
+      expect(screen.queryByText(/Subject common name is required/)).toBeFalsy();
+      expect(screen.queryByText(/At least 16 charactes are required in password/)).toBeFalsy();
     },
     { timeout: 1000 },
   );
 
   await wait(
     () => {
-      const createButton = r.getByText(/Create certificate/);
+      const createButton = screen.getByText(/Create certificate/);
       expect(createButton).toBeInTheDocument();
 
       fireEvent.click(createButton);
 
       // Check that required warning texts ARE displayed.
-      expect(r.queryByText(/Certificate name is required/)).toBeTruthy();
-      expect(r.queryByText(/Certificate type is required/)).toBeTruthy();
-      expect(r.queryByText(/Subject common name is required/)).toBeTruthy();
-      expect(r.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
+      expect(screen.queryByText(/Certificate name is required/)).toBeTruthy();
+      expect(screen.queryByText(/Certificate type is required/)).toBeTruthy();
+      expect(screen.queryByText(/Subject common name is required/)).toBeTruthy();
+      expect(screen.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
     },
     { timeout: 1000 },
   );
@@ -149,6 +143,6 @@ test('new certificate: no data', async () => {
   store.dispatch(removeOptions());
   mockRequests({});
 
-  const r = render(<NewCertificateContainer />);
-  expect(r.getByText(/Create new certificate/)).toBeInTheDocument();
+  render(<NewCertificateContainer />);
+  expect(screen.getByText(/Create new certificate/)).toBeInTheDocument();
 });

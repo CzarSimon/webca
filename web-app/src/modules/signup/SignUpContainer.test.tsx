@@ -44,20 +44,20 @@ test('signup: renders form', async () => {
     },
   });
 
-  const r = render(<SignUpContainer />);
-  const title = r.getByText(/webca.io/);
+  render(<SignUpContainer />);
+  const title = screen.getByText(/webca.io/);
   expect(title).toBeInTheDocument();
 
-  const accountNameInput = r.getByPlaceholderText(/Account name/);
+  const accountNameInput = screen.getByPlaceholderText(/Account name/) as HTMLInputElement;
   expect(accountNameInput).toBeInTheDocument();
 
-  const emailInput = r.getByPlaceholderText(/Email/);
+  const emailInput = screen.getByPlaceholderText(/Email/) as HTMLInputElement;
   expect(emailInput).toBeInTheDocument();
 
-  const passwordInput = r.getByPlaceholderText(/Password/);
+  const passwordInput = screen.getByPlaceholderText(/Password/) as HTMLInputElement;
   expect(passwordInput).toBeInTheDocument();
 
-  const signupButton = r.getByText(/Sign Up/);
+  const signupButton = screen.getByText(/Sign Up/);
   expect(signupButton).toBeInTheDocument();
 
   expect(accountNameInput.value).toBe('');
@@ -89,34 +89,31 @@ test('signup: test required fields', async () => {
   // Assert being state
   expect(store.getState().user.user).toBeUndefined();
 
-  let r: ReturnType<typeof render>;
-  await act(async () => {
-    r = render(<SignUpContainer />);
-  });
+  await act(async () => render(<SignUpContainer />));
 
   await wait(
     () => {
-      const title = r.getByText(/webca.io/);
+      const title = screen.getByText(/webca.io/);
       expect(title).toBeInTheDocument();
 
       // Check that required warning texts ARE NOT displayed.
-      expect(r.queryByText(/Please provide an account name/)).toBeFalsy();
-      expect(r.queryByText(/A valid email is required/)).toBeFalsy();
-      expect(r.queryByText(/At least 16 charactes are required in password/)).toBeFalsy();
+      expect(screen.queryByText(/Please provide an account name/)).toBeFalsy();
+      expect(screen.queryByText(/A valid email is required/)).toBeFalsy();
+      expect(screen.queryByText(/At least 16 charactes are required in password/)).toBeFalsy();
     },
     { timeout: 1000 },
   );
 
   await wait(
     () => {
-      const signupButton = r.getByText(/Sign Up/);
+      const signupButton = screen.getByText(/Sign Up/);
       expect(signupButton).toBeInTheDocument();
       fireEvent.click(signupButton);
 
       // Check that required warning texts ARE displayed.
-      expect(r.queryByText(/Please provide an account name/)).toBeTruthy();
-      expect(r.queryByText(/A valid email is required/)).toBeTruthy();
-      expect(r.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
+      expect(screen.queryByText(/Please provide an account name/)).toBeTruthy();
+      expect(screen.queryByText(/A valid email is required/)).toBeTruthy();
+      expect(screen.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
     },
     { timeout: 1000 },
   );
