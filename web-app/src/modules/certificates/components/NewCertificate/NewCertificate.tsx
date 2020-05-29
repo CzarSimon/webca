@@ -6,10 +6,11 @@ import { FormattedMessage } from 'react-intl';
 import { PASSWORD_MIN_LENGTH } from '../../../../constants';
 import { Store } from 'antd/lib/form/interface';
 import log from '@czarsimon/remotelogger';
-import styles from './NewCertificate.module.css';
 import { suggestKeySize } from '../../../../utils/rsautil';
 import { useFormSelect } from '../../../../state/hooks';
 import { useFormatedMessage } from '../../../../translations';
+
+import styles from './NewCertificate.module.css';
 
 interface Props {
   options: CertificateOptions;

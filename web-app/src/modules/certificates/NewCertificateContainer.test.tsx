@@ -108,8 +108,6 @@ test('new certificate: renders form', async () => {
   const typeDropdown = screen.getByPlaceholderText(/Certificate type/) as HTMLInputElement;
   expect(typeDropdown).toBeInTheDocument();
   await act(async () => userEvent.click(typeDropdown));
-  expect(screen.queryByText(/Root CA/)).toBeTruthy();
-  expect(screen.queryByText(/Intermediate CA/)).toBeTruthy();
 
   fireEvent.change(typeDropdown, { target: { value: 'ROOT_CA' } });
 

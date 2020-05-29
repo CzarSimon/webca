@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { NewCertificateContainer } from '../modules/certificates';
+import { NewCertificateContainer, CertificateListContainer } from '../modules/certificates';
 
 export function AuthenticatedRoutes() {
   return (
@@ -8,6 +8,9 @@ export function AuthenticatedRoutes() {
       <Switch>
         <Route exact path="/certificates/add">
           <NewCertificateContainer />
+        </Route>
+        <Route exact path="/certificates">
+          <CertificateListContainer />
         </Route>
         <Route path="/">
           <div />

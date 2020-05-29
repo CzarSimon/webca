@@ -13,10 +13,7 @@ export interface UserState {
 }
 
 export interface CertificateState {
-  certificates: {
-    items?: Page<Certificate>;
-    loaded: boolean;
-  };
+  certificates: Certificates;
   selected?: Certificate;
   options?: CertificateOptions;
 }
@@ -96,6 +93,11 @@ export interface CertificateRequest {
 }
 
 export type CertificatePage = Page<Certificate>;
+
+export interface Certificates {
+  items?: CertificatePage;
+  loaded: boolean;
+}
 
 // Utility types
 

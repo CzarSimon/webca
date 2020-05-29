@@ -42,4 +42,9 @@ export const enUS: TextMap = {
   'certificate.type-INTERMEDIATE_CA': 'Intermediate CA',
   'certificate.type-CERTIFICATE': 'Certificate',
   'certificate.algorithm-RSA': 'RSA',
+
+  'certificateList.title': 'Certificates',
+  'certificateList.name-column': 'Name',
+  'certificateList.type-column': 'Certificate type',
+  'certificateList.createdAt-column': 'Created at',
 };
