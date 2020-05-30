@@ -47,4 +47,6 @@ export const enUS: TextMap = {
   'certificateList.name-column': 'Name',
   'certificateList.type-column': 'Certificate type',
   'certificateList.createdAt-column': 'Created at',
+
+  'certificateDisplay.download-certificate': 'Download certificate',
 };

@@ -17,7 +17,7 @@ const reducer = createReducer<CertificateState, CertificateAction>(initalState)
   .handleAction(actions.addCertificates, (state, action) => addCertificates(state, action.payload))
   .handleAction(actions.selectCertificate, (state, action) => selectCertificate(state, action.payload))
   .handleAction(actions.addOptions, (state, action) => addOptions(state, action.payload))
-  .handleAction([actions.removeCertificates, actions.removeOptions], voidReducer);
+  .handleAction([actions.removeCertificates, actions.removeOptions, actions.deselectCertificate], voidReducer);
 
 function addCertificates(state: CertificateState, items: Page<Certificate>): CertificateState {
   return {
@@ -50,6 +50,8 @@ function voidReducer(state: CertificateState, action: PayloadAction<string, void
       return removeCertificates(state);
     case getType(actions.removeOptions):
       return removeOptions(state);
+    case getType(actions.deselectCertificate):
+      return deselectCertificate(state);
     default:
       return state;
   }
@@ -70,6 +72,13 @@ function removeOptions(state: CertificateState): CertificateState {
   return {
     ...state,
     options: undefined,
+  };
+}
+
+function deselectCertificate(state: CertificateState): CertificateState {
+  return {
+    ...state,
+    selected: undefined,
   };
 }
 

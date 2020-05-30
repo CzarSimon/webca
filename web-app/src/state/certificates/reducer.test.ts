@@ -1,5 +1,12 @@
 import reducer from './reducer';
-import { addOptions, addCertificates, removeOptions, selectCertificate, removeCertificates } from './actions';
+import {
+  addOptions,
+  addCertificates,
+  removeOptions,
+  selectCertificate,
+  removeCertificates,
+  deselectCertificate,
+} from './actions';
 import { CertificateState, CertificateOptions, Certificate, Page } from '../../types';
 
 test('certificate reducer: add options', () => {
@@ -86,7 +93,7 @@ test('certificate reducer: remove options', () => {
   expect(state.options).toBeUndefined();
 });
 
-test('certificate reducer: select certificate', () => {
+test('certificate reducer: select and deselect certificate', () => {
   const opts: CertificateOptions = {
     types: [
       {
@@ -127,6 +134,12 @@ test('certificate reducer: select certificate', () => {
   expect(state.certificates.loaded).toBeFalsy();
   expect(state.selected).toBe(cert);
   expect(state.options).toBe(opts);
+
+  const nextState = reducer(state, deselectCertificate());
+  expect(nextState.certificates.items).toBeUndefined();
+  expect(nextState.certificates.loaded).toBeFalsy();
+  expect(nextState.selected).toBeUndefined();
+  expect(nextState.options).toBe(opts);
 });
 
 test('certificate reducer: add and remove certificates', () => {

@@ -1,0 +1,1 @@
+export { CertificateContainer } from './CertificateContainer';

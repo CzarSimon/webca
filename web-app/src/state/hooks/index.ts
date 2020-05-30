@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { CertificateOptions, Optional, CertificateState, UserState, Certificates } from '../../types';
+import { CertificateOptions, Optional, CertificateState, UserState, Certificates, Certificate } from '../../types';
 import { AppState } from '..';
 import Form, { FormInstance } from 'antd/lib/form';
 import { useEffect } from 'react';
@@ -7,12 +7,15 @@ import { getCertificateOptions, getCertificatesByAccountId } from '../certificat
 import { AUTH_TOKEN_KEY, USER_ID_KEY } from '../../constants';
 import { setToken } from '../../api/httpclient';
 import { getUser } from '../user';
+import { useParams } from 'react-router-dom';
 
-export const useCertificateOptions = (): Optional<CertificateOptions> => useSelector(certificatesSelector).options;
+export const useCertificateState = (): CertificateState => useSelector(certificateSelector);
 
-export const useCertificates = (): Certificates => useSelector(certificatesSelector).certificates;
+export const useCertificateOptions = (): Optional<CertificateOptions> => useCertificateState().options;
 
-const certificatesSelector = (state: AppState): CertificateState => state.certificates;
+export const useCertificates = (): Certificates => useCertificateState().certificates;
+
+const certificateSelector = (state: AppState): CertificateState => state.certificates;
 
 export const useUserState = (): UserState => useSelector(userSelector);
 
@@ -83,4 +86,15 @@ export function useIsAuthenticated(): boolean {
   }, [loaded, userId, authToken]);
 
   return loaded;
+}
+
+export function useSelectedCertificate(): Optional<Certificate> {
+  const { certificateId } = useParams();
+  const { selected } = useCertificateState();
+
+  if (selected && selected.id === certificateId) {
+    return selected;
+  }
+
+  return undefined;
 }
