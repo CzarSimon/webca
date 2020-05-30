@@ -8,6 +8,7 @@ interface Props {
   certificate?: Certificate;
 }
 
+// eslint-disable-next-line
 export function CertificateDisplay({ loading, certificate }: Props) {
   return (
     <>
