@@ -7,11 +7,11 @@ export const keySizes = [1, 2, 4, 8].map((n) => n * baseKeySize);
 
 export function suggestKeySize(certificateType: string): number {
   switch (certificateType) {
-    case CERTIFICATE_TYPES.ROOT:
+    case CERTIFICATE_TYPES.ROOT_CA:
       return 8 * baseKeySize;
-    case CERTIFICATE_TYPES.INTERMEDIATE:
+    case CERTIFICATE_TYPES.INTERMEDIATE_CA:
       return 4 * baseKeySize;
-    case CERTIFICATE_TYPES.USER_CERTIFICATE:
+    case CERTIFICATE_TYPES.CERTIFICATE:
       return 2 * baseKeySize;
     default:
       break;

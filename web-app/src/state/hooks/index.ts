@@ -3,11 +3,12 @@ import { CertificateOptions, Optional, CertificateState, UserState, Certificates
 import { AppState } from '..';
 import Form, { FormInstance } from 'antd/lib/form';
 import { useEffect } from 'react';
-import { getCertificateOptions, getCertificatesByAccountId } from '../certificates';
+import { getCertificateOptions, getCertificatesByAccountId, getCertificate } from '../certificates';
 import { AUTH_TOKEN_KEY, USER_ID_KEY } from '../../constants';
 import { setToken } from '../../api/httpclient';
 import { getUser } from '../user';
 import { useParams } from 'react-router-dom';
+import log from '@czarsimon/remotelogger';
 
 export const useCertificateState = (): CertificateState => useSelector(certificateSelector);
 
@@ -48,8 +49,7 @@ export function useFetchCertificateOptions(): Optional<CertificateOptions> {
 
   useEffect(() => {
     dispatch(getCertificateOptions());
-    // eslint-disable-next-line
-  }, []);
+  }, [dispatch]);
 
   return useCertificateOptions();
 }
@@ -62,8 +62,7 @@ export function useFetchCertificates(): Certificates {
     if (accountId) {
       dispatch(getCertificatesByAccountId(accountId));
     }
-    // eslint-disable-next-line
-  }, [accountId]);
+  }, [dispatch, accountId]);
 
   return useCertificates();
 }
@@ -82,8 +81,7 @@ export function useIsAuthenticated(): boolean {
 
     setToken(authToken);
     dispatch(getUser(userId));
-    // eslint-disable-next-line
-  }, [loaded, userId, authToken]);
+  }, [dispatch, loaded, userId, authToken]);
 
   return loaded;
 }
@@ -91,10 +89,16 @@ export function useIsAuthenticated(): boolean {
 export function useSelectedCertificate(): Optional<Certificate> {
   const { certificateId } = useParams();
   const { selected } = useCertificateState();
+  const dispatch = useDispatch();
 
-  if (selected && selected.id === certificateId) {
-    return selected;
-  }
+  useEffect(() => {
+    if (!certificateId || typeof certificateId !== 'string') {
+      log.error(`invalid certificate id: ${certificateId}`);
+      return;
+    }
 
-  return undefined;
+    dispatch(getCertificate(certificateId));
+  }, [dispatch, certificateId]);
+
+  return selected && selected.id === certificateId ? selected : undefined;
 }

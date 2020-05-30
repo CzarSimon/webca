@@ -7,12 +7,12 @@ interface TestCase {
 }
 
 test('suggestKeysize', () => {
-  const { ROOT, INTERMEDIATE, USER_CERTIFICATE } = CERTIFICATE_TYPES;
+  const { ROOT_CA, INTERMEDIATE_CA, CERTIFICATE } = CERTIFICATE_TYPES;
 
   const testCases: TestCase[] = [
-    { input: USER_CERTIFICATE, result: 2048 },
-    { input: INTERMEDIATE, result: 4096 },
-    { input: ROOT, result: 8192 },
+    { input: CERTIFICATE, result: 2048 },
+    { input: INTERMEDIATE_CA, result: 4096 },
+    { input: ROOT_CA, result: 8192 },
   ];
 
   testCases.forEach((tc) => {

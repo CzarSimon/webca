@@ -14,7 +14,12 @@ export const APP_VERSION = 'x.y.z';
 export const PASSWORD_MIN_LENGTH = 16;
 
 export const CERTIFICATE_TYPES: TypedMap<string> = {
-  ROOT: 'ROOT_CA',
-  INTERMEDIATE: 'INTERMEDIATE_CA',
-  USER_CERTIFICATE: 'CERTIFICATE',
+  ROOT_CA: 'ROOT_CA',
+  INTERMEDIATE_CA: 'INTERMEDIATE_CA',
+  CERTIFICATE: 'CERTIFICATE',
+};
+
+export const ROLES: TypedMap<string> = {
+  ADMIN: 'ADMIN',
+  USER: 'USER',
 };

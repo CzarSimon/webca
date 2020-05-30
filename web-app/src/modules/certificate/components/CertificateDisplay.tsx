@@ -1,20 +1,34 @@
 import React from 'react';
-import { Button } from 'antd';
-import { FormattedMessage } from 'react-intl';
+import { Card, Space } from 'antd';
 import { Certificate } from '../../../types';
+import { DownloadCertificateButton } from './DownloadCertificateButton';
+import { DownloadPrivateKeyButton } from './DownloadPrivateKeyButton';
+import { BasicCertificateDetails } from './BasicCertificateDetails';
+import { CertificateSubjectDetails } from './CertificateSubjectDetails';
+
+import styles from './CertificateDisplay.module.css';
 
 interface Props {
-  loading: boolean;
+  isAdmin: boolean;
+  isLoading: boolean;
   certificate?: Certificate;
 }
 
-// eslint-disable-next-line
-export function CertificateDisplay({ loading, certificate }: Props) {
+export function CertificateDisplay({ isAdmin, isLoading, certificate }: Props) {
   return (
-    <>
-      <Button>
-        <FormattedMessage id="certificateDisplay.download-certificate" />
-      </Button>
-    </>
+    <div className={styles.CertificateDisplay}>
+      <div className={styles.Card}>
+        <Card title={<h2>{certificate?.name}</h2>} loading={isLoading}>
+          <BasicCertificateDetails certificate={certificate} />
+          <CertificateSubjectDetails subject={certificate?.subject} />
+        </Card>
+      </div>
+      <div className={styles.ButtonGroup}>
+        <Space>
+          <DownloadCertificateButton isLoading={isLoading} type={certificate?.type} />
+          <DownloadPrivateKeyButton isLoading={isLoading} isAdmin={isAdmin} />
+        </Space>
+      </div>
+    </div>
   );
 }

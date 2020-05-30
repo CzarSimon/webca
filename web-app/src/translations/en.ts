@@ -48,5 +48,19 @@ export const enUS: TextMap = {
   'certificateList.type-column': 'Certificate type',
   'certificateList.createdAt-column': 'Created at',
 
-  'certificateDisplay.download-certificate': 'Download certificate',
+  'certificateDisplay.download-certificate': 'Download Certificate',
+  'certificateDisplay.download-certificateChain': 'Download Certificate Chain',
+  'certificateDisplay.download-privateKey': 'Download Private Key',
+
+  'basicCertificateDetails.title': 'Basic details',
+  'basicCertificateDetails.type': 'Type',
+  'basicCertificateDetails.createdAt': 'Created At',
+
+  'certificateSubjectDetails.title': 'Subject',
+  'certificateSubjectDetails.commonName': 'Common name',
+  'certificateSubjectDetails.country': 'Country',
+  'certificateSubjectDetails.locality': 'Locality',
+  'certificateSubjectDetails.organization': 'Organization',
+  'certificateSubjectDetails.organizationalUnit': 'Organizational unit',
+  'certificateSubjectDetails.email': 'Email',
 };
