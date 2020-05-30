@@ -6,6 +6,7 @@ import { mockRequests } from '../../api/httpclient';
 import { initStore } from '../../state';
 import { Certificate, User } from '../../types';
 import { addUser } from '../../state/user/actions';
+import userEvent from '@testing-library/user-event';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -94,6 +95,13 @@ test('certificate page: renders root certificate', async () => {
   expect(screen.getByText('test root ca')).toBeInTheDocument();
   expect(screen.getByText('Created At')).toBeInTheDocument();
   expect(screen.getByText('2020-05-16 08:30:20')).toBeInTheDocument();
+
+  const bodyCollapse = screen.getByText('Body');
+  expect(bodyCollapse).toBeInTheDocument();
+  expect(screen.queryByText('pem formated certificate body')).toBeFalsy();
+  await act(async () => userEvent.click(bodyCollapse));
+  expect(screen.getByText('pem formated certificate body')).toBeInTheDocument();
+
   const downloadButton = screen.getByRole('button', { name: /download certificate/i });
   expect(downloadButton).toBeInTheDocument();
   expect(downloadButton).toBeEnabled();

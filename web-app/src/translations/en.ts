@@ -63,4 +63,6 @@ export const enUS: TextMap = {
   'certificateSubjectDetails.organization': 'Organization',
   'certificateSubjectDetails.organizationalUnit': 'Organizational unit',
   'certificateSubjectDetails.email': 'Email',
+
+  'certificateBody.collapseButton': 'Body',
 };

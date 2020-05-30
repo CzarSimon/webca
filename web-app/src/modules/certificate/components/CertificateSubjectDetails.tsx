@@ -10,6 +10,7 @@ interface Props {
 
 export function CertificateSubjectDetails({ subject }: Props) {
   const formattedMessage = useFormatedMessage();
+
   if (!subject || Object.entries(subject).length === 0) {
     return null;
   }

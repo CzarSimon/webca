@@ -5,6 +5,7 @@ import { DownloadCertificateButton } from './DownloadCertificateButton';
 import { DownloadPrivateKeyButton } from './DownloadPrivateKeyButton';
 import { BasicCertificateDetails } from './BasicCertificateDetails';
 import { CertificateSubjectDetails } from './CertificateSubjectDetails';
+import { CertificateBody } from './CertificateBody';
 
 import styles from './CertificateDisplay.module.css';
 
@@ -21,6 +22,7 @@ export function CertificateDisplay({ isAdmin, isLoading, certificate }: Props) {
         <Card title={<h2>{certificate?.name}</h2>} loading={isLoading}>
           <BasicCertificateDetails certificate={certificate} />
           <CertificateSubjectDetails subject={certificate?.subject} />
+          <CertificateBody certificate={certificate} />
         </Card>
       </div>
       <div className={styles.ButtonGroup}>
