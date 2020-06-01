@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/crypto"
@@ -21,6 +22,10 @@ import (
 	"github.com/CzarSimon/webca/api-server/internal/rsautil"
 	"github.com/CzarSimon/webca/api-server/internal/timeutil"
 	"github.com/opentracing/opentracing-go"
+)
+
+const (
+	textPlainType = "text/plain"
 )
 
 // CertificateService service responsible for certificate createion and management.
@@ -37,6 +42,16 @@ func (c *CertificateService) GetCertificate(ctx context.Context, principal jwt.U
 	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificate")
 	defer span.Finish()
 
+	cert, err := c.findCertificate(ctx, principal, id)
+	if err != nil {
+		return model.Certificate{}, err
+	}
+
+	c.logCertificateReading(ctx, cert, principal.ID)
+	return cert, nil
+}
+
+func (c *CertificateService) findCertificate(ctx context.Context, principal jwt.User, id string) (model.Certificate, error) {
 	cert, found, err := c.CertRepo.Find(ctx, id)
 	if err != nil {
 		return model.Certificate{}, err
@@ -52,7 +67,6 @@ func (c *CertificateService) GetCertificate(ctx context.Context, principal jwt.U
 		return model.Certificate{}, err
 	}
 
-	c.logCertificateReading(ctx, cert, principal.ID)
 	return cert, nil
 }
 
@@ -99,6 +113,24 @@ func (c *CertificateService) GetOptions(ctx context.Context) (model.CertificateO
 		Formats:    []string{"PEM"},
 	}
 	return opts, nil
+}
+
+// GetCertificateBody retrieves certificate as an attachment if.
+func (c *CertificateService) GetCertificateBody(ctx context.Context, principal jwt.User, id string) (model.Attachment, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificate_body")
+	defer span.Finish()
+
+	cert, err := c.findCertificate(ctx, principal, id)
+	if err != nil {
+		return model.Attachment{}, err
+	}
+
+	c.logCertificateBodyReading(ctx, cert, principal.ID)
+	return model.Attachment{
+		Body:        []byte(cert.Body),
+		ContentType: textPlainType,
+		Filename:    attachmentFilename(cert.Name, cert.Type, cert.Format),
+	}, err
 }
 
 // Create creates and stores a certificate and private key.
@@ -231,6 +263,10 @@ func (c *CertificateService) logCertificatesReading(ctx context.Context, certs [
 	}
 }
 
+func (c *CertificateService) logCertificateBodyReading(ctx context.Context, cert model.Certificate, userID string) {
+	c.AuditLog.Read(ctx, userID, "certificate:%s:body", cert.ID)
+}
+
 func signCertificate(cert model.Certificate, keys model.KeyEncoder) (model.Certificate, error) {
 	template, err := x509Template(cert)
 	if err != nil {
@@ -288,4 +324,13 @@ func x509Template(cert model.Certificate) (*x509.Certificate, error) {
 	}
 
 	return xc, nil
+}
+
+func attachmentFilename(name, category, format string) string {
+	filename := strings.ToLower(fmt.Sprintf("%s.%s.%s", name, category, format))
+	replacements := []string{"_", " "}
+	for _, r := range replacements {
+		filename = strings.ReplaceAll(filename, r, "-")
+	}
+	return filename
 }

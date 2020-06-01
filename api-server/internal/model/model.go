@@ -240,3 +240,19 @@ func NewAuditEvent(userID, activity, resource string) AuditEvent {
 func (e AuditEvent) String() string {
 	return fmt.Sprintf("AuditEvent(id=%s, userId=%s, activity=%s, resource=%s, createdAt=%v)", e.ID, e.UserID, e.Activity, e.Resource, e.CreatedAt)
 }
+
+// Attachment file attachment.
+type Attachment struct {
+	Body        []byte
+	ContentType string
+	Filename    string
+}
+
+// ContentDisposition creates the value for the Content-Disposition header.
+func (a Attachment) ContentDisposition() string {
+	return fmt.Sprintf("attachment; filename=%s;", a.Filename)
+}
+
+func (a Attachment) String() string {
+	return fmt.Sprintf("Attachment(filename=%s, contentType=%s)", a.Filename, a.ContentType)
+}
