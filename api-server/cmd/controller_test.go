@@ -13,6 +13,7 @@ import (
 	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/audit"
+	"github.com/CzarSimon/webca/api-server/internal/authorization"
 	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/service"
@@ -123,6 +124,7 @@ func createTestEnv() (*env, context.Context) {
 	auditLog := audit.NewLogger("webca:api-server", auditRepo)
 
 	userRepo := repository.NewUserRepository(db)
+	authService := authorization.NewService(userRepo)
 
 	e := &env{
 		cfg: cfg,
@@ -140,10 +142,12 @@ func createTestEnv() (*env, context.Context) {
 			KeyPairRepo:     repository.NewKeyPairRepository(db),
 			UserRepo:        userRepo,
 			PasswordService: passwordSvc,
+			AuthService:     authService,
 		},
 		userService: &service.UserService{
-			AuditLog: auditLog,
-			UserRepo: userRepo,
+			AuditLog:    auditLog,
+			UserRepo:    userRepo,
+			AuthService: authService,
 		},
 	}
 

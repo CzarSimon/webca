@@ -16,6 +16,7 @@ import (
 	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/audit"
+	"github.com/CzarSimon/webca/api-server/internal/authorization"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
@@ -35,6 +36,7 @@ type CertificateService struct {
 	KeyPairRepo     repository.KeyPairRepository
 	UserRepo        repository.UserRepository
 	PasswordService *password.Service
+	AuthService     *authorization.Service
 }
 
 // GetCertificate retrieves certificate if it exists.
@@ -56,7 +58,7 @@ func (c *CertificateService) GetCertificates(ctx context.Context, principal jwt.
 	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificates")
 	defer span.Finish()
 
-	err := c.assertAccountAccess(ctx, accountID, principal)
+	err := c.AuthService.AssertAccountAccess(ctx, principal, accountID)
 	if err != nil {
 		return model.CertificatePage{}, err
 	}
@@ -258,20 +260,6 @@ func (c *CertificateService) decryptKeys(ctx context.Context, keyPair model.KeyP
 	return keyPair, nil
 }
 
-func (c *CertificateService) assertAccountAccess(ctx context.Context, accountID string, principal jwt.User) error {
-	user, err := c.findUser(ctx, principal.ID)
-	if err != nil {
-		return err
-	}
-
-	if user.Account.ID != accountID {
-		err = fmt.Errorf("%s is not alowed to access certificates for account(id=%s)", user, accountID)
-		return httputil.ForbiddenError(err)
-	}
-
-	return nil
-}
-
 func (c *CertificateService) findCertificate(ctx context.Context, principal jwt.User, id string) (model.Certificate, error) {
 	cert, found, err := c.CertRepo.Find(ctx, id)
 	if err != nil {
@@ -283,7 +271,7 @@ func (c *CertificateService) findCertificate(ctx context.Context, principal jwt.
 		return model.Certificate{}, httputil.NotFoundError(err)
 	}
 
-	err = c.assertAccountAccess(ctx, cert.AccountID, principal)
+	err = c.AuthService.AssertAccountAccess(ctx, principal, cert.AccountID)
 	if err != nil {
 		return model.Certificate{}, err
 	}
@@ -302,7 +290,7 @@ func (c *CertificateService) findCertificatePrivateKey(ctx context.Context, prin
 		return model.KeyPair{}, httputil.NotFoundError(err)
 	}
 
-	err = c.assertAccountAccess(ctx, keyPair.AccountID, principal)
+	err = c.AuthService.AssertAccountAccess(ctx, principal, keyPair.AccountID)
 	if err != nil {
 		return model.KeyPair{}, err
 	}

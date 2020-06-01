@@ -8,6 +8,7 @@ import (
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/audit"
+	"github.com/CzarSimon/webca/api-server/internal/authorization"
 	"github.com/CzarSimon/webca/api-server/internal/password"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/CzarSimon/webca/api-server/internal/service"
@@ -77,6 +78,7 @@ func setupEnv() *env {
 	auditLog := audit.NewLogger("webca:api-server", auditRepo)
 
 	userRepo := repository.NewUserRepository(db)
+	authService := authorization.NewService(userRepo)
 
 	return &env{
 		cfg: cfg,
@@ -94,10 +96,12 @@ func setupEnv() *env {
 			KeyPairRepo:     repository.NewKeyPairRepository(db),
 			UserRepo:        userRepo,
 			PasswordService: passwordSvc,
+			AuthService:     authService,
 		},
 		userService: &service.UserService{
-			AuditLog: auditLog,
-			UserRepo: userRepo,
+			AuditLog:    auditLog,
+			UserRepo:    userRepo,
+			AuthService: authService,
 		},
 		traceCloser: closer,
 	}

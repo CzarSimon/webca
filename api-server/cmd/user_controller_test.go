@@ -79,18 +79,25 @@ func TestGetUser_OtherUser(t *testing.T) {
 	err := accountRepo.Save(ctx, account)
 	assert.NoError(err)
 
-	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
+	otherAccount := model.NewAccount("other-account")
+	err = accountRepo.Save(ctx, otherAccount)
+	assert.NoError(err)
+
 	userRepo := repository.NewUserRepository(e.db)
+	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
 	err = userRepo.Save(ctx, user)
 	assert.NoError(err)
 
-	adminPrincipal := jwt.User{
-		ID:    id.New(),
-		Roles: []string{model.AdminRole},
-	}
+	admin := model.NewUser("admin@mail.com", model.AdminRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, admin)
+	assert.NoError(err)
+
+	otherUser := model.NewUser("mail@other.com", model.UserRole, model.Credentials{}, otherAccount)
+	err = userRepo.Save(ctx, otherUser)
+	assert.NoError(err)
 
 	path := fmt.Sprintf("/v1/users/%s", user.ID)
-	req := createTestRequest(path, http.MethodGet, adminPrincipal, nil)
+	req := createTestRequest(path, http.MethodGet, admin.JWTUser(), nil)
 	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
 
@@ -112,12 +119,25 @@ func TestGetUser_OtherUser(t *testing.T) {
 	res = performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusForbidden, res.Code)
 
+	otherPath := fmt.Sprintf("/v1/users/%s", otherUser.ID)
+	req = createTestRequest(otherPath, http.MethodGet, user.JWTUser(), nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusForbidden, res.Code)
+
+	req = createTestRequest(otherPath, http.MethodGet, admin.JWTUser(), nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusForbidden, res.Code)
+
 	auditRepo := repository.NewAuditEventRepository(e.db)
 	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:user:%s", user.ID))
 	assert.NoError(err)
 	assert.Len(events, 1)
 	assert.Equal("READ", events[0].Activity)
-	assert.Equal(adminPrincipal.ID, events[0].UserID)
+	assert.Equal(admin.ID, events[0].UserID)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:user:%s", otherUser.ID))
+	assert.NoError(err)
+	assert.Len(events, 0)
 }
 
 func TestGetUser_BadContentType(t *testing.T) {

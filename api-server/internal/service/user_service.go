@@ -7,6 +7,7 @@ import (
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/audit"
+	"github.com/CzarSimon/webca/api-server/internal/authorization"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
 	"github.com/opentracing/opentracing-go"
@@ -14,8 +15,9 @@ import (
 
 // UserService service responsible for user business logic.
 type UserService struct {
-	AuditLog audit.Logger
-	UserRepo repository.UserRepository
+	AuditLog    audit.Logger
+	UserRepo    repository.UserRepository
+	AuthService *authorization.Service
 }
 
 // GetUser retrieves users from database if exists.
@@ -23,7 +25,7 @@ func (u *UserService) GetUser(ctx context.Context, principal jwt.User, id string
 	span, ctx := opentracing.StartSpanFromContext(ctx, "user_service_get_user")
 	defer span.Finish()
 
-	err := assertUserAccess(principal, id)
+	err := u.AuthService.AssertUserAccess(ctx, principal, id)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -40,17 +42,4 @@ func (u *UserService) GetUser(ctx context.Context, principal jwt.User, id string
 
 	u.AuditLog.Read(ctx, principal.ID, "user:%s", id)
 	return user, nil
-}
-
-func assertUserAccess(principal jwt.User, userID string) error {
-	if principal.HasRole(model.AdminRole) {
-		return nil
-	}
-
-	if !principal.HasRole(model.UserRole) || principal.ID != userID {
-		err := fmt.Errorf("%s is forbidden to access user with id = %s", principal, userID)
-		return httputil.ForbiddenError(err)
-	}
-
-	return nil
 }
