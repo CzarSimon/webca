@@ -28,9 +28,8 @@ func (e *env) createCertificate(c *gin.Context) {
 		return
 	}
 
-	principal, ok := httputil.GetPrincipal(c)
-	if !ok {
-		err = httputil.InternalServerError(fmt.Errorf("failed to parse prinipal from authenticated request"))
+	principal, err := httputil.MustGetPrincipal(c)
+	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return
@@ -51,9 +50,8 @@ func (e *env) getCertificate(c *gin.Context) {
 	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_get_certificate")
 	defer span.Finish()
 
-	principal, ok := httputil.GetPrincipal(c)
-	if !ok {
-		err := httputil.InternalServerError(fmt.Errorf("failed to parse prinipal from authenticated request"))
+	principal, err := httputil.MustGetPrincipal(c)
+	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return
@@ -81,9 +79,8 @@ func (e *env) getCertificates(c *gin.Context) {
 		return
 	}
 
-	principal, ok := httputil.GetPrincipal(c)
-	if !ok {
-		err := httputil.InternalServerError(fmt.Errorf("failed to parse prinipal from authenticated request"))
+	principal, err := httputil.MustGetPrincipal(c)
+	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return
@@ -103,9 +100,8 @@ func (e *env) getCertificateBody(c *gin.Context) {
 	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_get_certificate_body")
 	defer span.Finish()
 
-	principal, ok := httputil.GetPrincipal(c)
-	if !ok {
-		err := httputil.InternalServerError(fmt.Errorf("failed to parse prinipal from authenticated request"))
+	principal, err := httputil.MustGetPrincipal(c)
+	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return
@@ -127,9 +123,8 @@ func (e *env) getCertificatePrivateKey(c *gin.Context) {
 	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_get_certificate_private_key")
 	defer span.Finish()
 
-	principal, ok := httputil.GetPrincipal(c)
-	if !ok {
-		err := httputil.InternalServerError(fmt.Errorf("failed to parse prinipal from authenticated request"))
+	principal, err := httputil.MustGetPrincipal(c)
+	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return

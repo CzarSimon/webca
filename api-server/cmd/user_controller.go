@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/CzarSimon/httputil"
@@ -14,9 +13,8 @@ func (e *env) getUser(c *gin.Context) {
 	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "user_controller_get_user")
 	defer span.Finish()
 
-	principal, ok := httputil.GetPrincipal(c)
-	if !ok {
-		err := httputil.InternalServerError(fmt.Errorf("failed to parse prinipal from authenticated request"))
+	principal, err := httputil.MustGetPrincipal(c)
+	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return
