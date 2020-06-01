@@ -11,6 +11,10 @@ import (
 	tracelog "github.com/opentracing/opentracing-go/log"
 )
 
+const (
+	privKeyPwdHeader = "X-Private-Key-Password"
+)
+
 func (e *env) createCertificate(c *gin.Context) {
 	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_create_certificate")
 	defer span.Finish()
@@ -109,6 +113,38 @@ func (e *env) getCertificateBody(c *gin.Context) {
 
 	certID := c.Param("id")
 	a, err := e.certificateService.GetCertificateBody(ctx, principal, certID)
+	if err != nil {
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	c.Header("Content-Disposition", a.ContentDisposition())
+	c.Data(http.StatusOK, a.ContentType, a.Body)
+}
+
+func (e *env) getCertificatePrivateKey(c *gin.Context) {
+	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_get_certificate_private_key")
+	defer span.Finish()
+
+	principal, ok := httputil.GetPrincipal(c)
+	if !ok {
+		err := httputil.InternalServerError(fmt.Errorf("failed to parse prinipal from authenticated request"))
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	password := c.GetHeader(privKeyPwdHeader)
+	if password == "" {
+		err := httputil.BadRequestError(fmt.Errorf("missing required header. %s", privKeyPwdHeader))
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	certID := c.Param("id")
+	a, err := e.certificateService.GetCertificatePrivateKey(ctx, principal, certID, password)
 	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)

@@ -51,31 +51,12 @@ func (c *CertificateService) GetCertificate(ctx context.Context, principal jwt.U
 	return cert, nil
 }
 
-func (c *CertificateService) findCertificate(ctx context.Context, principal jwt.User, id string) (model.Certificate, error) {
-	cert, found, err := c.CertRepo.Find(ctx, id)
-	if err != nil {
-		return model.Certificate{}, err
-	}
-
-	if !found {
-		err = fmt.Errorf("certificate with id %s does not exist", id)
-		return model.Certificate{}, httputil.NotFoundError(err)
-	}
-
-	err = c.assertAccountCertificatesAccess(ctx, cert.AccountID, principal)
-	if err != nil {
-		return model.Certificate{}, err
-	}
-
-	return cert, nil
-}
-
 // GetCertificates retrieves a list of certificates based on account id.
 func (c *CertificateService) GetCertificates(ctx context.Context, principal jwt.User, accountID string) (model.CertificatePage, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificates")
 	defer span.Finish()
 
-	err := c.assertAccountCertificatesAccess(ctx, accountID, principal)
+	err := c.assertAccountAccess(ctx, accountID, principal)
 	if err != nil {
 		return model.CertificatePage{}, err
 	}
@@ -88,7 +69,6 @@ func (c *CertificateService) GetCertificates(ctx context.Context, principal jwt.
 	go c.logCertificatesReading(ctx, certs, principal.ID)
 	rlen := len(certs)
 	return model.CertificatePage{
-
 		CurrentPage:    1,
 		TotalPages:     1,
 		TotalResults:   rlen,
@@ -115,7 +95,7 @@ func (c *CertificateService) GetOptions(ctx context.Context) (model.CertificateO
 	return opts, nil
 }
 
-// GetCertificateBody retrieves certificate as an attachment if.
+// GetCertificateBody retrieves certificate body as an attachment.
 func (c *CertificateService) GetCertificateBody(ctx context.Context, principal jwt.User, id string) (model.Attachment, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificate_body")
 	defer span.Finish()
@@ -130,6 +110,39 @@ func (c *CertificateService) GetCertificateBody(ctx context.Context, principal j
 		Body:        []byte(cert.Body),
 		ContentType: textPlainType,
 		Filename:    attachmentFilename(cert.Name, cert.Type, cert.Format),
+	}, err
+}
+
+// GetCertificatePrivateKey retrieves certificate private key as an attachment.
+func (c *CertificateService) GetCertificatePrivateKey(ctx context.Context, principal jwt.User, id, password string) (model.Attachment, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificate_private_key")
+	defer span.Finish()
+
+	cert, err := c.findCertificate(ctx, principal, id)
+	if err != nil {
+		return model.Attachment{}, err
+	}
+
+	encryptedKeyPair, err := c.findCertificatePrivateKey(ctx, principal, id)
+	if err != nil {
+		return model.Attachment{}, err
+	}
+
+	err = c.PasswordService.Verify(ctx, encryptedKeyPair.Credentials, password)
+	if err != nil {
+		return model.Attachment{}, err
+	}
+
+	keyPair, err := c.decryptKeys(ctx, encryptedKeyPair, password)
+	if err != nil {
+		return model.Attachment{}, err
+	}
+
+	c.logPrivateKeyReading(ctx, keyPair, principal.ID)
+	return model.Attachment{
+		Body:        []byte(keyPair.PrivateKey),
+		ContentType: textPlainType,
+		Filename:    attachmentFilename(cert.Name, "private-key", keyPair.Format),
 	}, err
 }
 
@@ -220,7 +233,32 @@ func (c *CertificateService) encryptKeys(ctx context.Context, keyPair model.KeyP
 	return keyPair, nil
 }
 
-func (c *CertificateService) assertAccountCertificatesAccess(ctx context.Context, accountID string, principal jwt.User) error {
+func (c *CertificateService) decryptKeys(ctx context.Context, keyPair model.KeyPair, pwd string) (model.KeyPair, error) {
+	salt, err := base64.StdEncoding.DecodeString(keyPair.EncryptionSalt)
+	if err != nil {
+		return model.KeyPair{}, fmt.Errorf("failed to decode salt: %w", err)
+	}
+
+	ciphertext, err := base64.StdEncoding.DecodeString(keyPair.PrivateKey)
+	if err != nil {
+		return model.KeyPair{}, fmt.Errorf("failed to decode encrypted private key: %w", err)
+	}
+
+	encryptionKey, err := crypto.Hmac([]byte(pwd), salt)
+	if err != nil {
+		return model.KeyPair{}, fmt.Errorf("failed to generate encryption key: %w", err)
+	}
+
+	plaintext, err := crypto.NewAESCipher(encryptionKey).Decrypt(ciphertext)
+	if err != nil {
+		return model.KeyPair{}, fmt.Errorf("failed to decrypt private key: %w", err)
+	}
+
+	keyPair.PrivateKey = string(plaintext)
+	return keyPair, nil
+}
+
+func (c *CertificateService) assertAccountAccess(ctx context.Context, accountID string, principal jwt.User) error {
 	user, err := c.findUser(ctx, principal.ID)
 	if err != nil {
 		return err
@@ -232,6 +270,44 @@ func (c *CertificateService) assertAccountCertificatesAccess(ctx context.Context
 	}
 
 	return nil
+}
+
+func (c *CertificateService) findCertificate(ctx context.Context, principal jwt.User, id string) (model.Certificate, error) {
+	cert, found, err := c.CertRepo.Find(ctx, id)
+	if err != nil {
+		return model.Certificate{}, err
+	}
+
+	if !found {
+		err = fmt.Errorf("certificate with id %s does not exist", id)
+		return model.Certificate{}, httputil.NotFoundError(err)
+	}
+
+	err = c.assertAccountAccess(ctx, cert.AccountID, principal)
+	if err != nil {
+		return model.Certificate{}, err
+	}
+
+	return cert, nil
+}
+
+func (c *CertificateService) findCertificatePrivateKey(ctx context.Context, principal jwt.User, id string) (model.KeyPair, error) {
+	keyPair, found, err := c.KeyPairRepo.FindByCertificateID(ctx, id)
+	if err != nil {
+		return model.KeyPair{}, err
+	}
+
+	if !found {
+		err = fmt.Errorf("KeyPair does not exist for certificate with id = %s", id)
+		return model.KeyPair{}, httputil.NotFoundError(err)
+	}
+
+	err = c.assertAccountAccess(ctx, keyPair.AccountID, principal)
+	if err != nil {
+		return model.KeyPair{}, err
+	}
+
+	return keyPair, nil
 }
 
 func (c *CertificateService) findUser(ctx context.Context, userID string) (model.User, error) {
@@ -265,6 +341,10 @@ func (c *CertificateService) logCertificatesReading(ctx context.Context, certs [
 
 func (c *CertificateService) logCertificateBodyReading(ctx context.Context, cert model.Certificate, userID string) {
 	c.AuditLog.Read(ctx, userID, "certificate:%s:body", cert.ID)
+}
+
+func (c *CertificateService) logPrivateKeyReading(ctx context.Context, keyPair model.KeyPair, userID string) {
+	c.AuditLog.Read(ctx, userID, "key-pair:%s:private-key", keyPair.ID)
 }
 
 func signCertificate(cert model.Certificate, keys model.KeyEncoder) (model.Certificate, error) {

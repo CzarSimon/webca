@@ -715,3 +715,147 @@ func TestGetCertificateBody_UnauthorizedAndForbidden(t *testing.T) {
 		jwt.AnonymousRole,
 	})
 }
+
+func TestGetCertificatePrivateKey(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	account := model.NewAccount("test-account")
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	otherAccount := model.NewAccount("other-account")
+	err = accountRepo.Save(ctx, otherAccount)
+	assert.NoError(err)
+
+	userRepo := repository.NewUserRepository(e.db)
+	admin := model.NewUser("admin@mail.com", model.AdminRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, admin)
+	assert.NoError(err)
+
+	user := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, user)
+	assert.NoError(err)
+
+	otherUser := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, otherAccount)
+	err = userRepo.Save(ctx, otherUser)
+	assert.NoError(err)
+
+	body := model.CertificateRequest{
+		Name: "cert-1",
+		Subject: model.CertificateSubject{
+			CommonName: "Cert 1",
+		},
+		Type:      "ROOT_CA",
+		Algorithm: "RSA",
+		Password:  "8e13d01c9e540a267cd2920ee749f398a66d66e2",
+		Options: map[string]interface{}{
+			"keySize": 512,
+		},
+	}
+	req := createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	certRepo := repository.NewCertificateRepository(e.db)
+	cert, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
+	assert.NoError(err)
+	assert.True(exists)
+
+	keyPair, exists, err := repository.NewKeyPairRepository(e.db).FindByCertificateID(ctx, cert.ID)
+	assert.NoError(err)
+	assert.True(exists)
+
+	path := fmt.Sprintf("/v1/certificates/%s/private-key", cert.ID)
+	req = createTestRequest(path, http.MethodGet, admin.JWTUser(), nil)
+	req.Header.Add("X-Private-Key-Password", body.Password)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	contentType := res.Header().Get("Content-Type")
+	assert.Equal("text/plain", contentType)
+
+	contentDisposition := res.Header().Get("Content-Disposition")
+	assert.Equal("attachment; filename=cert-1.private-key.pem;", contentDisposition)
+
+	rBody, err := ioutil.ReadAll(res.Body)
+	assert.NoError(err)
+	assert.True(strings.HasPrefix(string(rBody), "-----BEGIN RSA PRIVATE KEY-----"))
+	assert.True(strings.HasSuffix(string(rBody), "-----END RSA PRIVATE KEY-----\n"))
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:key-pair:%s:private-key", keyPair.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("READ", events[0].Activity)
+	assert.Equal(admin.ID, events[0].UserID)
+
+	req = createTestRequest(path, http.MethodGet, otherUser.JWTUser(), nil)
+	req.Header.Add("X-Private-Key-Password", body.Password)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusForbidden, res.Code)
+
+	principalThatDoesNotExist := jwt.User{
+		ID:    id.New(),
+		Roles: []string{model.AdminRole},
+	}
+
+	req = createTestRequest(path, http.MethodGet, principalThatDoesNotExist, nil)
+	req.Header.Add("X-Private-Key-Password", body.Password)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnauthorized, res.Code)
+
+	req = createTestRequest(path, http.MethodGet, admin.JWTUser(), nil)
+	req.Header.Add("X-Private-Key-Password", "this-is-the-wrong-password")
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusUnauthorized, res.Code)
+}
+
+func TestGetCertificatePrivateKey_NoPassword(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	principal := jwt.User{
+		ID:    id.New(),
+		Roles: []string{model.AdminRole},
+	}
+
+	path := fmt.Sprintf("/v1/certificates/%s/private-key", id.New())
+	req := createTestRequest(path, http.MethodGet, principal, nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+}
+
+func TestGetCertificatePrivateKey_NotFound(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	principal := jwt.User{
+		ID:    id.New(),
+		Roles: []string{model.AdminRole},
+	}
+
+	path := fmt.Sprintf("/v1/certificates/%s/private-key", id.New())
+	req := createTestRequest(path, http.MethodGet, principal, nil)
+	req.Header.Add("X-Private-Key-Password", "some-secret-password")
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusNotFound, res.Code)
+}
+
+func TestGetCertificatePrivateKey_BadContentType(t *testing.T) {
+	path := fmt.Sprintf("/v1/certificates/%s/private-key", id.New())
+	testBadContentType(t, path, http.MethodGet, model.UserRole)
+}
+
+func TestGetCertificatePrivateKey_UnauthorizedAndForbidden(t *testing.T) {
+	path := fmt.Sprintf("/v1/certificates/%s/private-key", id.New())
+	testUnauthorized(t, path, http.MethodGet)
+	testForbidden(t, path, http.MethodGet, []string{
+		jwt.AnonymousRole,
+		model.UserRole,
+	})
+}
