@@ -16,3 +16,14 @@ export const getCertificatesByAccountId = (accountId: string): Promise<HTTPRespo
 
 export const getCertificateOptions = (): Promise<HTTPResponse<CertificateOptions>> =>
   httpclient.get<CertificateOptions>({ url: OPTIONS_URL });
+
+export const downloadCertificateBody = (id: string): Promise<HTTPResponse<string>> =>
+  httpclient.get<string>({ url: `${CERTIFICATES_URL}/${id}/body` });
+
+export const downloadCertificatePrivateKey = (id: string, password: string): Promise<HTTPResponse<string>> =>
+  httpclient.get<string>({
+    url: `${CERTIFICATES_URL}/${id}/private-key`,
+    headers: {
+      'X-Private-Key-Password': password,
+    },
+  });

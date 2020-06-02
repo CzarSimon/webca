@@ -13,9 +13,10 @@ interface Props {
   isAdmin: boolean;
   isLoading: boolean;
   certificate?: Certificate;
+  downloadCertificate: () => void;
 }
 
-export function CertificateDisplay({ isAdmin, isLoading, certificate }: Props) {
+export function CertificateDisplay({ isAdmin, isLoading, certificate, downloadCertificate }: Props) {
   return (
     <div className={styles.CertificateDisplay}>
       <div className={styles.Card}>
@@ -27,7 +28,7 @@ export function CertificateDisplay({ isAdmin, isLoading, certificate }: Props) {
       </div>
       <div className={styles.ButtonGroup}>
         <Space>
-          <DownloadCertificateButton isLoading={isLoading} type={certificate?.type} />
+          <DownloadCertificateButton isLoading={isLoading} type={certificate?.type} download={downloadCertificate} />
           <DownloadPrivateKeyButton isLoading={isLoading} isAdmin={isAdmin} />
         </Space>
       </div>

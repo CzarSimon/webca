@@ -44,6 +44,12 @@ export function getCertificatesByAccountId(accountId: string): Thunk {
   };
 }
 
+export function downloadCertificateBody(id: string): Thunk {
+  return async (): Promise<void> => {
+    await api.downloadCertificateBody(id);
+  };
+}
+
 export function getCertificateOptions(): Thunk {
   return async (dispatch: Dispatch): Promise<void> => {
     const { body, error, metadata } = await api.getCertificateOptions();

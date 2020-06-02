@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -658,13 +657,14 @@ func TestGetCertificateBody(t *testing.T) {
 	assert.Equal(http.StatusOK, res.Code)
 
 	contentType := res.Header().Get("Content-Type")
-	assert.Equal("text/plain", contentType)
-	contentDisposition := res.Header().Get("Content-Disposition")
-	assert.Equal("attachment; filename=test-root-ca.root-ca.pem;", contentDisposition)
+	assert.Equal("application/json; charset=utf-8", contentType)
 
-	rBody, err := ioutil.ReadAll(res.Body)
+	var rBody model.Attachment
+	err = json.NewDecoder(res.Result().Body).Decode(&rBody)
 	assert.NoError(err)
-	assert.Equal(cert.Body, string(rBody))
+	assert.Equal(cert.Body, rBody.Body)
+	assert.Equal("test-root-ca.root-ca.pem", rBody.Filename)
+	assert.Equal("text/plain", rBody.ContentType)
 
 	auditRepo := repository.NewAuditEventRepository(e.db)
 	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s:body", cert.ID))
@@ -775,15 +775,15 @@ func TestGetCertificatePrivateKey(t *testing.T) {
 	assert.Equal(http.StatusOK, res.Code)
 
 	contentType := res.Header().Get("Content-Type")
-	assert.Equal("text/plain", contentType)
+	assert.Equal("application/json; charset=utf-8", contentType)
 
-	contentDisposition := res.Header().Get("Content-Disposition")
-	assert.Equal("attachment; filename=cert-1.private-key.pem;", contentDisposition)
-
-	rBody, err := ioutil.ReadAll(res.Body)
+	var rBody model.Attachment
+	err = json.NewDecoder(res.Result().Body).Decode(&rBody)
 	assert.NoError(err)
-	assert.True(strings.HasPrefix(string(rBody), "-----BEGIN RSA PRIVATE KEY-----"))
-	assert.True(strings.HasSuffix(string(rBody), "-----END RSA PRIVATE KEY-----\n"))
+	assert.Equal("cert-1.private-key.pem", rBody.Filename)
+	assert.Equal("text/plain", rBody.ContentType)
+	assert.True(strings.HasPrefix(rBody.Body, "-----BEGIN RSA PRIVATE KEY-----"))
+	assert.True(strings.HasSuffix(rBody.Body, "-----END RSA PRIVATE KEY-----\n"))
 
 	auditRepo := repository.NewAuditEventRepository(e.db)
 	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:key-pair:%s:private-key", keyPair.ID))

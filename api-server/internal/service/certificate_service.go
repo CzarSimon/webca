@@ -109,7 +109,7 @@ func (c *CertificateService) GetCertificateBody(ctx context.Context, principal j
 
 	c.logCertificateBodyReading(ctx, cert, principal.ID)
 	return model.Attachment{
-		Body:        []byte(cert.Body),
+		Body:        cert.Body,
 		ContentType: textPlainType,
 		Filename:    attachmentFilename(cert.Name, cert.Type, cert.Format),
 	}, err
@@ -142,7 +142,7 @@ func (c *CertificateService) GetCertificatePrivateKey(ctx context.Context, princ
 
 	c.logPrivateKeyReading(ctx, keyPair, principal.ID)
 	return model.Attachment{
-		Body:        []byte(keyPair.PrivateKey),
+		Body:        keyPair.PrivateKey,
 		ContentType: textPlainType,
 		Filename:    attachmentFilename(cert.Name, "private-key", keyPair.Format),
 	}, err

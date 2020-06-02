@@ -108,15 +108,14 @@ func (e *env) getCertificateBody(c *gin.Context) {
 	}
 
 	certID := c.Param("id")
-	a, err := e.certificateService.GetCertificateBody(ctx, principal, certID)
+	attachment, err := e.certificateService.GetCertificateBody(ctx, principal, certID)
 	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return
 	}
 
-	c.Header("Content-Disposition", a.ContentDisposition())
-	c.Data(http.StatusOK, a.ContentType, a.Body)
+	c.JSON(http.StatusOK, attachment)
 }
 
 func (e *env) getCertificatePrivateKey(c *gin.Context) {
@@ -139,15 +138,14 @@ func (e *env) getCertificatePrivateKey(c *gin.Context) {
 	}
 
 	certID := c.Param("id")
-	a, err := e.certificateService.GetCertificatePrivateKey(ctx, principal, certID, password)
+	attachment, err := e.certificateService.GetCertificatePrivateKey(ctx, principal, certID, password)
 	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return
 	}
 
-	c.Header("Content-Disposition", a.ContentDisposition())
-	c.Data(http.StatusOK, a.ContentType, a.Body)
+	c.JSON(http.StatusOK, attachment)
 }
 
 func (e *env) getCertificateOptions(c *gin.Context) {

@@ -243,9 +243,9 @@ func (e AuditEvent) String() string {
 
 // Attachment file attachment.
 type Attachment struct {
-	Body        []byte
-	ContentType string
-	Filename    string
+	Body        string `json:"body,omitempty"`
+	ContentType string `json:"contentType,omitempty"`
+	Filename    string `json:"filename,omitempty"`
 }
 
 // ContentDisposition creates the value for the Content-Disposition header.
