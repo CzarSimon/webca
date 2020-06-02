@@ -3,7 +3,8 @@ import { CertificateDisplay } from './components/CertificateDisplay';
 import { useSelectedCertificate, useUserState } from '../../state/hooks';
 import { ROLES } from '../../constants';
 import { useDispatch } from 'react-redux';
-import { downloadCertificateBody } from '../../state/certificates';
+import { downloadCertificateBody, downloadCertificatePrivateKey } from '../../state/certificates';
+import { successCallback } from '../../types';
 
 export function CertificateContainer() {
   const dispatch = useDispatch();
@@ -18,12 +19,21 @@ export function CertificateContainer() {
     dispatch(downloadCertificateBody(certificate.id));
   };
 
+  const downloadPrivateKey = (password: string, callback: successCallback) => {
+    if (!certificate) {
+      return;
+    }
+
+    dispatch(downloadCertificatePrivateKey(certificate.id, password, callback));
+  };
+
   return (
     <CertificateDisplay
       isLoading={!certificate}
       certificate={certificate}
       isAdmin={isAdmin}
       downloadCertificate={downloadCertificate}
+      downloadPrivateKey={downloadPrivateKey}
     />
   );
 }

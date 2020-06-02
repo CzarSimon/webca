@@ -1,8 +1,8 @@
-import { Thunk, Dispatch, Optional, CertificateRequest } from '../../types';
+import { Thunk, Dispatch, Optional, CertificateRequest, successCallback } from '../../types';
 import * as api from '../../api';
 import { ResponseMetadata } from '@czarsimon/httpclient';
 import { addOptions, selectCertificate, addCertificates } from './actions';
-import { logError } from '../../utils/apiutil';
+import { logError, downloadAttachment } from '../../utils/apiutil';
 
 type CreateCallback = (success: boolean, id?: string) => void;
 
@@ -46,7 +46,27 @@ export function getCertificatesByAccountId(accountId: string): Thunk {
 
 export function downloadCertificateBody(id: string): Thunk {
   return async (): Promise<void> => {
-    await api.downloadCertificateBody(id);
+    const { body, error, metadata } = await api.downloadCertificateBody(id);
+    if (!body) {
+      handleDownloadCertificateBodyError(id, error, metadata);
+      return;
+    }
+
+    downloadAttachment(body);
+  };
+}
+
+export function downloadCertificatePrivateKey(id: string, password: string, callback: successCallback): Thunk {
+  return async (): Promise<void> => {
+    const { body, error, metadata } = await api.downloadCertificatePrivateKey(id, password);
+    if (!body) {
+      handleDownloadCertificatePrivateKeyError(id, error, metadata);
+      callback(false);
+      return;
+    }
+
+    callback(true);
+    downloadAttachment(body);
   };
 }
 
@@ -72,6 +92,14 @@ function handleGetCertificateError(id: string, error: Optional<Error>, metadata:
 
 function handleGetCertificatesError(accountId: string, error: Optional<Error>, metadata: ResponseMetadata) {
   logError(`Failed fetch certificates by accountId=${accountId}`, error, metadata);
+}
+
+function handleDownloadCertificateBodyError(id: string, error: Optional<Error>, metadata: ResponseMetadata) {
+  logError(`Failed fetch certificate body by id=${id}`, error, metadata);
+}
+
+function handleDownloadCertificatePrivateKeyError(id: string, error: Optional<Error>, metadata: ResponseMetadata) {
+  logError(`Failed fetch certificate private key by id=${id}`, error, metadata);
 }
 
 function handleFetchOptionsError(error: Optional<Error>, metadata: ResponseMetadata) {

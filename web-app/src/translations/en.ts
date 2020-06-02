@@ -65,4 +65,11 @@ export const enUS: TextMap = {
   'certificateSubjectDetails.email': 'Email',
 
   'certificateBody.collapseButton': 'Body',
+
+  'privateKeyModal.label': 'Please provide private key password',
+  'privateKeyModal.password-plassword': 'Password',
+  'privateKeyModal.password-required': 'Password is required',
+  'privateKeyModal.cancel': 'Cancel',
+  'privateKeyModal.download': 'Download',
+  'privateKeyModal.wrongPassword': 'Wrong private key password',
 };

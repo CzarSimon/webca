@@ -1,5 +1,5 @@
 import { httpclient } from './httpclient';
-import { CertificateOptions, CertificateRequest, Certificate, CertificatePage } from '../types';
+import { CertificateOptions, CertificateRequest, Certificate, CertificatePage, Attachment } from '../types';
 import { HTTPResponse } from '@czarsimon/httpclient';
 
 const CERTIFICATES_URL = '/api/v1/certificates';
@@ -17,11 +17,11 @@ export const getCertificatesByAccountId = (accountId: string): Promise<HTTPRespo
 export const getCertificateOptions = (): Promise<HTTPResponse<CertificateOptions>> =>
   httpclient.get<CertificateOptions>({ url: OPTIONS_URL });
 
-export const downloadCertificateBody = (id: string): Promise<HTTPResponse<string>> =>
-  httpclient.get<string>({ url: `${CERTIFICATES_URL}/${id}/body` });
+export const downloadCertificateBody = (id: string): Promise<HTTPResponse<Attachment>> =>
+  httpclient.get<Attachment>({ url: `${CERTIFICATES_URL}/${id}/body` });
 
-export const downloadCertificatePrivateKey = (id: string, password: string): Promise<HTTPResponse<string>> =>
-  httpclient.get<string>({
+export const downloadCertificatePrivateKey = (id: string, password: string): Promise<HTTPResponse<Attachment>> =>
+  httpclient.get<Attachment>({
     url: `${CERTIFICATES_URL}/${id}/private-key`,
     headers: {
       'X-Private-Key-Password': password,

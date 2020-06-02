@@ -6,6 +6,7 @@ export {
   getCertificateOptions,
   getCertificate,
   downloadCertificateBody,
+  downloadCertificatePrivateKey,
   getCertificatesByAccountId,
 } from './operations';
 

@@ -1,12 +1,14 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, screen, wait } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { saveAs } from 'file-saver';
 import { render } from '../../testutils';
 import { CertificateContainer } from './CertificateContainer';
 import { mockRequests } from '../../api/httpclient';
 import { initStore } from '../../state';
-import { Certificate, User } from '../../types';
+import { Certificate, User, Attachment } from '../../types';
 import { addUser } from '../../state/user/actions';
-import userEvent from '@testing-library/user-event';
+import { downloadAttachment } from '../../utils/apiutil';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -14,6 +16,21 @@ jest.mock('react-router-dom', () => ({
     certificateId: 'd1b9c1e9-ce8f-4296-8671-3411105ceb45',
   }),
 }));
+
+jest.mock('../../utils/apiutil', () => {
+  const mockDownload = jest.fn();
+  return {
+    ...jest.requireActual('../../utils/apiutil'),
+    downloadAttachment: mockDownload,
+  };
+});
+
+jest.mock('file-saver', () => {
+  const saveAs = jest.fn();
+  return {
+    saveAs,
+  };
+});
 
 beforeEach(() => {
   mockRequests({});
@@ -30,6 +47,18 @@ const rootCert: Certificate = {
   type: 'ROOT_CA',
   createdAt: '2020-05-16 08:30:20',
   accountId: '51f5435d-0841-4538-a484-7489257f6245',
+};
+
+const rootCertBody: Attachment = {
+  body: rootCert.body,
+  contentType: 'text/plain',
+  filename: 'cert-1.root-ca.pem',
+};
+
+const rootCertPrivateKey: Attachment = {
+  body: 'pem formated private key',
+  contentType: 'text/plain',
+  filename: 'cert-1.private-key.pem',
 };
 
 const cert: Certificate = {
@@ -79,6 +108,24 @@ test('certificate page: renders root certificate', async () => {
         url: `/api/v1/certificates/${rootCert.id}`,
       },
     },
+    [`/api/v1/certificates/${rootCert.id}/body`]: {
+      body: rootCertBody,
+      metadata: {
+        method: 'GET',
+        requestId: 'get-root-certificate-body-req-id',
+        status: 200,
+        url: `/api/v1/certificates/${rootCert.id}/body`,
+      },
+    },
+    [`/api/v1/certificates/${rootCert.id}/private-key`]: {
+      body: rootCertPrivateKey,
+      metadata: {
+        method: 'GET',
+        requestId: 'get-root-certificate-private-key-req-id',
+        status: 200,
+        url: `/api/v1/certificates/${rootCert.id}/private-key`,
+      },
+    },
   });
 
   await act(async () => {
@@ -108,6 +155,67 @@ test('certificate page: renders root certificate', async () => {
   const downloadPrivateKeyButton = screen.getByRole('button', { name: /download private key/i });
   expect(downloadPrivateKeyButton).toBeInTheDocument();
   expect(downloadPrivateKeyButton).toBeEnabled();
+
+  expect(downloadAttachment).toHaveBeenCalledTimes(0);
+  await act(async () => userEvent.click(downloadButton));
+  expect(downloadAttachment).toHaveBeenNthCalledWith(1, rootCertBody);
+
+  expect(screen.queryByText('Please provide private key password')).toBeFalsy();
+  await act(async () => userEvent.click(downloadPrivateKeyButton));
+  const cancelButton = screen.getByRole('button', { name: /cancel/i });
+  expect(cancelButton).toBeInTheDocument();
+  await act(async () => userEvent.click(cancelButton));
+  expect(screen.queryByRole('button', { name: /cancel/i })).toBeFalsy();
+
+  await act(async () => userEvent.click(downloadPrivateKeyButton));
+  expect(screen.getByText('Please provide private key password')).toBeInTheDocument();
+  const passwordInput = screen.getByPlaceholderText('Password');
+  expect(passwordInput).toBeInTheDocument();
+
+  const confirmDownloadButton = screen.getByRole('button', { name: 'Download' });
+  expect(confirmDownloadButton).toBeInTheDocument();
+  await act(async () => userEvent.click(confirmDownloadButton));
+  await wait(
+    () => {
+      // Check that required warning texts ARE displayed.
+      expect(screen.getByText('Password is required')).toBeInTheDocument();
+    },
+    { timeout: 1 },
+  );
+  await act(async () => {
+    await userEvent.type(passwordInput, 'some-correct-password');
+  });
+
+  expect(downloadAttachment).toHaveBeenCalledTimes(1);
+  await act(async () => userEvent.click(confirmDownloadButton));
+  expect(downloadAttachment).toHaveBeenNthCalledWith(2, rootCertPrivateKey);
+
+  mockRequests({
+    [`/api/v1/certificates/${rootCert.id}/private-key`]: {
+      metadata: {
+        method: 'GET',
+        requestId: 'get-root-certificate-private-key-req-id',
+        status: 401,
+        url: `/api/v1/certificates/${rootCert.id}/private-key`,
+      },
+    },
+  });
+  await act(async () => userEvent.click(downloadPrivateKeyButton));
+  const passwordInputAgain = screen.getByPlaceholderText('Password');
+  expect(passwordInputAgain).toBeInTheDocument();
+  await act(async () => {
+    await userEvent.type(passwordInputAgain, 'some-wrong-password');
+  });
+  await act(async () => userEvent.click(confirmDownloadButton));
+  expect(downloadAttachment).toHaveBeenCalledTimes(2);
+  await wait(
+    () => {
+      expect(screen.getByText('Wrong private key password')).toBeInTheDocument();
+    },
+    { timeout: 1 },
+  );
+
+  expect(saveAs).toBeCalledTimes(0);
 });
 
 test('certificate page: render certificate', async () => {
@@ -143,6 +251,8 @@ test('certificate page: render certificate', async () => {
   const downloadPrivateKeyButton = screen.getByRole('button', { name: /download private key/i });
   expect(downloadPrivateKeyButton).toBeInTheDocument();
   expect(downloadPrivateKeyButton).toBeEnabled();
+
+  expect(saveAs).toBeCalledTimes(0);
 });
 
 test('certificate page: certficiate loading', async () => {
@@ -173,6 +283,8 @@ test('certificate page: certficiate loading', async () => {
   const downloadPrivateKeyButton = screen.getByRole('button', { name: /download private key/i });
   expect(downloadPrivateKeyButton).toBeInTheDocument();
   expect(downloadPrivateKeyButton).toBeDisabled();
+
+  expect(saveAs).toBeCalledTimes(0);
 });
 
 test('certificate page: render certificate as user, should not show private key button', async () => {
@@ -206,4 +318,6 @@ test('certificate page: render certificate as user, should not show private key 
   expect(downloadButton).toBeInTheDocument();
   expect(downloadButton).toBeEnabled();
   expect(screen.queryByRole('button', { name: /download private key/i })).toBeFalsy();
+
+  expect(saveAs).toBeCalledTimes(0);
 });

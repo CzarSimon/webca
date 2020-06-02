@@ -99,6 +99,12 @@ export interface Certificates {
   loaded: boolean;
 }
 
+export interface Attachment {
+  body: string;
+  contentType: string;
+  filename: string;
+}
+
 // Utility types
 
 export type TypedMap<T> = Record<string, T>;
