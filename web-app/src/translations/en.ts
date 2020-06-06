@@ -72,4 +72,8 @@ export const enUS: TextMap = {
   'privateKeyModal.cancel': 'Cancel',
   'privateKeyModal.download': 'Download',
   'privateKeyModal.wrongPassword': 'Wrong private key password',
+
+  'sideMenu.title': 'webca.io',
+  'sideMenu.certificates-item': 'Certificates',
+  'sideMenu.settings-item': 'Settings',
 };

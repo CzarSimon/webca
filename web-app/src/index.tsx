@@ -9,11 +9,9 @@ import { messages, getLocale } from './translations';
 const locale: string = getLocale();
 
 ReactDOM.render(
-  <React.StrictMode>
-    <IntlProvider locale={locale} messages={messages[locale]}>
-      <App />
-    </IntlProvider>
-  </React.StrictMode>,
+  <IntlProvider locale={locale} messages={messages[locale]}>
+    <App />
+  </IntlProvider>,
   document.getElementById('root'),
 );
 
