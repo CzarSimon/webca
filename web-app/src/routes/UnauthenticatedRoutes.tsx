@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { SignUpContainer } from '../modules/signup';
 import { LoginContainer } from '../modules/login';
 
@@ -17,7 +17,7 @@ export function UnauthenticatedRoutes() {
             <LoginContainer />
           </Route>
           <Route path="/">
-            <Redirect to="/signup" />
+            <SignUpContainer />
           </Route>
         </Switch>
       </div>

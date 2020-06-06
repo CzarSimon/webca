@@ -37,7 +37,8 @@ test('side menu test navigation', async () => {
     render(<TestRouter />);
   });
 
-  expect(screen.getByText('webca.io')).toBeInTheDocument();
+  const title = screen.getByText('webca.io');
+  expect(title).toBeInTheDocument();
 
   const certItem = screen.getByText('Certificates');
   expect(certItem).toBeInTheDocument();
@@ -59,4 +60,10 @@ test('side menu test navigation', async () => {
   expect(screen.queryByText('component-1')).toBeFalsy();
   expect(screen.getByText('component-2')).toBeInTheDocument();
   expect(screen.queryByText('default')).toBeFalsy();
+
+  await act(async () => userEvent.click(title));
+
+  expect(screen.queryByText('component-1')).toBeFalsy();
+  expect(screen.queryByText('component-2')).toBeFalsy();
+  expect(screen.getByText('default')).toBeInTheDocument();
 });

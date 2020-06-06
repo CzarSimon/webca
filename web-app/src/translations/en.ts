@@ -83,4 +83,7 @@ export const enUS: TextMap = {
   'userDetails.email-label': 'Email',
   'userDetails.role-label': 'Role',
   'userDetails.accountName-label': 'Account name',
+
+  'home.title': 'webca.io',
+  'home.subtitle': 'Web based certificate authority',
 };

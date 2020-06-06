@@ -10,14 +10,18 @@ import styles from './SideMenu.module.css';
 export function SideMenu() {
   const history = useHistory();
 
+  const gotoPath = (path: string) => {
+    log.info(`selected menu item: ${path}`);
+    history.push(path);
+  };
+
   const onSelect = ({ key }: ClickParam) => {
-    log.info(`selected menu item: ${key}`);
-    history.push(`/${key}`);
+    gotoPath(`/${key}`);
   };
 
   return (
     <Menu onClick={onSelect} mode="inline" style={{ width: 256 }}>
-      <h1 className={styles.Title}>
+      <h1 className={styles.Title} onClick={() => gotoPath('/')}>
         <FormattedMessage id="sideMenu.title" />
       </h1>
       <Menu.Item key="certificates">

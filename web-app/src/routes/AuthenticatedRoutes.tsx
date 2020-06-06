@@ -3,9 +3,10 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { NewCertificateContainer, CertificateListContainer } from '../modules/certificates';
 import { CertificateContainer } from '../modules/certificate';
 import { SideMenu } from '../modules/navigation/SideMenu';
+import { Settings } from '../modules/settings';
+import { Home } from '../modules/home';
 
 import styles from './AuthenticatedRoutes.module.css';
-import { Settings } from '../modules/settings';
 
 export function AuthenticatedRoutes() {
   return (
@@ -26,7 +27,7 @@ export function AuthenticatedRoutes() {
             <Settings />
           </Route>
           <Route path="/">
-            <div />
+            <Home />
           </Route>
         </Switch>
       </div>
