@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { Form, Typography } from 'antd';
+import { Form } from 'antd';
 import { Dropdown } from '../../../../components/from';
 import { SelectOption } from '../../../../components/from/types';
 import { keySizes, suggestKeySize } from '../../../../utils/rsautil';
@@ -48,9 +48,9 @@ export function RSAOptions({ certificateType, selectKeySize }: Props) {
         />
       </Form.Item>
       {certificateType && !sufficientKeySize(keySize, suggestedKeySize) && (
-        <Typography.Text type="warning">
+        <p className={styles.KeySizeWarning}>
           {`We recommend a key size of ${suggestedKeySize} bits for a ${typeName}`}
-        </Typography.Text>
+        </p>
       )}
     </div>
   );

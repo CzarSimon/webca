@@ -1,3 +1,9 @@
 .Title {
   text-align: left;
 }
+
+.KeySizeWarning {
+  color: #faad14;
+  padding-bottom: 0;
+  margin-top: -15px;
+}

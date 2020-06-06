@@ -12,6 +12,7 @@ import { useFormatedMessage } from '../../../../translations';
 
 import styles from './NewCertificate.module.css';
 import { AlgorithmOptions } from './AlgorithmOptions';
+import { SubjectOptionsForm } from './SubjectOptionsForm';
 
 interface Props {
   options: CertificateOptions;
@@ -109,15 +110,7 @@ export function NewCertificate({ options, submit }: Props) {
             certificateType={certificateType}
             selectKeySize={onSelect('rsaKeySize')}
           />
-          <h3 className={styles.SubjectTitle}>
-            <FormattedMessage id="newCertificate.subject-title" />
-          </h3>
-          <Form.Item
-            name="commonName"
-            rules={[{ required: true, message: formatedMessage('newCertificate.subject.commonName-required') }]}
-          >
-            <Input size="large" placeholder={formatedMessage('newCertificate.subject.commonName-placeholder')} />
-          </Form.Item>
+          <SubjectOptionsForm />
           <Form.Item
             name="password"
             rules={[

@@ -1,11 +1,16 @@
-.CertificateDisplay {
-  width: 60%;
+.Container {
+  height: 100%;
+}
+
+.CertificateTitle {
+  padding: 15px 0 0 24px;
 }
 
 .Card {
-  text-align: left;
+  width: 60%;
 }
 
 .ButtonGroup {
   margin-top: 10px;
+  padding-left: 24px;
 }

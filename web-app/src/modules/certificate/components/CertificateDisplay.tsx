@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Space } from 'antd';
+import { Card, Space, Divider } from 'antd';
 import { Certificate, successCallback } from '../../../types';
 import { DownloadCertificateButton } from './DownloadCertificateButton';
 import { DownloadPrivateKeyButton } from './DownloadPrivateKeyButton';
@@ -28,9 +28,11 @@ export function CertificateDisplay({
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   return (
-    <div className={styles.CertificateDisplay}>
+    <div className={styles.Container}>
+      <h1 className={styles.CertificateTitle}>{certificate?.name}</h1>
+      <Divider />
       <div className={styles.Card}>
-        <Card title={<h2>{certificate?.name}</h2>} loading={isLoading}>
+        <Card loading={isLoading} bordered={false}>
           <BasicCertificateDetails certificate={certificate} />
           <CertificateSubjectDetails subject={certificate?.subject} />
           <CertificateBody certificate={certificate} />
