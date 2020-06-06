@@ -44,6 +44,7 @@ export const enUS: TextMap = {
   'certificate.algorithm-RSA': 'RSA',
 
   'certificateList.title': 'Certificates',
+  'certificateList.newCertificate-button': 'New certificate',
   'certificateList.name-column': 'Name',
   'certificateList.type-column': 'Certificate type',
   'certificateList.createdAt-column': 'Created at',

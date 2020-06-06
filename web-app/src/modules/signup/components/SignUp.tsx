@@ -35,7 +35,7 @@ export function SignUp({ submit }: Props) {
           name="accountName"
           rules={[{ required: true, message: formatedMessage('signup.accountName-required') }]}
         >
-          <Input size="large" placeholder={formatedMessage('signup.accountName-placeholder')} />
+          <Input size="large" placeholder={formatedMessage('signup.accountName-placeholder')} autoFocus />
         </Form.Item>
         <Form.Item
           name="email"

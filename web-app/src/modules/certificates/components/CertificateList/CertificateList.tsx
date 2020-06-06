@@ -9,6 +9,7 @@ import styles from './CertificateList.module.css';
 
 interface Props extends Certificates {
   select: (id: string) => void;
+  createNew: () => void;
 }
 
 function useColumns(): ColumnProps<Certificate>[] {
@@ -31,7 +32,7 @@ function useColumns(): ColumnProps<Certificate>[] {
   ];
 }
 
-export function CertificateList({ items, loaded, select }: Props) {
+export function CertificateList({ items, loaded, select, createNew }: Props) {
   const columns = useColumns();
   const certificates: Certificate[] = items ? items.results : [];
 
@@ -47,7 +48,7 @@ export function CertificateList({ items, loaded, select }: Props) {
         dataSource={certificates}
         rowKey={(cert) => cert.id}
         loading={!loaded}
-        title={() => <CertificateListTitle />}
+        title={() => <CertificateListTitle createNew={createNew} />}
       />
     </div>
   );

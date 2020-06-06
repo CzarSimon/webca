@@ -95,6 +95,9 @@ test('certificate list: fetches certificates and renders table', async () => {
   expect(screen.getByText(/^Certificate$/)).toBeInTheDocument();
   expect(screen.getByText('2020-05-20 08:30:20')).toBeInTheDocument();
 
+  const newCertButton = screen.getByRole('button', { name: /new certificate/i });
+  expect(newCertButton).toBeInTheDocument();
+
   const cert1 = screen.getByText('cert-1');
   expect(cert1).toBeInTheDocument();
 
@@ -135,4 +138,10 @@ test('certificate list: fetches certificates and renders table', async () => {
 
   // Check that no data is present.
   expect(screen.getByText(/no data/i)).toBeInTheDocument();
+
+  const newCertButton = screen.getByRole('button', { name: /new certificate/i });
+  expect(newCertButton).toBeInTheDocument();
+
+  await act(async () => userEvent.click(newCertButton));
+  expect(window.location.pathname).toBe('/certificates/add');
 });

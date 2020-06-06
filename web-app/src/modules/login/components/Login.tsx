@@ -34,7 +34,7 @@ export function Login({ submit }: Props) {
           name="accountName"
           rules={[{ required: true, message: formatedMessage('login.accountName-required') }]}
         >
-          <Input size="large" placeholder={formatedMessage('login.accountName-placeholder')} />
+          <Input size="large" placeholder={formatedMessage('login.accountName-placeholder')} autoFocus />
         </Form.Item>
         <Form.Item
           name="email"

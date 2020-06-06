@@ -10,5 +10,9 @@ export function CertificateListContainer() {
     history.push(`/certificates/${id}`);
   };
 
-  return <CertificateList {...certificates} select={selectCertificate} />;
+  const createNewCertificate = () => {
+    history.push('/certificates/add');
+  };
+
+  return <CertificateList {...certificates} select={selectCertificate} createNew={createNewCertificate} />;
 }
