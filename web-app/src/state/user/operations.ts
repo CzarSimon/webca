@@ -1,9 +1,17 @@
-import { Thunk, AuthenticationRequest, Dispatch, Optional, successCallback, AuthenticationResponse } from '../../types';
+import {
+  Thunk,
+  AuthenticationRequest,
+  Dispatch,
+  Optional,
+  successCallback,
+  AuthenticationResponse,
+  User,
+} from '../../types';
 import * as api from '../../api';
 import { ResponseMetadata } from '@czarsimon/httpclient';
 import log from '@czarsimon/remotelogger';
 import { setToken } from '../../api/httpclient';
-import { addUser } from './actions';
+import { addUser, removeUser } from './actions';
 import { logError } from '../../utils/apiutil';
 import { USER_ID_KEY, AUTH_TOKEN_KEY } from '../../constants';
 
@@ -49,6 +57,21 @@ export function getUser(id: string): Thunk {
 
     log.debug(`Successfully retrieved user(id=${id}, accountId=${body.account.id})`);
     dispatch(addUser(body));
+  };
+}
+
+export function logout(user?: User): Thunk {
+  return async (dispatch: Dispatch): Promise<void> => {
+    if (!user) {
+      log.error('Failed to log out undefined user');
+      return;
+    }
+
+    log.info(`Logged out user user(id=${user.id})`);
+    setToken('');
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.removeItem(USER_ID_KEY);
+    dispatch(removeUser());
   };
 }
 

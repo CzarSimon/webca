@@ -5,6 +5,7 @@ import { CertificateContainer } from '../modules/certificate';
 import { SideMenu } from '../modules/navigation/SideMenu';
 
 import styles from './AuthenticatedRoutes.module.css';
+import { Settings } from '../modules/settings';
 
 export function AuthenticatedRoutes() {
   return (
@@ -20,6 +21,9 @@ export function AuthenticatedRoutes() {
           </Route>
           <Route exact path="/certificates/:certificateId">
             <CertificateContainer />
+          </Route>
+          <Route exact path="/settings">
+            <Settings />
           </Route>
           <Route path="/">
             <div />
