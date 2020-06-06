@@ -38,6 +38,14 @@ test('settings component should render user details, and allow the user to log o
     render(<Settings />, { reduxStore: store });
   });
 
+  expect(screen.getByRole('heading', { name: 'User details' })).toBeInTheDocument();
+  expect(screen.getByText('Email')).toBeInTheDocument();
+  expect(screen.getByText('admin@webca.io')).toBeInTheDocument();
+  expect(screen.getByText('Role')).toBeInTheDocument();
+  expect(screen.getByText('ADMIN')).toBeInTheDocument();
+  expect(screen.getByText('Account name')).toBeInTheDocument();
+  expect(screen.getByText('test-account')).toBeInTheDocument();
+
   const logoutButton = screen.getByRole('button', { name: 'Log out' });
   expect(logoutButton).toBeInTheDocument();
 

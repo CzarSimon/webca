@@ -77,5 +77,10 @@ export const enUS: TextMap = {
   'sideMenu.certificates-item': 'Certificates',
   'sideMenu.settings-item': 'Settings',
 
+  'userDetails.title': 'User details',
+
   'settings.logout-button': 'Log out',
+  'userDetails.email-label': 'Email',
+  'userDetails.role-label': 'Role',
+  'userDetails.accountName-label': 'Account name',
 };
