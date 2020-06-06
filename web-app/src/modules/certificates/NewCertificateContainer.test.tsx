@@ -96,8 +96,11 @@ test('new certificate: renders form', async () => {
   fireEvent.change(commonNameInput, { target: { value: 'test-root-ca' } });
   expect(commonNameInput.value).toBe('test-root-ca');
 
-  const algoDropdown = screen.getByText(/RSA/);
+  const algoDropdown = screen.getByText('RSA');
   expect(algoDropdown).toBeInTheDocument();
+
+  expect(screen.getByText('RSA options')).toBeInTheDocument();
+  expect(screen.getByText('Key size')).toBeInTheDocument();
 
   const passwordInput = screen.getByPlaceholderText(/Private key password/) as HTMLInputElement;
   expect(passwordInput).toBeInTheDocument();
@@ -109,7 +112,19 @@ test('new certificate: renders form', async () => {
   expect(typeDropdown).toBeInTheDocument();
   await act(async () => userEvent.click(typeDropdown));
 
-  fireEvent.change(typeDropdown, { target: { value: 'ROOT_CA' } });
+  expect(screen.queryByText('We recommend a key size of 8192 bits for a Root CA')).toBeFalsy();
+  await act(async () => {
+    fireEvent.change(typeDropdown, { target: { value: 'ROOT_CA' } });
+  });
+  expect(screen.getByText('We recommend a key size of 8192 bits for a Root CA')).toBeInTheDocument();
+
+  const keySizeDropdown = screen.getByPlaceholderText('RSA key bits') as HTMLInputElement;
+  expect(keySizeDropdown).toBeInTheDocument();
+  await act(async () => userEvent.click(keySizeDropdown));
+  await act(async () => {
+    fireEvent.change(keySizeDropdown, { target: { value: '8192' } });
+  });
+  expect(screen.queryByText('We recommend a key size of 8192 bits for a Root CA')).toBeFalsy();
 
   const createButton = screen.getByText(/Create certificate/);
   expect(createButton).toBeInTheDocument();
@@ -167,6 +182,7 @@ test('new certificate: test required fields', async () => {
       expect(screen.queryByText(/Certificate type is required/)).toBeTruthy();
       expect(screen.queryByText(/Subject common name is required/)).toBeTruthy();
       expect(screen.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
+      expect(screen.queryByText(/Key size is required/)).toBeTruthy();
     },
     { timeout: 1000 },
   );

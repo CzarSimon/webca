@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Form, Input } from 'antd';
-import { CertificateOptions, CertificateRequest } from '../../../../types';
+import { CertificateOptions, CertificateRequest, Optional } from '../../../../types';
 import { Dropdown } from '../../../../components/from';
 import { FormattedMessage } from 'react-intl';
 import { PASSWORD_MIN_LENGTH } from '../../../../constants';
@@ -11,6 +11,7 @@ import { useFormSelect } from '../../../../state/hooks';
 import { useFormatedMessage } from '../../../../translations';
 
 import styles from './NewCertificate.module.css';
+import { AlgorithmOptions } from './AlgorithmOptions';
 
 interface Props {
   options: CertificateOptions;
@@ -18,6 +19,8 @@ interface Props {
 }
 
 export function NewCertificate({ options, submit }: Props) {
+  const [algorithm, setAlgorithm] = useState<Optional<string>>();
+  const [certificateType, setCertificateType] = useState<Optional<string>>();
   const { form, onSelect } = useFormSelect();
   const formatedMessage = useFormatedMessage();
 
@@ -31,7 +34,22 @@ export function NewCertificate({ options, submit }: Props) {
     text: formatedMessage(`certificate.algorithm-${a}`),
   }));
 
-  const onFinish = ({ name, type, algorithm, commonName, password }: Store) => {
+  const selectAlgorithm = (value: string) => {
+    setAlgorithm(value);
+    onSelect('algorithm')(value);
+  };
+
+  const selectCertificateType = (value: string) => {
+    setCertificateType(value);
+    onSelect('type')(value);
+  };
+
+  const onFinish = ({ name, type, algorithm, commonName, password, rsaKeySize }: Store) => {
+    let keySize = parseInt(rsaKeySize);
+    if (isNaN(keySize)) {
+      keySize = suggestKeySize(type);
+    }
+
     submit({
       name,
       type,
@@ -41,7 +59,7 @@ export function NewCertificate({ options, submit }: Props) {
         commonName,
       },
       options: {
-        keySize: suggestKeySize(type),
+        keySize,
       },
     });
   };
@@ -70,7 +88,7 @@ export function NewCertificate({ options, submit }: Props) {
                 size="large"
                 placeholder={formatedMessage('newCertificate.type-placeholder')}
                 options={typeOptions}
-                onSelect={onSelect('type')}
+                onSelect={selectCertificateType}
               />
             </Form.Item>
             <Form.Item
@@ -82,10 +100,15 @@ export function NewCertificate({ options, submit }: Props) {
                 size="large"
                 placeholder={formatedMessage('newCertificate.algorithm-placeholder')}
                 options={algoOptions}
-                onSelect={onSelect('algorithm')}
+                onSelect={selectAlgorithm}
               />
             </Form.Item>
           </div>
+          <AlgorithmOptions
+            algorithm={algorithm}
+            certificateType={certificateType}
+            selectKeySize={onSelect('rsaKeySize')}
+          />
           <h3 className={styles.SubjectTitle}>
             <FormattedMessage id="newCertificate.subject-title" />
           </h3>

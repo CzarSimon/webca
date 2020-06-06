@@ -115,9 +115,6 @@ test('login: renders form and login works', async () => {
     },
     { timeout: 1 },
   );
-
-  // TODO: Assert where the user ends up after.
-  // expect(screen.queryByRole('button', { name: /Log in/ })).toBeFalsy();
 });
 
 test('login: redirect to signup works', async () => {

@@ -38,6 +38,11 @@ export const enUS: TextMap = {
   'newCertificate.password-placeholder': 'Private key password',
   'newCertificate.password-required': `At least ${PASSWORD_MIN_LENGTH} charactes are required in password`,
 
+  'rsaOptions.title': 'RSA options',
+  'rsaOptions.keySize-label': 'Key size',
+  'rsaOptions.keySize-placeholder': 'RSA key bits',
+  'rsaOptions.keySize-required': 'Key size is required',
+
   'certificate.type-ROOT_CA': 'Root CA',
   'certificate.type-INTERMEDIATE_CA': 'Intermediate CA',
   'certificate.type-CERTIFICATE': 'Certificate',

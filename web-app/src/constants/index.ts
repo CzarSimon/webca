@@ -19,6 +19,10 @@ export const CERTIFICATE_TYPES: TypedMap<string> = {
   CERTIFICATE: 'CERTIFICATE',
 };
 
+export const ALGORITHMS: TypedMap<string> = {
+  RSA: 'RSA',
+};
+
 export const ROLES: TypedMap<string> = {
   ADMIN: 'ADMIN',
   USER: 'USER',
