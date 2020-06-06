@@ -10,7 +10,7 @@ export function LoginContainer() {
   const history = useHistory();
   const loginCallback = (success: boolean) => {
     if (success) {
-      history.push('/certificates');
+      history.push('/');
     }
   };
 

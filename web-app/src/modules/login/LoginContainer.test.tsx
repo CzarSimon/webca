@@ -109,7 +109,7 @@ test('login: renders form and login works', async () => {
       expect(state.user.loaded).toBe(true);
       expect(state.user.user).toBe(user);
       expect(httpclient.getHeaders()['Authorization']).toBe('Bearer header.body.signature');
-      expect(window.location.pathname).toBe('/certificates');
+      expect(window.location.pathname).toBe('/');
       expect(sessionStorage.getItem(USER_ID_KEY)).toBe(user.id);
       expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBe('header.body.signature');
     },

@@ -10,7 +10,7 @@ export function SignUpContainer() {
   const history = useHistory();
   const onSignUp = (success: boolean) => {
     if (success) {
-      history.push('/certificates/add');
+      history.push('/');
     }
   };
 

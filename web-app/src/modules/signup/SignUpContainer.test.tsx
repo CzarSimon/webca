@@ -79,7 +79,7 @@ test('signup: renders form', async () => {
       expect(state.user.loaded).toBe(true);
       expect(state.user.user).toBe(user);
       expect(httpclient.getHeaders()['Authorization']).toBe('Bearer header.body.signature');
-      expect(window.location.pathname).toBe('/certificates/add');
+      expect(window.location.pathname).toBe('/');
     },
     { timeout: 1 },
   );
