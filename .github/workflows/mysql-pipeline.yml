@@ -1,0 +1,46 @@
+name: mysql-pipeline
+on:
+  push:
+    paths:
+      - mysql/**
+      - .github/workflows/mysql-pipeline.yml
+
+jobs:
+  parse-version:
+    name: parse-version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+      package-name: ${{ steps.parse.outputs.package-name }}
+      full-package-name: ${{ steps.parse.outputs.full-package-name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - id: parse
+        name: Parse version info
+        run: |
+          NAME=$(cat package.json | jq .name --raw-output)
+          VERSION=$(cat package.json | jq .version --raw-output)
+          COMMIT_ID=${GITHUB_SHA:0:7}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=package-name::$NAME:$VERSION"
+          echo "::set-output name=full-package-name::$NAME:$VERSION-$COMMIT_ID"
+        working-directory: ./mysql
+
+  build-image:
+    name: build-image
+    needs:
+      - parse-version
+      - run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Docker build
+        run: |
+          echo "Package version: ${{needs.parse-version.outputs.full-package-name}}"
+          IMAGE_NAME="docker.pkg.github.com/czarsimon/webca/${{needs.parse-version.outputs.full-package-name}}"
+          docker login https://docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+        working-directory: ./mysql
