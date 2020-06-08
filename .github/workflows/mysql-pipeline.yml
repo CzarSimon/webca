@@ -31,7 +31,6 @@ jobs:
     name: build-image
     needs:
       - parse-version
-      - run-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
