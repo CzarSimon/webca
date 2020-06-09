@@ -1,9 +1,9 @@
-name: mysql-pipeline
+name: edge-proxy-pipeline
 on:
   push:
     paths:
-      - mysql/**
-      - .github/workflows/mysql-pipeline.yml
+      - edge-proxy/**
+      - .github/workflows/edge-proxy-pipeline.yml
 
 jobs:
   parse-version:
@@ -25,7 +25,7 @@ jobs:
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=package-name::$NAME:$VERSION"
           echo "::set-output name=full-package-name::$NAME:$VERSION-$COMMIT_ID"
-        working-directory: ./mysql
+        working-directory: ./edge-proxy
 
   build-image:
     name: build-image
@@ -42,4 +42,4 @@ jobs:
           docker login https://docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
-        working-directory: ./mysql
+        working-directory: ./edge-proxy
