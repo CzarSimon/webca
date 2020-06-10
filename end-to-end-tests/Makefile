@@ -1,5 +1,8 @@
-setup-environment:
+setup-env:
 	sh setup-environment.sh
 
-teardown-environment:
+teardown-env:
 	sh teardown-environment.sh
+
+api-tests:
+	resttest run --port 28080
