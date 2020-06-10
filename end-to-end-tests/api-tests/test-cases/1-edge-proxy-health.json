@@ -1,0 +1,10 @@
+{
+  "name": "Check edge-proxy health",
+  "request": {
+    "method": "GET",
+    "path": "/health"
+  },
+  "response": {
+    "status": 200
+  }
+}
