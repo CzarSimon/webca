@@ -11,11 +11,8 @@ export PASSWORD_SALT_LENGTH='32'
 export PASSWORD_MIN_LENGTH='8'
 export PASSWORD_ENCRYPTION_KEY_FILE='./resources/testing/jwt-secret.key'
 
-export DB_HOST='127.0.0.1'
-export DB_PORT='3306'
-export DB_DATABASE='apiserver'
-export DB_USERNAME='apiserver'
-export DB_PASSWORD='password'
+export DB_TYPE='sqlite'
+export DB_FILENAME='./test.db'
 
 export JAEGER_SERVICE_NAME='api-server'
 export JAEGER_SAMPLER_TYPE='const'

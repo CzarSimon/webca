@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"strconv"
+	"strings"
 
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/httputil/environ"
@@ -21,9 +22,7 @@ type config struct {
 
 func getConfig() config {
 	return config{
-		db: dbutil.SqliteConfig{
-			Name: "./test.db",
-		},
+		db:             getDBCredentials(),
 		port:           environ.Get("SERVICE_PORT", "8080"),
 		passwordPolicy: getPasswordPolicy(),
 		migrationsPath: environ.Get("MIGRATIONS_PATH", "/etc/api-server/migrations"),
@@ -32,6 +31,13 @@ func getConfig() config {
 }
 
 func getDBCredentials() dbutil.Config {
+	dbType := strings.ToLower(environ.Get("DB_TYPE", "mysql"))
+	if dbType == "sqlite" {
+		return dbutil.SqliteConfig{
+			Name: environ.MustGet("DB_FILENAME"),
+		}
+	}
+
 	return dbutil.MysqlConfig{
 		Host:             environ.MustGet("DB_HOST"),
 		Port:             environ.MustGet("DB_PORT"),
