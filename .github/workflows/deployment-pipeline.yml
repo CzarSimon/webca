@@ -19,3 +19,9 @@ jobs:
       - name: Get dependencies
         run: pip install -r requirements.txt
         working-directory: ./end-to-end-tests
+      - name: Setup environment
+        run: sh setup-environment.sh
+        working-directory: ./end-to-end-tests
+      - name: Run API tests
+        run: resttest run --port 28080
+        working-directory: ./end-to-end-tests
