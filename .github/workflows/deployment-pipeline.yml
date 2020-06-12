@@ -19,11 +19,9 @@ jobs:
       - name: Get dependencies
         run: pip install -r requirements.txt
         working-directory: ./end-to-end-tests
-      - name: Setup environment
+      - name: Setup and run API tests
         run: |
           docker login https://docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
           sh setup-environment.sh
-        working-directory: ./end-to-end-tests
-      - name: Run API tests
-        run: resttest run --port 28080
+          resttest run --port 28080
         working-directory: ./end-to-end-tests
