@@ -1,0 +1,21 @@
+name: deployment-pipeline
+on:
+  push:
+    paths:
+      - end-to-end-tests/**
+      - .github/workflows/deployment-pipeline.yml
+
+jobs:
+  api-tests:
+    name: api-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get dependencies
+        run: pip install -r requirements.txt
+        working-directory: ./end-to-end-tests
