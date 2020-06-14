@@ -16,7 +16,7 @@ CREATE TABLE `user_account` (
   `id` VARCHAR(50) NOT NULL,
   `email` VARCHAR(50) NOT NULL,
   `role` VARCHAR(50) NOT NULL,
-  `password` VARCHAR(100) NOT NULL,
+  `password` VARCHAR(256) NOT NULL,
   `salt` VARCHAR(64) NOT NULL,
   `account_id` VARCHAR(50) NOT NULL,
   `created_at` DATETIME NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE `key_pair` (
   `format` VARCHAR(50) NOT NULL,
   `type` VARCHAR(50) NOT NULL,
   `encryption_salt` VARCHAR(64) NOT NULL,
-  `password` VARCHAR(100) NOT NULL,
+  `password` VARCHAR(256) NOT NULL,
   `password_salt` VARCHAR(64) NOT NULL,
   `account_id` VARCHAR(50) NOT NULL,
   `created_at` DATETIME NOT NULL,
@@ -77,8 +77,7 @@ CREATE TABLE `audit_log` (
   PRIMARY KEY (`id`)
 );
 INSERT INTO `certificate_type`(`name`, `active`, `created_at`, `updated_at`)
-VALUES
-  (
+VALUES (
     'ROOT_CA',
     1,
     CURRENT_TIMESTAMP,
@@ -97,11 +96,10 @@ VALUES
     CURRENT_TIMESTAMP
   );
 INSERT INTO `role`(`name`, `created_at`)
-VALUES
-  ('ADMIN', CURRENT_TIMESTAMP),
+VALUES ('ADMIN', CURRENT_TIMESTAMP),
   ('USER', CURRENT_TIMESTAMP);
 -- +migrate Down
-  DROP TABLE IF EXISTS `certificate`;
+DROP TABLE IF EXISTS `certificate`;
 DROP TABLE IF EXISTS `certificate_type`;
 DROP TABLE IF EXISTS `private_key`;
 DROP TABLE IF EXISTS `user_account`;

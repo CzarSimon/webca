@@ -4,6 +4,10 @@ on:
     paths:
       - end-to-end-tests/**
       - .github/workflows/deployment-pipeline.yml
+  registry_package:
+    types:
+      - published
+      - updated
 
 jobs:
   api-tests:
