@@ -1,13 +1,13 @@
 NETWORK="webca-network"
 
-# Creating test network
+echo "Creating test network $NETWORK"
 docker network create $NETWORK
 
-# Starting database server
+echo "Starting database server"
 mysql_image=$(sh parse-image.sh mysql)
 docker run -d --name webca-db --network $NETWORK -p 23306:3306 -e MYSQL_ROOT_PASSWORD=password $mysql_image
 
-# Starting httplogger
+echo "Starting httplogger"
 docker run -d --name httplogger --network $NETWORK -e JAEGER_DISABLED=true czarsimon/httplogger:0.7 
 
 api_server_image=$(sh parse-image.sh api-server)
@@ -23,9 +23,10 @@ sleep_time='30'
 echo "Waiting for $sleep_time seconds for the database to be ready"
 sleep $sleep_time
 
-# Adding database users.
+echo "Adding database users."
 docker exec -i webca-db mysql -u'root' -p'password' < ./db-users.sql
 
+echo "Starting api-server"
 docker run -d --name api-server --network $NETWORK \
     -e MIGRATIONS_PATH='/etc/api-server/migrations' \
     -e JWT_ISSUER='webca' \
@@ -45,4 +46,5 @@ docker run -d --name api-server --network $NETWORK \
     -v "$PWD/secrets/jwt-secret.txt":'/etc/api-server/jwt-secret.txt' \
     $api_server_image
 
+echo "Starting edge-proxy"
 docker run -d --name edge-proxy --network $NETWORK -p 28080:8080 $edge_proxy_image

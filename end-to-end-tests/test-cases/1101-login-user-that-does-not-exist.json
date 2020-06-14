@@ -1,0 +1,15 @@
+{
+  "name": "Login user that does not exist",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/login",
+    "body": {
+      "accountName": "test-account",
+      "email": "missing@test.com",
+      "password": "cc0e8ea3eaa726d84b56d515e47a4e079e4835de"
+    }
+  },
+  "response": {
+    "status": 401
+  }
+}

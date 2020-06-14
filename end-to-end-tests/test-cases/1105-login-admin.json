@@ -1,0 +1,21 @@
+{
+  "name": "Login user",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/login",
+    "body": {
+      "accountName": "test-account",
+      "email": "admin@test.com",
+      "password": "04680e1f7596401daba17b67057f9f2d199be2cd"
+    }
+  },
+  "response": {
+    "status": 200
+  },
+  "setEnv": [
+    {
+      "envKey": "admin.token",
+      "responseKey": "token"
+    }
+  ]
+}
