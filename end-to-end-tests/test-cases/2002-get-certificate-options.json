@@ -1,0 +1,13 @@
+{
+  "name": "Get certificate options",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/certificate-options",
+    "headers": {
+      "Authorization": "Bearer ${user.token}"
+    }
+  },
+  "response": {
+    "status": 200
+  }
+}

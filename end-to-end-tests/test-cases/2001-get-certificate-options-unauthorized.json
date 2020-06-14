@@ -1,0 +1,10 @@
+{
+  "name": "Get certificate options without authorization",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/certificate-options"
+  },
+  "response": {
+    "status": 401
+  }
+}
