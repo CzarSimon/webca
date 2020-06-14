@@ -20,6 +20,10 @@ web_app_image=$(sh parse-image.sh web-app)
 # docker run -d --name web-app --network $NETWORK $web_app_image
 
 sleep_time='30'
+if [ "$CI" == "1" ] || [ "$CI" == "true" ]
+then
+  sleep_time='60'
+fi
 echo "Waiting for $sleep_time seconds for the database to be ready"
 sleep $sleep_time
 
@@ -48,3 +52,7 @@ docker run -d --name api-server --network $NETWORK \
 
 echo "Starting edge-proxy"
 docker run -d --name edge-proxy --network $NETWORK -p 28080:8080 $edge_proxy_image
+
+echo "Waiting for containers to be ready"
+sleep 5
+docker ps
