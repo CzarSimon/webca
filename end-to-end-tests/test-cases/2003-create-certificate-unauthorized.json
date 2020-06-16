@@ -1,0 +1,22 @@
+{
+  "name": "Create ROOT_CA RSA certificate without authorization",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/certificates",
+    "body": {
+      "name": "api-test ca",
+      "subject": {
+        "commonName": "api-test ca"
+      },
+      "type": "ROOT_CA",
+      "algorithm": "RSA",
+      "password": "5da7ec13bcfe5518eb41f99bf3070bff89e843fc",
+      "options": {
+        "keySize": 2048
+      }
+    }
+  },
+  "response": {
+    "status": 401
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Get missing ertificate",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/certificates/missing-certificate-id",
+    "headers": {
+      "Authorization": "Bearer ${user.token}"
+    }
+  },
+  "response": {
+    "status": 404
+  }
+}

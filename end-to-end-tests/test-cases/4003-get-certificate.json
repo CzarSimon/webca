@@ -1,0 +1,17 @@
+{
+  "name": "Get certificate body",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/certificates/${rootCA.id}/body",
+    "headers": {
+      "Authorization": "Bearer ${user.token}"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "contentType": "text/plain",
+      "filename": "api-test-ca.root-ca.pem"
+    }
+  }
+}

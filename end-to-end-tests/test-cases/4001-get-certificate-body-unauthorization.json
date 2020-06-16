@@ -1,0 +1,10 @@
+{
+  "name": "Get certificate body unauthorized",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/certificates/${rootCA.id}/body"
+  },
+  "response": {
+    "status": 401
+  }
+}
