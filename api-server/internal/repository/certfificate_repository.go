@@ -42,14 +42,6 @@ func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 		return fmt.Errorf("failed to start transtaction: %w", err)
 	}
 
-	_, err = tx.ExecContext(ctx, saveCertificateQuery,
-		cert.ID, cert.Name, cert.Subject.String(), cert.Body, cert.Format, cert.Type, cert.KeyPair.ID, cert.AccountID, cert.CreatedAt,
-	)
-	if err != nil {
-		dbutil.Rollback(tx)
-		return fmt.Errorf("failed to insert %s: %w", cert, err)
-	}
-
 	key := cert.KeyPair
 	_, err = tx.ExecContext(ctx, saveKeyPairQuery,
 		key.ID, key.PublicKey, key.PrivateKey, key.Format, key.Algorithm, key.EncryptionSalt,
@@ -58,6 +50,14 @@ func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 	if err != nil {
 		dbutil.Rollback(tx)
 		return fmt.Errorf("failed to insert %s: %w", key, err)
+	}
+
+	_, err = tx.ExecContext(ctx, saveCertificateQuery,
+		cert.ID, cert.Name, cert.Subject.String(), cert.Body, cert.Format, cert.Type, cert.KeyPair.ID, cert.AccountID, cert.CreatedAt,
+	)
+	if err != nil {
+		dbutil.Rollback(tx)
+		return fmt.Errorf("failed to insert %s: %w", cert, err)
 	}
 
 	return tx.Commit()

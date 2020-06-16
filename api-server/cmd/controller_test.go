@@ -103,8 +103,12 @@ func createTestEnv() (*env, context.Context) {
 	}
 
 	db := dbutil.MustConnect(cfg.db)
+	_, err := db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		log.Panic("Failed to activate foregin keys", zap.Error(err))
+	}
 
-	err := dbutil.Downgrade(cfg.migrationsPath, cfg.db.Driver(), db)
+	err = dbutil.Downgrade(cfg.migrationsPath, cfg.db.Driver(), db)
 	if err != nil {
 		log.Panic("Failed to apply downgrade migratons", zap.Error(err))
 	}
