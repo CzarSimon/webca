@@ -1,0 +1,10 @@
+{
+  "name": "Get certificate private key without authorization",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/certificates/${rootCA.id}/private-key"
+  },
+  "response": {
+    "status": 401
+  }
+}

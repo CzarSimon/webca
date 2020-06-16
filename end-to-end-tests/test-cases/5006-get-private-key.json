@@ -1,0 +1,18 @@
+{
+  "name": "Get certificate body",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/certificates/${rootCA.id}/private-key",
+    "headers": {
+      "Authorization": "Bearer ${admin.token}",
+      "X-Private-Key-Password": "5da7ec13bcfe5518eb41f99bf3070bff89e843fc"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "contentType": "text/plain",
+      "filename": "api-test-ca.private-key.pem"
+    }
+  }
+}
