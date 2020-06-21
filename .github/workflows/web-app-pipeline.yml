@@ -41,7 +41,7 @@ jobs:
           fetch-depth: 2
       - name: Docker build
         run: |
-          is_new_version=$(sh ../scripts/is-new-version.sh .)
+          is_new_version=$(bash ../scripts/is-new-version.sh .)
           if [[ "$is_new_version" != "true" ]]; then
             echo "Skipping docker build off ${{needs.parse-version.outputs.package-name}}"
             exit 0
