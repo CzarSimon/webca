@@ -56,6 +56,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
       - name: Docker build
         run: |
           is_new_version=$(sh ../scripts/is-new-version.sh .)
