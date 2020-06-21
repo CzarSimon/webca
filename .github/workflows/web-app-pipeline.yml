@@ -29,34 +29,10 @@ jobs:
           echo "::set-output name=full-package-name::$NAME:$VERSION-$COMMIT_ID"
         working-directory: ./web-app
 
-  run-tests:
-    name: run-tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12.18.0
-      - name: Get dependencies
-        run: npm install
-        working-directory: ./web-app
-      - name: Check formating
-        run: npm run check-format
-        working-directory: ./web-app
-      - name: Check linting
-        run: npm run check-linting
-        working-directory: ./web-app
-      - name: Test
-        run: npm test
-        working-directory: ./web-app
-
   build-image:
     name: build-image
     needs:
       - parse-version
-      - run-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -65,7 +41,6 @@ jobs:
           fetch-depth: 2
       - name: Docker build
         run: |
-          git log -n 3
           is_new_version=$(sh ../scripts/is-new-version.sh .)
           if [[ "$is_new_version" != "true" ]]; then
             echo "Skipping docker build off ${{needs.parse-version.outputs.package-name}}"
