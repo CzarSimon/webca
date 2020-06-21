@@ -17,7 +17,7 @@ edge_proxy_image=$(sh parse-image.sh edge-proxy)
 docker pull $edge_proxy_image
 
 web_app_image=$(sh parse-image.sh web-app)
-# docker run -d --name web-app --network $NETWORK $web_app_image
+docker run -d --name web-app --network $NETWORK $web_app_image
 
 sleep_time='30'
 if [ "$CI" == "1" ] || [ "$CI" == "true" ]
