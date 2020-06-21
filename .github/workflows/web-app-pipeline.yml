@@ -63,8 +63,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Docker build
         run: |
-          git pull
-          git status
+          git pull --no-rebase
+          git log -n 3
           is_new_version=$(sh ../scripts/is-new-version.sh .)
           if [[ "$is_new_version" != "true" ]]; then
             echo "Skipping docker build off ${{needs.parse-version.outputs.package-name}}"
