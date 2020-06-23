@@ -1,0 +1,15 @@
+{
+  "name": "end-to-end-tests",
+  "version": "0.1.0",
+  "description": "End to end tests for webca.io",
+  "scripts": {
+    "test": "$(npm bin)/cypress run",
+    "setup": "sh setup-environment.sh",
+    "teardown": "sh teardown-environment.sh",
+    "api-tests": "resttest run --port 28080"
+  },
+  "author": "Simon Lindgren",
+  "dependencies": {
+    "cypress": "^4.9.0"
+  }
+}

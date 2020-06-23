@@ -29,3 +29,23 @@ jobs:
           sh setup-environment.sh
           resttest run --port 28080
         working-directory: ./end-to-end-tests
+
+  end-to-end-tests:
+    name: end-to-end-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.18.0
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get dependencies
+        run: npm install
+        working-directory: ./end-to-end-tests
+      - name: Setup and run E2E tests
+        run: |
+          docker login https://docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
+          npm run setup
+          npm test
+        working-directory: ./end-to-end-tests
