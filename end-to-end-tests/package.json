@@ -4,6 +4,7 @@
   "description": "End to end tests for webca.io",
   "scripts": {
     "test": "$(npm bin)/cypress run",
+    "cypress": "$(npm bin)/cypress open",
     "setup": "sh setup-environment.sh",
     "teardown": "sh teardown-environment.sh",
     "api-tests": "resttest run --port 28080"
