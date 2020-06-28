@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-server
+  template:
+    metadata:
+      labels:
+        app: api-server
+    spec:
+      containers:
+        - name: api-server
+          image: docker.pkg.github.com/czarsimon/webca/api-server:0.5.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAEGER_DISABLED
+              value: "true"
+            - name: MIGRATIONS_PATH
+              value: "/etc/api-server/migrations"
+            - name: DB_TYPE
+              value: mysql
+            - name: DB_HOST
+              value: mysql
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_DATABASE
+              value: apiserver
+            - name: DB_USERNAME
+              value: apiserver
+            - name: DB_PASSWORD_FILE
+              value: "/etc/api-server/database-password.txt"
+            - name: JWT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: jwt
+                  key: issuer
+            - name: JWT_SECRET_FILE
+              value: "/etc/api-server/jwt-secret.txt"
+            - name: PASSWORD_MIN_LENGTH
+              value: "16"
+            - name: PASSWORD_SALT_LENGTH
+              value: "32"
+            - name: PASSWORD_ENCRYPTION_KEY_FILE
+              value: "/etc/api-server/password-encryption-key.txt"
+          volumeMounts:
+            - name: database-password
+              mountPath: "/etc/api-server/database-password.txt"
+              subPath: database-password.txt
+            - name: jwt-secret
+              mountPath: "/etc/api-server/jwt-secret.txt"
+              subPath: jwt-secret.txt
+            - name: password-encryption-key
+              mountPath: "/etc/api-server/password-encryption-key.txt"
+              subPath: password-encryption-key.txt
+          resources:
+            requests:
+              memory: 100Mi
+              cpu: 200m
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+      volumes:
+        - name: database-password
+          secret:
+            items:
+              - key: apiserver.password
+                path: database-password.txt
+            secretName: mysql
+        - name: jwt-secret
+          secret:
+            items:
+              - key: secret
+                path: jwt-secret.txt
+            secretName: jwt
+        - name: password-encryption-key
+          secret:
+            items:
+              - key: password.key
+                path: password-encryption-key.txt
+            secretName: encryption-keys
+      imagePullSecrets:
+        - name: github-docker-credentials

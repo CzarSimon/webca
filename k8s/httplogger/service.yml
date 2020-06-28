@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: httplogger
+spec:
+  selector:
+    app: httplogger
+  ports:
+    - name: http
+      protocol: "TCP"
+      port: 8080

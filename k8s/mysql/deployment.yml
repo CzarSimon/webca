@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: docker.pkg.github.com/czarsimon/webca/mysql:8.0.20-0.1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: root.password
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 250m
+          volumeMounts:
+            - name: mysql-data
+              mountPath: "/var/lib/mysql"
+          livenessProbe:
+            exec:
+              command:
+                - bash
+                - "-c"
+                - |
+                  mysqladmin -uroot -p$MYSQL_ROOT_PASSWORD -h 127.0.0.1 ping
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - bash
+                - "-c"
+                - |
+                  mysql -uroot -p$MYSQL_ROOT_PASSWORD -h 127.0.0.1 -e 'SELECT 1'
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 3
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: mysql-data-pvc
+      imagePullSecrets:
+        - name: github-docker-credentials
