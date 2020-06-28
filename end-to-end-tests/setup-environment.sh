@@ -40,7 +40,7 @@ docker run -d --name api-server --network $NETWORK \
     -e JAEGER_DISABLED=true \
     -e PASSWORD_ENCRYPTION_KEY_FILE='/etc/api-server/password-encryption-key.txt' \
     -e DB_PASSWORD_FILE='/etc/api-server/database-password.txt' \
-    -e JWT_ISSUER='/etc/api-server/jwt-secret.txt' \
+    -e JWT_SECRET_FILE='/etc/api-server/jwt-secret.txt' \
     -v "$PWD/secrets/password-encryption-key.txt":'/etc/api-server/password-encryption-key.txt' \
     -v "$PWD/secrets/database-password.txt":'/etc/api-server/database-password.txt' \
     -v "$PWD/secrets/jwt-secret.txt":'/etc/api-server/jwt-secret.txt' \
