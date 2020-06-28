@@ -51,7 +51,7 @@ func getDBCredentials() dbutil.Config {
 func getJwtCredentials() jwt.Credentials {
 	return jwt.Credentials{
 		Issuer: environ.MustGet("JWT_ISSUER"),
-		Secret: mustReadSecretFromFile("PASSWORD_ENCRYPTION_KEY_FILE"),
+		Secret: mustReadSecretFromFile("JWT_SECRET_FILE"),
 	}
 }
 
