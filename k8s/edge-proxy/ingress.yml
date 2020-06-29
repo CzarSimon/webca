@@ -25,3 +25,10 @@ spec:
             backend:
               serviceName: httplogger
               servicePort: 8080
+    - host: monitoring.webca.io
+      http:
+        paths:
+          - path: /(.*)
+            backend:
+              serviceName: grafana
+              servicePort: 80
