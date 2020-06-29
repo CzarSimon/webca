@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: tracing-webca-io-certificate
+  namespace: webca
+spec:
+  dnsNames:
+    - tracing.webca.io
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: letsencrypt-prod
+  secretName: tracing-webca-io-certificate

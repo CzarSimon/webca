@@ -9,6 +9,9 @@ spec:
     - hosts:
         - webca.io
       secretName: webca-io-certificate
+    - hosts:
+        - monitoring.webca.io
+      secretName: monitoring-webca-io-certificate
   rules:
     - host: webca.io
       http:
