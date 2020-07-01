@@ -4,10 +4,6 @@ on:
     paths:
       - end-to-end-tests/**
       - .github/workflows/deployment-pipeline.yml
-  registry_package:
-    types:
-      - published
-      - updated
 
 jobs:
   api-tests:
@@ -49,3 +45,26 @@ jobs:
           npm run setup
           npm test
         working-directory: ./end-to-end-tests
+
+  update-kubernetes-manifests:
+    name: update-kubernetes-manifests
+    needs:
+      - api-tests
+      - end-to-end-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: master
+      - name: Update manifests
+        run: sh scripts/update-images.sh
+      - name: Commit k8s updates
+        run: |
+          git config --global user.name 'CI/CD bot'
+          git config --global user.email 'cicd.bot@webca.io'
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          commit_date=$(date +'%Y-%m-%d %H:%M:%S')
+          git commit -am "Updated k8s manifests. date = $commit_date"
+          git diff HEAD^ k8s
+          git push
