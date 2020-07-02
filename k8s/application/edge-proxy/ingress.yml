@@ -12,9 +12,6 @@ spec:
     - hosts:
         - monitoring.webca.io
       secretName: monitoring-webca-io-certificate
-    - hosts:
-        - cd.webca.io
-      secretName: cd-webca-io-certificate
   rules:
     - host: webca.io
       http:
@@ -38,10 +35,3 @@ spec:
             backend:
               serviceName: grafana
               servicePort: 80
-    - host: cd.webca.io
-      http:
-        paths:
-          - path: /(.*)
-            backend:
-              serviceName: argocd
-              servicePort: 443
