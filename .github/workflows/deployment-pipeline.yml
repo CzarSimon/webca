@@ -63,7 +63,9 @@ jobs:
           git config --global user.email 'cicd.bot@webca.io'
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           bash scripts/update-images.sh
+          git status
           commit_date=$(date +'%Y-%m-%d %H:%M:%S')
           git commit -am "Updated k8s manifests. date = $commit_date"
+          git status
           git diff HEAD^ k8s
           git push
