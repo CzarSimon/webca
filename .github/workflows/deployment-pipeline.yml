@@ -58,7 +58,7 @@ jobs:
         with:
           ref: master
       - name: Update manifests
-        run: sh scripts/update-images.sh
+        run: bash scripts/update-images.sh
       - name: Commit k8s updates
         run: |
           git config --global user.name 'CI/CD bot'
