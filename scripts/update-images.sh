@@ -1,5 +1,9 @@
 #!/bin/sh
 
+yaml() {
+  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
+}
+
 parse_image() {
     service_name=$1
     service_version=$(cat "$service_name/package.json" | jq .version --raw-output)
@@ -9,7 +13,7 @@ parse_image() {
 update_image() {
     service_name=$1
     image_name=$(parse_image $service_name)
-    yq write --inplace "k8s/$service_name/deployment.yml" spec.template.spec.containers[0].image $image_name
+    yaml write --inplace "k8s/application/$service_name/deployment.yml" spec.template.spec.containers[0].image $image_name
 }
 
 services=("api-server" "web-app")
