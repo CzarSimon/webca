@@ -65,7 +65,7 @@ jobs:
           fetch-depth: 2
       - name: Docker build
         run: |
-          sh ../scripts/dispatch-github-event.sh deployment
+          sh ../scripts/dispatch-github-event.sh trigger_deployment ${{ secrets.REPO_DISPATCH_TOKEN }}
           is_new_version=$(sh ../scripts/is-new-version.sh .)
           if [[ "$is_new_version" != "true" ]]; then
             echo "Skipping docker build off ${{needs.parse-version.outputs.package-name}}"
