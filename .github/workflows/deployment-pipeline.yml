@@ -2,7 +2,7 @@ name: deployment-pipeline
 on:
   repository_dispatch:
     types:
-      - deployment
+      - trigger_deployment
   push:
     paths:
       - end-to-end-tests/**
@@ -65,8 +65,8 @@ jobs:
           git config --global user.name 'CI/CD bot'
           git config --global user.email 'cicd.bot@webca.io'
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          bash scripts/update-images.sh
           git status
+          bash scripts/update-images.sh
           commit_date=$(date +'%Y-%m-%d %H:%M:%S')
           git commit -am "Updated k8s manifests. date = $commit_date"
           git status
