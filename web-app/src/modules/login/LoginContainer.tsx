@@ -15,7 +15,6 @@ export function LoginContainer() {
   };
 
   const handleLogin = (req: AuthenticationRequest) => {
-    console.log(req);
     dispatch(login(req, loginCallback));
   };
 

@@ -1,4 +1,8 @@
-:7000
+:28080
+
+route /* {
+    reverse_proxy :3000
+}
 
 route /api/* {
     uri strip_prefix /api
