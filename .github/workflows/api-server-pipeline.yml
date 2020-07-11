@@ -71,4 +71,5 @@ jobs:
           docker login https://docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
+          sh ../scripts/dispatch-github-event.sh trigger_deployment ${{ secrets.REPO_DISPATCH_TOKEN }}
         working-directory: ./api-server
