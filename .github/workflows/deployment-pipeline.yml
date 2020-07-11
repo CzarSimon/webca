@@ -1,5 +1,8 @@
 name: deployment-pipeline
 on:
+  repository_dispatch:
+    types:
+      - deployment
   push:
     paths:
       - end-to-end-tests/**
