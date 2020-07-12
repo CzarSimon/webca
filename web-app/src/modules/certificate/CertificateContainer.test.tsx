@@ -46,6 +46,7 @@ const rootCert: Certificate = {
   format: 'PEM',
   type: 'ROOT_CA',
   createdAt: '2020-05-16 08:30:20',
+  expiresAt: '2021-05-16 08:30:20',
   accountId: '51f5435d-0841-4538-a484-7489257f6245',
 };
 
@@ -71,6 +72,7 @@ const cert: Certificate = {
   format: 'PEM',
   type: 'CERTIFICATE',
   createdAt: '2020-05-19 08:30:20',
+  expiresAt: '2021-05-16 08:30:20',
   accountId: '51f5435d-0841-4538-a484-7489257f6245',
 };
 

@@ -30,6 +30,7 @@ const certs: CertificatePage = {
       format: 'PEM',
       type: 'ROOT_CA',
       createdAt: '2020-05-16 08:30:20',
+      expiresAt: '2021-05-16 08:30:20',
       accountId,
     },
     {
@@ -42,6 +43,7 @@ const certs: CertificatePage = {
       format: 'PEM',
       type: 'CERTIFICATE',
       createdAt: '2020-05-20 08:30:20',
+      expiresAt: '2021-05-20 08:30:20',
       accountId,
     },
   ],
@@ -85,6 +87,7 @@ test('certificate list: fetches certificates and renders table', async () => {
   expect(screen.getByText('Name')).toBeInTheDocument();
   expect(screen.getByText(/certificate type/i)).toBeInTheDocument();
   expect(screen.getByText(/created at/i)).toBeInTheDocument();
+  expect(screen.getByText(/expires at/i)).toBeInTheDocument();
 
   // Check table data
   expect(screen.getByText('cert-1')).toBeInTheDocument();
@@ -94,6 +97,7 @@ test('certificate list: fetches certificates and renders table', async () => {
   expect(screen.getByText('cert-2')).toBeInTheDocument();
   expect(screen.getByText(/^Certificate$/)).toBeInTheDocument();
   expect(screen.getByText('2020-05-20 08:30:20')).toBeInTheDocument();
+  expect(screen.getByText('2021-05-20 08:30:20')).toBeInTheDocument();
 
   const newCertButton = screen.getByRole('button', { name: /new certificate/i });
   expect(newCertButton).toBeInTheDocument();
@@ -135,6 +139,7 @@ test('certificate list: fetches certificates and renders table', async () => {
   expect(screen.getByText('Name')).toBeInTheDocument();
   expect(screen.getByText(/certificate type/i)).toBeInTheDocument();
   expect(screen.getByText(/created at/i)).toBeInTheDocument();
+  expect(screen.getByText(/expires at/i)).toBeInTheDocument();
 
   // Check that no data is present.
   expect(screen.getByText(/no data/i)).toBeInTheDocument();

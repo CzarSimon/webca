@@ -89,7 +89,9 @@ test('signup: test required fields', async () => {
   // Assert being state
   expect(store.getState().user.user).toBeUndefined();
 
-  await act(async () => render(<SignUpContainer />));
+  await act(async () => {
+    render(<SignUpContainer />);
+  });
 
   await wait(
     () => {

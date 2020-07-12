@@ -57,6 +57,7 @@ export interface Certificate {
   signatoryId?: string;
   accountId: string;
   createdAt: string;
+  expiresAt: string;
 }
 
 export interface CertificateSubject {

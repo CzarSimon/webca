@@ -29,6 +29,11 @@ function useColumns(): ColumnProps<Certificate>[] {
       sorter: true,
       dataIndex: 'createdAt',
     },
+    {
+      title: formatedMessage('certificateList.expiresAt-column'),
+      sorter: true,
+      dataIndex: 'expiresAt',
+    },
   ];
 }
 
@@ -48,6 +53,7 @@ export function CertificateList({ items, loaded, select, createNew }: Props) {
         dataSource={certificates}
         rowKey={(cert) => cert.id}
         loading={!loaded}
+        pagination={{ style: { margin: '16px' } }}
         title={() => <CertificateListTitle createNew={createNew} />}
       />
     </div>

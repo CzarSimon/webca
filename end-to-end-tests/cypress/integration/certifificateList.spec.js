@@ -32,6 +32,7 @@ describe("Goto certificate list, and select new certificate creation", () => {
     cy.contains("Name");
     cy.contains("Certificate type");
     cy.contains("Created at");
+    cy.contains("Expires at");
   });
 
   it("Choose create certificate", () => {

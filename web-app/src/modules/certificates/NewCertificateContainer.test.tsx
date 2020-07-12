@@ -46,6 +46,7 @@ const cert: Certificate = {
   type: opts.types[0].name,
   accountId: '51f5435d-0841-4538-a484-7489257f6245',
   createdAt: '2020-05-16 08:30:20',
+  expiresAt: '2021-05-16 08:30:20',
 };
 
 test('new certificate: renders form', async () => {
@@ -70,7 +71,9 @@ test('new certificate: renders form', async () => {
     },
   });
 
-  await act(async () => render(<NewCertificateContainer />));
+  await act(async () => {
+    render(<NewCertificateContainer />);
+  });
 
   await wait(
     () => {
@@ -154,7 +157,9 @@ test('new certificate: test required fields', async () => {
     },
   });
 
-  await act(async () => render(<NewCertificateContainer />));
+  await act(async () => {
+    render(<NewCertificateContainer />);
+  });
 
   await wait(
     () => {

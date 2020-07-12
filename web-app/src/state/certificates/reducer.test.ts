@@ -127,6 +127,7 @@ test('certificate reducer: select and deselect certificate', () => {
     type: opts.types[0].name,
     accountId: '51f5435d-0841-4538-a484-7489257f6245',
     createdAt: 'some-date',
+    expiresAt: 'some-date',
   };
 
   const state = reducer(initalState, selectCertificate(cert));
@@ -169,6 +170,7 @@ test('certificate reducer: add and remove certificates', () => {
         type: 'ROOT_CA',
         accountId: '51f5435d-0841-4538-a484-7489257f6245',
         createdAt: 'some-date',
+        expiresAt: 'some-date',
       },
       {
         id: '26b679f0-ad89-4290-84a3-02f16ee23c09',
@@ -181,6 +183,7 @@ test('certificate reducer: add and remove certificates', () => {
         type: 'CERTIFICATE',
         accountId: '51f5435d-0841-4538-a484-7489257f6245',
         createdAt: 'some-other-date',
+        expiresAt: 'some-date',
       },
     ],
   };
