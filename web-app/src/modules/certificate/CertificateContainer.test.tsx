@@ -45,8 +45,8 @@ const rootCert: Certificate = {
   },
   format: 'PEM',
   type: 'ROOT_CA',
-  createdAt: '2020-05-16 08:30:20',
-  expiresAt: '2021-05-16 08:30:20',
+  createdAt: '2020-07-12T17:28:00.711537Z',
+  expiresAt: '2021-07-12T17:28:00.711537Z',
   accountId: '51f5435d-0841-4538-a484-7489257f6245',
 };
 
@@ -143,7 +143,9 @@ test('certificate page: renders root certificate', async () => {
   expect(screen.getByText('Common name')).toBeInTheDocument();
   expect(screen.getByText('test root ca')).toBeInTheDocument();
   expect(screen.getByText('Created At')).toBeInTheDocument();
-  expect(screen.getByText('2020-05-16 08:30:20')).toBeInTheDocument();
+  expect(screen.getByText('07/12/2020, 7:28:00 PM')).toBeInTheDocument();
+  expect(screen.getByText('Expires At')).toBeInTheDocument();
+  expect(screen.getByText('07/12/2021, 7:28:00 PM')).toBeInTheDocument();
 
   const bodyCollapse = screen.getByText('Body');
   expect(bodyCollapse).toBeInTheDocument();

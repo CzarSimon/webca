@@ -3,6 +3,7 @@ import { Tag, Descriptions } from 'antd';
 import { FormattedMessage } from 'react-intl';
 import { Certificate } from '../../../types';
 import { useFormatedMessage } from '../../../translations';
+import { DateTime } from '../../../components/display/DateTime';
 
 interface Props {
   certificate?: Certificate;
@@ -25,7 +26,10 @@ export function BasicCertificateDetails({ certificate }: Props) {
         </Tag>
       </Descriptions.Item>
       <Descriptions.Item label={formattedMessage('basicCertificateDetails.createdAt')}>
-        <p>{certificate?.createdAt}</p>
+        <DateTime datetime={certificate?.createdAt} />
+      </Descriptions.Item>
+      <Descriptions.Item label={formattedMessage('basicCertificateDetails.expiresAt')}>
+        <DateTime datetime={certificate?.expiresAt} />
       </Descriptions.Item>
     </Descriptions>
   );
