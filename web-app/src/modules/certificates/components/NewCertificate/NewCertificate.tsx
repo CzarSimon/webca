@@ -9,10 +9,12 @@ import log from '@czarsimon/remotelogger';
 import { suggestKeySize } from '../../../../utils/rsautil';
 import { useFormSelect } from '../../../../state/hooks';
 import { useFormatedMessage } from '../../../../translations';
-
-import styles from './NewCertificate.module.css';
 import { AlgorithmOptions } from './AlgorithmOptions';
 import { SubjectOptionsForm } from './SubjectOptionsForm';
+
+import styles from './NewCertificate.module.css';
+import { yearsToDays } from '../../../../utils/timeutil';
+import { CertificateExpiryForm } from './CertificateExpiryForm';
 
 interface Props {
   options: CertificateOptions;
@@ -45,7 +47,7 @@ export function NewCertificate({ options, submit }: Props) {
     onSelect('type')(value);
   };
 
-  const onFinish = ({ name, type, algorithm, commonName, password, rsaKeySize }: Store) => {
+  const onFinish = ({ name, type, algorithm, commonName, password, rsaKeySize, validFor }: Store) => {
     let keySize = parseInt(rsaKeySize);
     if (isNaN(keySize)) {
       keySize = suggestKeySize(type);
@@ -62,6 +64,7 @@ export function NewCertificate({ options, submit }: Props) {
       options: {
         keySize,
       },
+      expiresInDays: yearsToDays(validFor),
     });
   };
 
@@ -110,6 +113,7 @@ export function NewCertificate({ options, submit }: Props) {
             certificateType={certificateType}
             selectKeySize={onSelect('rsaKeySize')}
           />
+          <CertificateExpiryForm validForId="validFor" />
           <SubjectOptionsForm />
           <Form.Item
             name="password"

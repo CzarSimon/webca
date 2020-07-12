@@ -91,6 +91,7 @@ export interface CertificateRequest {
   signatoryId?: string;
   password: string;
   options: TypedMap<any>;
+  expiresInDays: number;
 }
 
 export type CertificatePage = Page<Certificate>;

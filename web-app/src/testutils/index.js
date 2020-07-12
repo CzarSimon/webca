@@ -28,7 +28,7 @@ Object.defineProperty(window, 'matchMedia', {
 function render(ui, { locale = 'en-US', reduxStore = store, ...renderOptions } = {}) {
   function Wrapper({ children }) {
     return (
-      <IntlProvider locale={locale} messages={messages[locale]}>
+      <IntlProvider locale={locale} messages={messages[locale]} timeZone="UTC">
         <Provider store={reduxStore}>
           <Router>{children}</Router>
         </Provider>

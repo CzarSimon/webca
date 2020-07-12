@@ -102,6 +102,13 @@ test('new certificate: renders form', async () => {
   const algoDropdown = screen.getByText('RSA');
   expect(algoDropdown).toBeInTheDocument();
 
+  expect(screen.getByText('Valid for')).toBeInTheDocument();
+  expect(screen.getByText('year')).toBeInTheDocument();
+  const validForInput = screen.getByLabelText('Valid for');
+  expect(validForInput).toBeInTheDocument();
+  fireEvent.change(validForInput, { target: { value: 2 } });
+  expect(screen.getByText('years')).toBeInTheDocument();
+
   expect(screen.getByText('RSA options')).toBeInTheDocument();
   expect(screen.getByText('Key size')).toBeInTheDocument();
 
@@ -170,6 +177,7 @@ test('new certificate: test required fields', async () => {
       expect(screen.queryByText(/Certificate type is required/)).toBeFalsy();
       expect(screen.queryByText(/Signature algorithm is required/)).toBeFalsy();
       expect(screen.queryByText(/Subject common name is required/)).toBeFalsy();
+      expect(screen.queryByText(/Valid for is required and must be greater than zero/)).toBeFalsy();
       expect(screen.queryByText(/At least 16 charactes are required in password/)).toBeFalsy();
     },
     { timeout: 1000 },
@@ -186,6 +194,7 @@ test('new certificate: test required fields', async () => {
       expect(screen.queryByText(/Certificate name is required/)).toBeTruthy();
       expect(screen.queryByText(/Certificate type is required/)).toBeTruthy();
       expect(screen.queryByText(/Subject common name is required/)).toBeTruthy();
+      expect(screen.queryByText(/Valid for is required and must be greater than zero/)).toBeTruthy();
       expect(screen.queryByText(/At least 16 charactes are required in password/)).toBeTruthy();
       expect(screen.queryByText(/Key size is required/)).toBeTruthy();
     },
