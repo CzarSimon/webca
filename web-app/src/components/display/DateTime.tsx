@@ -2,17 +2,17 @@ import React from 'react';
 import { FormattedDate } from 'react-intl';
 
 interface Props {
-  datetime?: string | Date;
+  value?: string | Date;
 }
 
-export function DateTime({ datetime }: Props) {
-  if (!datetime) {
+export function DateTime({ value }: Props) {
+  if (!value) {
     return null;
   }
 
   return (
     <FormattedDate
-      value={datetime}
+      value={value}
       year="numeric"
       month="2-digit"
       day="numeric"

@@ -29,8 +29,8 @@ const certs: CertificatePage = {
       },
       format: 'PEM',
       type: 'ROOT_CA',
-      createdAt: '2020-05-16 08:30:20',
-      expiresAt: '2021-05-16 08:30:20',
+      createdAt: '2020-07-12T23:01:32Z',
+      expiresAt: '2030-07-12T23:01:32Z',
       accountId,
     },
     {
@@ -42,8 +42,8 @@ const certs: CertificatePage = {
       },
       format: 'PEM',
       type: 'CERTIFICATE',
-      createdAt: '2020-05-20 08:30:20',
-      expiresAt: '2021-05-20 08:30:20',
+      createdAt: '2020-07-12T23:05:32Z',
+      expiresAt: '2020-10-12T23:05:32Z',
       accountId,
     },
   ],
@@ -92,12 +92,13 @@ test('certificate list: fetches certificates and renders table', async () => {
   // Check table data
   expect(screen.getByText('cert-1')).toBeInTheDocument();
   expect(screen.getByText('Root CA')).toBeInTheDocument();
-  expect(screen.getByText('2020-05-16 08:30:20')).toBeInTheDocument();
+  expect(screen.getByText('07/12/2020, 11:01:32 PM')).toBeInTheDocument();
+  expect(screen.getByText('07/12/2030, 11:01:32 PM')).toBeInTheDocument();
 
   expect(screen.getByText('cert-2')).toBeInTheDocument();
   expect(screen.getByText(/^Certificate$/)).toBeInTheDocument();
-  expect(screen.getByText('2020-05-20 08:30:20')).toBeInTheDocument();
-  expect(screen.getByText('2021-05-20 08:30:20')).toBeInTheDocument();
+  expect(screen.getByText('07/12/2020, 11:05:32 PM')).toBeInTheDocument();
+  expect(screen.getByText('10/12/2020, 11:05:32 PM')).toBeInTheDocument();
 
   const newCertButton = screen.getByRole('button', { name: /new certificate/i });
   expect(newCertButton).toBeInTheDocument();

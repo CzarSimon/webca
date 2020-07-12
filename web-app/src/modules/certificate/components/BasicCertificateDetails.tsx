@@ -26,10 +26,10 @@ export function BasicCertificateDetails({ certificate }: Props) {
         </Tag>
       </Descriptions.Item>
       <Descriptions.Item label={formattedMessage('basicCertificateDetails.createdAt')}>
-        <DateTime datetime={certificate?.createdAt} />
+        <DateTime value={certificate?.createdAt} />
       </Descriptions.Item>
       <Descriptions.Item label={formattedMessage('basicCertificateDetails.expiresAt')}>
-        <DateTime datetime={certificate?.expiresAt} />
+        <DateTime value={certificate?.expiresAt} />
       </Descriptions.Item>
     </Descriptions>
   );

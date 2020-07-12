@@ -6,6 +6,7 @@ import { useFormatedMessage } from '../../../../translations';
 import { CertificateListTitle } from './CertificateListTitle';
 
 import styles from './CertificateList.module.css';
+import { DateTime } from '../../../../components/display/DateTime';
 
 interface Props extends Certificates {
   select: (id: string) => void;
@@ -28,11 +29,13 @@ function useColumns(): ColumnProps<Certificate>[] {
       title: formatedMessage('certificateList.createdAt-column'),
       sorter: true,
       dataIndex: 'createdAt',
+      render: (_, cert) => <DateTime value={cert.createdAt} />, // eslint-disable-line
     },
     {
       title: formatedMessage('certificateList.expiresAt-column'),
       sorter: true,
       dataIndex: 'expiresAt',
+      render: (_, cert) => <DateTime value={cert.expiresAt} />, // eslint-disable-line
     },
   ];
 }
