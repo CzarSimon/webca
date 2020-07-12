@@ -12,17 +12,16 @@ import (
 )
 
 const (
-	privKeyPwdHeader = "X-Private-Key-Password"
+	privKeyPwdHeader         = "X-Private-Key-Password"
+	defaultCertificateExpiry = 365
 )
 
 func (e *env) createCertificate(c *gin.Context) {
 	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_create_certificate")
 	defer span.Finish()
 
-	var body model.CertificateRequest
-	err := c.BindJSON(&body)
+	req, err := parseCertificateRequest(c)
 	if err != nil {
-		err = httputil.BadRequestError(fmt.Errorf("failed to parse request body. %w", err))
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
 		return
@@ -35,8 +34,8 @@ func (e *env) createCertificate(c *gin.Context) {
 		return
 	}
 
-	body.UserID = principal.ID
-	cert, err := e.certificateService.Create(ctx, body)
+	req.UserID = principal.ID
+	cert, err := e.certificateService.Create(ctx, req)
 	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
@@ -160,4 +159,19 @@ func (e *env) getCertificateOptions(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, opts)
+}
+
+func parseCertificateRequest(c *gin.Context) (model.CertificateRequest, error) {
+	var body model.CertificateRequest
+	err := c.BindJSON(&body)
+	if err != nil {
+		err = httputil.BadRequestError(fmt.Errorf("failed to parse request body. %w", err))
+		return model.CertificateRequest{}, err
+	}
+
+	if body.ExpiresInDays <= 0 {
+		body.ExpiresInDays = defaultCertificateExpiry
+	}
+
+	return body, nil
 }

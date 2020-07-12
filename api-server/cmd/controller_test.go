@@ -94,10 +94,8 @@ func testBadContentType(t *testing.T, route, method, role string) {
 // ---- Test utils ----
 
 func createTestEnv() (*env, context.Context) {
-	testID := id.New()
-	fmt.Println("Test ", testID)
 	cfg := config{
-		db:             dbutil.SqliteConfig{Name: fmt.Sprintf("../resources/testing/test-%s.db", testID)},
+		db:             dbutil.SqliteConfig{},
 		migrationsPath: "../resources/db/sqlite",
 		jwtCredentials: getTestJWTCredentials(),
 	}

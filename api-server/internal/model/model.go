@@ -107,14 +107,15 @@ type Credentials struct {
 
 // CertificateRequest certificate creation request body.
 type CertificateRequest struct {
-	Name        string                 `json:"name,omitempty"`
-	Subject     CertificateSubject     `json:"subject,omitempty"`
-	Type        string                 `json:"type,omitempty"`
-	Algorithm   string                 `json:"algorithm,omitempty"`
-	SignatoryID string                 `json:"signatoryId,omitempty"`
-	Password    string                 `json:"password,omitempty"`
-	Options     map[string]interface{} `json:"options,omitempty"`
-	UserID      string                 `json:"-"`
+	Name          string                 `json:"name,omitempty"`
+	Subject       CertificateSubject     `json:"subject,omitempty"`
+	Type          string                 `json:"type,omitempty"`
+	Algorithm     string                 `json:"algorithm,omitempty"`
+	SignatoryID   string                 `json:"signatoryId,omitempty"`
+	Password      string                 `json:"password,omitempty"`
+	Options       map[string]interface{} `json:"options,omitempty"`
+	ExpiresInDays int                    `json:"expiresInDays,omitempty"`
+	UserID        string                 `json:"-"`
 }
 
 // KeyRequest extracts key request from a certificate request.
@@ -169,6 +170,7 @@ type Certificate struct {
 	Type        string             `json:"type,omitempty"`
 	SignatoryID string             `json:"signatoryId,omitempty"`
 	AccountID   string             `json:"accountId,omitempty"`
+	ExpiresAt   time.Time          `json:"expiresAt,omitempty"`
 	CreatedAt   time.Time          `json:"createdAt,omitempty"`
 }
 

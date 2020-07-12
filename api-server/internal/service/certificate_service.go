@@ -352,6 +352,8 @@ func signCertificate(cert model.Certificate, keys model.KeyEncoder) (model.Certi
 }
 
 func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, user model.User) model.Certificate {
+	now := timeutil.Now()
+
 	return model.Certificate{
 		ID:        id.New(),
 		Name:      req.Name,
@@ -360,7 +362,8 @@ func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, us
 		Format:    keyPair.Format,
 		Type:      req.Type,
 		AccountID: user.Account.ID,
-		CreatedAt: timeutil.Now(),
+		CreatedAt: now,
+		ExpiresAt: now.AddDate(0, 0, req.ExpiresInDays),
 	}
 }
 

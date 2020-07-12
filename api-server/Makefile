@@ -1,6 +1,5 @@
 test:
 	go test ./...
-	rm resources/testing/test-*.db
 
 install:
 	go mod download
