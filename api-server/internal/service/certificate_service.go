@@ -368,7 +368,6 @@ func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, us
 }
 
 func x509Template(cert model.Certificate) (*x509.Certificate, error) {
-	now := timeutil.Now()
 	xc := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		Subject: pkix.Name{
@@ -379,8 +378,8 @@ func x509Template(cert model.Certificate) (*x509.Certificate, error) {
 			Organization:       []string{cert.Subject.Organization},
 			OrganizationalUnit: []string{cert.Subject.OrganizationalUnit},
 		},
-		NotBefore: now,
-		NotAfter:  now.AddDate(0, 0, 365),
+		NotBefore: cert.CreatedAt,
+		NotAfter:  cert.ExpiresAt,
 	}
 
 	switch cert.Type {

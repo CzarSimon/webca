@@ -170,8 +170,8 @@ type Certificate struct {
 	Type        string             `json:"type,omitempty"`
 	SignatoryID string             `json:"signatoryId,omitempty"`
 	AccountID   string             `json:"accountId,omitempty"`
-	ExpiresAt   time.Time          `json:"expiresAt,omitempty"`
 	CreatedAt   time.Time          `json:"createdAt,omitempty"`
+	ExpiresAt   time.Time          `json:"expiresAt,omitempty"`
 }
 
 // CertificateType description of a certificate type and its status.

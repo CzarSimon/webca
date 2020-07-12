@@ -77,7 +77,7 @@ func TestCreateRootCertificate(t *testing.T) {
 	assert.Equal(rBody.ID, cert.ID)
 	assert.True(strings.HasPrefix(cert.Body, "-----BEGIN CERTIFICATE-----"))
 	assert.True(strings.HasSuffix(cert.Body, "-----END CERTIFICATE-----\n"))
-	// assert.Equal(rBody.ExpiresAt, cert.ExpiresAt)
+	assert.Equal(rBody.ExpiresAt, cert.ExpiresAt)
 
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
@@ -173,7 +173,7 @@ func TestCreateRootCertificateWithExpiry(t *testing.T) {
 	assert.Equal(rBody.ID, cert.ID)
 	assert.True(strings.HasPrefix(cert.Body, "-----BEGIN CERTIFICATE-----"))
 	assert.True(strings.HasSuffix(cert.Body, "-----END CERTIFICATE-----\n"))
-	// assert.Equal(rBody.ExpiresAt, cert.ExpiresAt)
+	assert.Equal(rBody.ExpiresAt, cert.ExpiresAt)
 
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
