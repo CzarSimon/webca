@@ -9,7 +9,7 @@ export JWT_ISSUER='webca'
 export JWT_SECRET_FILE='./resources/testing/jwt-secret.key'
 
 export PASSWORD_SALT_LENGTH='32'
-export PASSWORD_MIN_LENGTH='8'
+export PASSWORD_MIN_LENGTH='16'
 export PASSWORD_ENCRYPTION_KEY_FILE='./resources/testing/password-encryption.key'
 
 export DB_TYPE='sqlite'

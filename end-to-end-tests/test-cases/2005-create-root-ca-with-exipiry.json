@@ -1,5 +1,5 @@
 {
-  "name": "Create ROOT_CA RSA certificate",
+  "name": "Create ROOT_CA RSA certificate with user defined expiry",
   "request": {
     "method": "POST",
     "path": "/api/v1/certificates",
@@ -7,9 +7,9 @@
       "Authorization": "Bearer ${admin.token}"
     },
     "body": {
-      "name": "api-test ca",
+      "name": "api-test ca with expiry",
       "subject": {
-        "commonName": "api-test ca"
+        "commonName": "api-test ca with expiry"
       },
       "type": "ROOT_CA",
       "algorithm": "RSA",
@@ -23,7 +23,7 @@
   "response": {
     "status": 200,
     "body": {
-      "name": "api-test ca",
+      "name": "api-test ca with expiry",
       "format": "PEM",
       "type": "ROOT_CA"
     }
