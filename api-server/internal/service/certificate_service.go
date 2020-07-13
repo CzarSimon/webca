@@ -188,7 +188,7 @@ func (c *CertificateService) createCertificate(ctx context.Context, req model.Ce
 		return model.Certificate{}, err
 	}
 
-	cert, err := signCertificate(assembleCertificate(req, keyPair, user), keys)
+	cert, err := signCertificate(assembleCertificate(req, keyPair, user), keys.PublicKey(), keys.PrivateKey())
 	if err != nil {
 		return model.Certificate{}, err
 	}
@@ -341,13 +341,13 @@ func (c *CertificateService) logPrivateKeyReading(ctx context.Context, keyPair m
 	c.AuditLog.Read(ctx, userID, "key-pair:%s:private-key", keyPair.ID)
 }
 
-func signCertificate(cert model.Certificate, keys model.KeyEncoder) (model.Certificate, error) {
+func signCertificate(cert model.Certificate, pub, priv interface{}) (model.Certificate, error) {
 	template, err := x509Template(cert)
 	if err != nil {
 		return model.Certificate{}, err
 	}
 
-	b, err := x509.CreateCertificate(rand.Reader, template, template, keys.PublicKey(), keys.PrivateKey())
+	b, err := x509.CreateCertificate(rand.Reader, template, template, pub, priv)
 	if err != nil {
 		return model.Certificate{}, fmt.Errorf("failed to create x509 certificate: %w", err)
 	}
