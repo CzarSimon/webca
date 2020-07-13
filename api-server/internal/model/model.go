@@ -161,17 +161,25 @@ func (s CertificateSubject) String() string {
 
 // Certificate tls certificate and metadata.
 type Certificate struct {
-	ID          string             `json:"id,omitempty"`
-	Name        string             `json:"name,omitempty"`
-	Subject     CertificateSubject `json:"subject,omitempty"`
-	Body        string             `json:"body,omitempty"`
-	KeyPair     KeyPair            `json:"-"`
-	Format      string             `json:"format,omitempty"`
-	Type        string             `json:"type,omitempty"`
-	SignatoryID string             `json:"signatoryId,omitempty"`
-	AccountID   string             `json:"accountId,omitempty"`
-	CreatedAt   time.Time          `json:"createdAt,omitempty"`
-	ExpiresAt   time.Time          `json:"expiresAt,omitempty"`
+	ID           string             `json:"id,omitempty"`
+	Name         string             `json:"name,omitempty"`
+	SerialNumber int64              `json:"serialNumber,omitempty"`
+	Subject      CertificateSubject `json:"subject,omitempty"`
+	Body         string             `json:"body,omitempty"`
+	KeyPair      KeyPair            `json:"-"`
+	Format       string             `json:"format,omitempty"`
+	Type         string             `json:"type,omitempty"`
+	SignatoryID  string             `json:"signatoryId,omitempty"`
+	AccountID    string             `json:"accountId,omitempty"`
+	CreatedAt    time.Time          `json:"createdAt,omitempty"`
+	ExpiresAt    time.Time          `json:"expiresAt,omitempty"`
+}
+
+func (c Certificate) String() string {
+	return fmt.Sprintf(
+		"Certificate(id=%s, name=%s, serialNumber=%d, subject=[%s], format=%s, type=%s, signatoryId=%s, accountId=%s, createdAt=%v, expiresAt=%v)",
+		c.ID, c.Name, c.SerialNumber, c.Subject, c.Format, c.Type, c.SignatoryID, c.AccountID, c.CreatedAt, c.ExpiresAt,
+	)
 }
 
 // CertificateType description of a certificate type and its status.

@@ -62,6 +62,7 @@ func TestCreateRootCertificate(t *testing.T) {
 	assert.Empty(rBody.SignatoryID)
 	assert.NotEmpty(rBody.CreatedAt)
 	assert.Equal(rBody.CreatedAt.AddDate(0, 0, 365), rBody.ExpiresAt)
+	assert.Greater(rBody.SerialNumber, int64(0))
 
 	assert.Equal("PEM", rBody.Format)
 	assert.Equal("ROOT_CA", rBody.Type)
@@ -78,6 +79,7 @@ func TestCreateRootCertificate(t *testing.T) {
 	assert.True(strings.HasPrefix(cert.Body, "-----BEGIN CERTIFICATE-----"))
 	assert.True(strings.HasSuffix(cert.Body, "-----END CERTIFICATE-----\n"))
 	assert.Equal(rBody.ExpiresAt, cert.ExpiresAt)
+	assert.Equal(rBody.SerialNumber, cert.SerialNumber)
 
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
@@ -158,6 +160,7 @@ func TestCreateRootCertificateWithExpiry(t *testing.T) {
 	assert.Empty(rBody.SignatoryID)
 	assert.NotEmpty(rBody.CreatedAt)
 	assert.Equal(rBody.CreatedAt.AddDate(0, 0, 30), rBody.ExpiresAt)
+	assert.Greater(rBody.SerialNumber, int64(0))
 
 	assert.Equal("PEM", rBody.Format)
 	assert.Equal("ROOT_CA", rBody.Type)
@@ -174,6 +177,7 @@ func TestCreateRootCertificateWithExpiry(t *testing.T) {
 	assert.True(strings.HasPrefix(cert.Body, "-----BEGIN CERTIFICATE-----"))
 	assert.True(strings.HasSuffix(cert.Body, "-----END CERTIFICATE-----\n"))
 	assert.Equal(rBody.ExpiresAt, cert.ExpiresAt)
+	assert.Equal(rBody.SerialNumber, cert.SerialNumber)
 
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
@@ -492,6 +496,7 @@ func TestGetCertificate(t *testing.T) {
 	assert.Equal("ROOT_CA", rBody.Type)
 	assert.Equal(account.ID, rBody.AccountID)
 	assert.Equal(body.Name, rBody.Name)
+	assert.Greater(rBody.SerialNumber, int64(0))
 
 	req = createTestRequest(path, http.MethodGet, admin.JWTUser(), nil)
 	res = performTestRequest(server.Handler, req)
@@ -631,6 +636,7 @@ func TestGetCertificates(t *testing.T) {
 		cert, ok := certMap[name]
 		assert.True(ok)
 		assert.Equal(account.ID, cert.AccountID)
+		assert.Greater(cert.SerialNumber, int64(0))
 
 		events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s", cert.ID))
 		assert.NoError(err)

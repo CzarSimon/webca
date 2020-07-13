@@ -31,7 +31,7 @@ type certRepo struct {
 }
 
 const saveCertificateQuery = `
-	INSERT INTO certificate(id, name, subject, body, format, type, key_pair_id, account_id, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	INSERT INTO certificate(id, name, serial_number, subject, body, format, type, key_pair_id, account_id, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 	span, _ := opentracing.StartSpanFromContext(ctx, "key_pair_repo_save")
@@ -53,7 +53,7 @@ func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 	}
 
 	_, err = tx.ExecContext(ctx, saveCertificateQuery,
-		cert.ID, cert.Name, cert.Subject.String(), cert.Body, cert.Format, cert.Type, cert.KeyPair.ID, cert.AccountID, cert.CreatedAt, cert.ExpiresAt,
+		cert.ID, cert.Name, cert.SerialNumber, cert.Subject.String(), cert.Body, cert.Format, cert.Type, cert.KeyPair.ID, cert.AccountID, cert.CreatedAt, cert.ExpiresAt,
 	)
 	if err != nil {
 		dbutil.Rollback(tx)
@@ -67,6 +67,7 @@ const findCertificateQuery = `
 	SELECT 
 		id, 
 		name,
+		serial_number,
 		body,
 		format,
 		type,
@@ -86,7 +87,7 @@ func (r *certRepo) Find(ctx context.Context, id string) (model.Certificate, bool
 	var c model.Certificate
 	sigID := sql.NullString{}
 	err := r.db.QueryRowContext(ctx, findCertificateQuery, id).Scan(
-		&c.ID, &c.Name, &c.Body, &c.Format, &c.Type, &sigID, &c.AccountID, &c.CreatedAt, &c.ExpiresAt,
+		&c.ID, &c.Name, &c.SerialNumber, &c.Body, &c.Format, &c.Type, &sigID, &c.AccountID, &c.CreatedAt, &c.ExpiresAt,
 	)
 	if err == sql.ErrNoRows {
 		return model.Certificate{}, false, nil
@@ -103,6 +104,7 @@ const findCertificateByNameAndAccountIDQuery = `
 	SELECT 
 		id, 
 		name,
+		serial_number,
 		body,
 		format,
 		type,
@@ -130,7 +132,7 @@ func (r *certRepo) FindByNameAndAccountID(ctx context.Context, name, accountID s
 	var keyPairID string
 	sigID := sql.NullString{}
 	err = tx.QueryRowContext(ctx, findCertificateByNameAndAccountIDQuery, name, accountID).Scan(
-		&c.ID, &c.Name, &c.Body, &c.Format, &c.Type, &keyPairID, &sigID, &c.AccountID, &c.CreatedAt, &c.ExpiresAt,
+		&c.ID, &c.Name, &c.SerialNumber, &c.Body, &c.Format, &c.Type, &keyPairID, &sigID, &c.AccountID, &c.CreatedAt, &c.ExpiresAt,
 	)
 	if err == sql.ErrNoRows {
 		dbutil.Rollback(tx)
@@ -191,6 +193,7 @@ const findCertificatesByAccountIDQuery = `
 	SELECT 
 		id, 
 		name,
+		serial_number,
 		body,
 		format,
 		type,
@@ -217,7 +220,7 @@ func (r *certRepo) FindByAccountID(ctx context.Context, accountID string) ([]mod
 	var c model.Certificate
 	sigID := sql.NullString{}
 	for rows.Next() {
-		err = rows.Scan(&c.ID, &c.Name, &c.Body, &c.Format, &c.Type, &sigID, &c.AccountID, &c.CreatedAt, &c.ExpiresAt)
+		err = rows.Scan(&c.ID, &c.Name, &c.SerialNumber, &c.Body, &c.Format, &c.Type, &sigID, &c.AccountID, &c.CreatedAt, &c.ExpiresAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row for certificate by accountId=%s: %w", accountID, err)
 		}

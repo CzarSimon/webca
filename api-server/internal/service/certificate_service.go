@@ -9,7 +9,9 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	mathrand "math/rand"
 	"strings"
+	"time"
 
 	"github.com/CzarSimon/httputil"
 	"github.com/CzarSimon/httputil/crypto"
@@ -28,6 +30,10 @@ import (
 const (
 	textPlainType = "text/plain"
 )
+
+func init() {
+	mathrand.Seed(time.Now().UnixNano())
+}
 
 // CertificateService service responsible for certificate createion and management.
 type CertificateService struct {
@@ -355,21 +361,22 @@ func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, us
 	now := timeutil.Now()
 
 	return model.Certificate{
-		ID:        id.New(),
-		Name:      req.Name,
-		Subject:   req.Subject,
-		KeyPair:   keyPair,
-		Format:    keyPair.Format,
-		Type:      req.Type,
-		AccountID: user.Account.ID,
-		CreatedAt: now,
-		ExpiresAt: now.AddDate(0, 0, req.ExpiresInDays),
+		ID:           id.New(),
+		Name:         req.Name,
+		SerialNumber: randomSerialNumber(),
+		Subject:      req.Subject,
+		KeyPair:      keyPair,
+		Format:       keyPair.Format,
+		Type:         req.Type,
+		AccountID:    user.Account.ID,
+		CreatedAt:    now,
+		ExpiresAt:    now.AddDate(0, 0, req.ExpiresInDays),
 	}
 }
 
 func x509Template(cert model.Certificate) (*x509.Certificate, error) {
 	xc := &x509.Certificate{
-		SerialNumber: big.NewInt(1),
+		SerialNumber: big.NewInt(cert.SerialNumber),
 		Subject: pkix.Name{
 			CommonName:         cert.Subject.CommonName,
 			Country:            []string{cert.Subject.Country},
@@ -403,4 +410,13 @@ func attachmentFilename(name, category, format string) string {
 		filename = strings.ReplaceAll(filename, r, "-")
 	}
 	return filename
+}
+
+func randomSerialNumber() int64 {
+	number := mathrand.Int63()/10 + 1
+	if number < 0 {
+		return number * -1
+	}
+
+	return number
 }
