@@ -16,6 +16,11 @@ import (
 // Algorithm name of the RSA algorithm.
 const Algorithm = "RSA"
 
+const (
+	publicKeyType  = "PUBLIC KEY"
+	privateKeyType = "RSA PRIVATE KEY"
+)
+
 // options options for generation of an RSA key.
 type options struct {
 	keySize   int
@@ -37,8 +42,8 @@ type KeyPair struct {
 func (p KeyPair) Encode() model.KeyPair {
 	return model.KeyPair{
 		ID:         id.New(),
-		PublicKey:  encodePem("PUBLIC KEY", x509.MarshalPKCS1PublicKey(p.publicKey)),
-		PrivateKey: encodePem("RSA PRIVATE KEY", x509.MarshalPKCS1PrivateKey(p.privateKey)),
+		PublicKey:  encodePem(publicKeyType, x509.MarshalPKCS1PublicKey(p.publicKey)),
+		PrivateKey: encodePem(privateKeyType, x509.MarshalPKCS1PrivateKey(p.privateKey)),
 		Format:     "PEM",
 		Algorithm:  p.algorithm,
 		CreatedAt:  timeutil.Now(),
@@ -53,6 +58,50 @@ func (p KeyPair) PublicKey() interface{} {
 // PrivateKey provides external access to the private key.
 func (p KeyPair) PrivateKey() interface{} {
 	return p.privateKey
+}
+
+// Decode decodes a PEM formated keypair into a RSA keypair
+func Decode(keyPair model.KeyPair) (KeyPair, error) {
+	pub, err := decodePublicKey(keyPair.PublicKey)
+	if err != nil {
+		return KeyPair{}, err
+	}
+
+	priv, err := decodePrivateKey(keyPair.PrivateKey)
+	if err != nil {
+		return KeyPair{}, err
+	}
+
+	return KeyPair{
+		publicKey:  pub,
+		privateKey: priv,
+	}, nil
+}
+
+func decodePublicKey(s string) (*rsa.PublicKey, error) {
+	block, err := decodePem(s)
+	if err != nil {
+		return nil, err
+	}
+
+	if block.Type != publicKeyType {
+		return nil, fmt.Errorf("expected blocktype '%s' but got '%s'", publicKeyType, block.Type)
+	}
+
+	return x509.ParsePKCS1PublicKey(block.Bytes)
+}
+
+func decodePrivateKey(s string) (*rsa.PrivateKey, error) {
+	block, err := decodePem(s)
+	if err != nil {
+		return nil, err
+	}
+
+	if block.Type != privateKeyType {
+		return nil, fmt.Errorf("expected blocktype '%s' but got '%s'", privateKeyType, block.Type)
+	}
+
+	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
 // GenerateKeys parses key options and generates an RSA KeyPair.
@@ -117,4 +166,14 @@ func encodePem(blockType string, b []byte) string {
 	}
 
 	return string(pem.EncodeToMemory(block))
+}
+
+func decodePem(s string) (*pem.Block, error) {
+	b := []byte(s)
+	block, _ := pem.Decode(b)
+	if block == nil {
+		return nil, fmt.Errorf("invalid pem block input: %s", s)
+	}
+
+	return block, nil
 }

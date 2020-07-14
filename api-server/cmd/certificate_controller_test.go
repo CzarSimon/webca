@@ -81,6 +81,8 @@ func TestCreateRootCertificate(t *testing.T) {
 	assert.True(strings.HasSuffix(cert.Body, "-----END CERTIFICATE-----\n"))
 	assert.Equal(rBody.ExpiresAt, cert.ExpiresAt)
 	assert.Equal(rBody.SerialNumber, cert.SerialNumber)
+	assert.Empty(rBody.SignatoryID)
+	assert.Empty(cert.SignatoryID)
 
 	keyPairRepo := repository.NewKeyPairRepository(e.db)
 	keys, err := keyPairRepo.FindByAccountID(ctx, account.ID)
@@ -354,6 +356,154 @@ func TestCreateCertificate_UnauthorizedAndForbidden(t *testing.T) {
 	testForbidden(t, "/v1/certificates", http.MethodPost, []string{
 		jwt.AnonymousRole,
 	})
+}
+
+func TestCreateIntermetiateCA(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	keyPassword := "f49981a1ce6725272a9f84f917af3f36"
+	account, admin, _ := createTestAccount(t, e)
+	cert := createTestRootCertificate(t, server, admin.JWTUser(), "root-ca", keyPassword)
+
+	body := model.CertificateRequest{
+		Name: "intermediate-ca",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "INTERMEDIATE_CA",
+		Algorithm: "RSA",
+		Password:  "6accb0880cd40d5ee90a1fdb9a852af8",
+		Options: map[string]interface{}{
+			"keySize": 1048,
+		},
+		Signatory: model.Signatory{
+			ID:       cert.ID,
+			Password: keyPassword,
+		},
+	}
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var rBody model.Certificate
+	err := json.NewDecoder(res.Result().Body).Decode(&rBody)
+	assert.NoError(err)
+	assert.Equal("INTERMEDIATE_CA", rBody.Type)
+	assert.Equal(cert.ID, rBody.SignatoryID)
+
+	certRepo := repository.NewCertificateRepository(e.db)
+	intermedate, exists, err := certRepo.Find(ctx, rBody.ID)
+	assert.NoError(err)
+	assert.True(exists)
+	assert.Equal(account.ID, intermedate.AccountID)
+	assert.Equal(cert.ID, intermedate.SignatoryID)
+}
+
+func TestCreateIntermetiateCA_MissingSignatory(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+	_, admin, _ := createTestAccount(t, e)
+
+	body := model.CertificateRequest{
+		Name: "intermediate-ca",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "INTERMEDIATE_CA",
+		Algorithm: "RSA",
+		Password:  "6accb0880cd40d5ee90a1fdb9a852af8",
+		Options: map[string]interface{}{
+			"keySize": 1048,
+		},
+		Signatory: model.Signatory{
+			ID:       id.New(),
+			Password: "f49981a1ce6725272a9f84f917af3f36",
+		},
+	}
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusPreconditionRequired, res.Code)
+}
+
+func TestCreateIntermetiateCA_WrongSignatoryPassword(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+	_, admin, _ := createTestAccount(t, e)
+	cert := createTestRootCertificate(t, server, admin.JWTUser(), "root-ca", "dcbc16983255eb790724669a5fbfba4b")
+
+	body := model.CertificateRequest{
+		Name: "intermediate-ca",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "INTERMEDIATE_CA",
+		Algorithm: "RSA",
+		Password:  "f28bae27e8816244a129248c59d222bb",
+		Options: map[string]interface{}{
+			"keySize": 1048,
+		},
+		Signatory: model.Signatory{
+			ID:       cert.ID,
+			Password: "b10299af86fc00f95c49b9f654fc243b",
+		},
+	}
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusInternalServerError, res.Code)
+}
+
+func TestCreateIntermetiateCA_BadRequest(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+	_, admin, _ := createTestAccount(t, e)
+
+	body := model.CertificateRequest{
+		Name: "intermediate-ca",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "INTERMEDIATE_CA",
+		Algorithm: "RSA",
+		Password:  "f28bae27e8816244a129248c59d222bb",
+		Options: map[string]interface{}{
+			"keySize": 1048,
+		},
+		Signatory: model.Signatory{
+			Password: "some-password",
+		},
+	}
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+
+	body = model.CertificateRequest{
+		Name: "intermediate-ca",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "INTERMEDIATE_CA",
+		Algorithm: "RSA",
+		Password:  "f28bae27e8816244a129248c59d222bb",
+		Options: map[string]interface{}{
+			"keySize": 1048,
+		},
+		Signatory: model.Signatory{
+			ID: id.New(),
+		},
+	}
+
+	req = createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
 }
 
 func TestGetCertificateOptions(t *testing.T) {

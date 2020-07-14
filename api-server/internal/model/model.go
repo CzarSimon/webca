@@ -105,13 +105,23 @@ type Credentials struct {
 	Salt     string
 }
 
+// Signatory reference to and credentials for certificate signer.
+type Signatory struct {
+	ID       string
+	Password string
+}
+
+func (s Signatory) String() string {
+	return fmt.Sprintf("Signatory(id=%s)", s.ID)
+}
+
 // CertificateRequest certificate creation request body.
 type CertificateRequest struct {
 	Name          string                 `json:"name,omitempty"`
 	Subject       CertificateSubject     `json:"subject,omitempty"`
 	Type          string                 `json:"type,omitempty"`
 	Algorithm     string                 `json:"algorithm,omitempty"`
-	SignatoryID   string                 `json:"signatoryId,omitempty"`
+	Signatory     Signatory              `json:"signatory,omitempty"`
 	Password      string                 `json:"password,omitempty"`
 	Options       map[string]interface{} `json:"options,omitempty"`
 	ExpiresInDays int                    `json:"expiresInDays,omitempty"`
@@ -129,6 +139,19 @@ func (c CertificateRequest) KeyRequest() KeyRequest {
 		Algorithm: c.Algorithm,
 		Options:   opts,
 	}
+}
+
+// Validate validates the contents of a CertificateRequest
+func (c CertificateRequest) Validate() error {
+	if c.Type != RootCAType && c.Type != IntermediateCAType && c.Type != UserCertificateType {
+		return fmt.Errorf("invalid certificate type: %s", c.Type)
+	}
+
+	if c.Type != RootCAType && (c.Signatory.ID == "" || c.Signatory.Password == "") {
+		return fmt.Errorf("certificate type %s requires a valid signatory", c.Type)
+	}
+
+	return nil
 }
 
 // KeyEncoder interface to encode a serialized keypair and provide generic access to the public and private keys.

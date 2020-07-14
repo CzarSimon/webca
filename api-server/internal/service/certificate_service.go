@@ -131,9 +131,14 @@ func (c *CertificateService) GetCertificatePrivateKey(ctx context.Context, princ
 		return model.Attachment{}, err
 	}
 
-	encryptedKeyPair, err := c.findCertificatePrivateKey(ctx, principal, id)
+	encryptedKeyPair, found, err := c.findCertificateKeyPair(ctx, principal, id)
 	if err != nil {
 		return model.Attachment{}, err
+	}
+
+	if !found {
+		err = fmt.Errorf("KeyPair does not exist for certificate with id = %s", id)
+		return model.Attachment{}, httputil.NotFoundError(err)
 	}
 
 	err = c.PasswordService.Verify(ctx, encryptedKeyPair.Credentials, password)
@@ -188,7 +193,12 @@ func (c *CertificateService) createCertificate(ctx context.Context, req model.Ce
 		return model.Certificate{}, err
 	}
 
-	cert, err := signCertificate(assembleCertificate(req, keyPair, user), keys.PublicKey(), keys.PrivateKey())
+	signingKeys, err := c.getSigningKeys(ctx, req, keys, user)
+	if err != nil {
+		return model.Certificate{}, err
+	}
+
+	cert, err := signCertificate(assembleCertificate(req, keyPair, user), keys.PublicKey(), signingKeys.PrivateKey())
 	if err != nil {
 		return model.Certificate{}, err
 	}
@@ -210,6 +220,34 @@ func (c *CertificateService) createKeys(ctx context.Context, req model.KeyReques
 		err := fmt.Errorf("CertificateService: unsupported KeyRequest.Algorithm=%s", req.Algorithm)
 		return nil, httputil.BadRequestError(err)
 	}
+}
+
+func (c *CertificateService) getSigningKeys(ctx context.Context, req model.CertificateRequest, certKeys model.KeyEncoder, user model.User) (model.KeyEncoder, error) {
+	if req.Type == model.RootCAType {
+		return certKeys, nil
+	}
+
+	encryptedKeys, found, err := c.findCertificateKeyPair(ctx, user.JWTUser(), req.Signatory.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !found {
+		err = fmt.Errorf("KeyPair does not exist for certificate with id = %s", req.Signatory.ID)
+		return nil, httputil.PreconditionRequiredError(err)
+	}
+
+	keyPair, err := c.decryptKeys(ctx, encryptedKeys, req.Signatory.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	keys, err := rsautil.Decode(keyPair)
+	if err != nil {
+		return nil, err
+	}
+
+	return keys, nil
 }
 
 func (c *CertificateService) encryptKeys(ctx context.Context, keyPair model.KeyPair, pwd string, user model.User) (model.KeyPair, error) {
@@ -285,23 +323,18 @@ func (c *CertificateService) findCertificate(ctx context.Context, principal jwt.
 	return cert, nil
 }
 
-func (c *CertificateService) findCertificatePrivateKey(ctx context.Context, principal jwt.User, id string) (model.KeyPair, error) {
+func (c *CertificateService) findCertificateKeyPair(ctx context.Context, principal jwt.User, id string) (model.KeyPair, bool, error) {
 	keyPair, found, err := c.KeyPairRepo.FindByCertificateID(ctx, id)
-	if err != nil {
-		return model.KeyPair{}, err
-	}
-
-	if !found {
-		err = fmt.Errorf("KeyPair does not exist for certificate with id = %s", id)
-		return model.KeyPair{}, httputil.NotFoundError(err)
+	if err != nil || !found {
+		return model.KeyPair{}, found, err
 	}
 
 	err = c.AuthService.AssertAccountAccess(ctx, principal, keyPair.AccountID)
 	if err != nil {
-		return model.KeyPair{}, err
+		return model.KeyPair{}, true, err
 	}
 
-	return keyPair, nil
+	return keyPair, true, nil
 }
 
 func (c *CertificateService) findUser(ctx context.Context, userID string) (model.User, error) {
@@ -368,6 +401,7 @@ func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, us
 		KeyPair:      keyPair,
 		Format:       keyPair.Format,
 		Type:         req.Type,
+		SignatoryID:  req.Signatory.ID,
 		AccountID:    user.Account.ID,
 		CreatedAt:    now,
 		ExpiresAt:    now.AddDate(0, 0, req.ExpiresInDays),
@@ -391,6 +425,7 @@ func x509Template(cert model.Certificate) (*x509.Certificate, error) {
 
 	switch cert.Type {
 	case model.RootCAType:
+	case model.IntermediateCAType:
 		xc.IsCA = true
 		xc.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign
 		xc.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}

@@ -173,5 +173,10 @@ func parseCertificateRequest(c *gin.Context) (model.CertificateRequest, error) {
 		body.ExpiresInDays = defaultCertificateExpiry
 	}
 
+	err = body.Validate()
+	if err != nil {
+		return model.CertificateRequest{}, httputil.BadRequestError(err)
+	}
+
 	return body, nil
 }

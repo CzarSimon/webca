@@ -31,7 +31,7 @@ type certRepo struct {
 }
 
 const saveCertificateQuery = `
-	INSERT INTO certificate(id, name, serial_number, subject, body, format, type, key_pair_id, account_id, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	INSERT INTO certificate(id, name, serial_number, subject, body, format, type, key_pair_id, signatory_id, account_id, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 	span, _ := opentracing.StartSpanFromContext(ctx, "key_pair_repo_save")
@@ -52,8 +52,12 @@ func (r *certRepo) Save(ctx context.Context, cert model.Certificate) error {
 		return fmt.Errorf("failed to insert %s: %w", key, err)
 	}
 
+	sigID := sql.NullString{
+		String: cert.SignatoryID,
+		Valid:  cert.SignatoryID != "",
+	}
 	_, err = tx.ExecContext(ctx, saveCertificateQuery,
-		cert.ID, cert.Name, cert.SerialNumber, cert.Subject.String(), cert.Body, cert.Format, cert.Type, cert.KeyPair.ID, cert.AccountID, cert.CreatedAt, cert.ExpiresAt,
+		cert.ID, cert.Name, cert.SerialNumber, cert.Subject.String(), cert.Body, cert.Format, cert.Type, cert.KeyPair.ID, sigID, cert.AccountID, cert.CreatedAt, cert.ExpiresAt,
 	)
 	if err != nil {
 		dbutil.Rollback(tx)

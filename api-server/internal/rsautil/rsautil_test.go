@@ -1,10 +1,13 @@
 package rsautil
 
 import (
+	"crypto/x509"
 	"strings"
 	"testing"
 
+	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/webca/api-server/internal/model"
+	"github.com/CzarSimon/webca/api-server/internal/timeutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -104,4 +107,60 @@ func TestGenerateKeys_Unsupported(t *testing.T) {
 		})
 		assert.Error(err)
 	}
+}
+
+func TestDecode(t *testing.T) {
+	assert := assert.New(t)
+
+	rsaKey, err := GenerateKeys(model.KeyRequest{
+		Algorithm: Algorithm,
+		Options: map[string]interface{}{
+			"keySize": 512,
+		},
+	})
+	assert.NoError(err)
+	original := rsaKey.Encode()
+
+	decoded, err := Decode(original)
+	assert.NoError(err)
+
+	copy := decoded.Encode()
+	assert.Equal(original.PublicKey, copy.PublicKey)
+	assert.Equal(original.PrivateKey, copy.PrivateKey)
+}
+
+func TestDecode_WrongTypes(t *testing.T) {
+	assert := assert.New(t)
+
+	rsaKey, err := GenerateKeys(model.KeyRequest{
+		Algorithm: Algorithm,
+		Options: map[string]interface{}{
+			"keySize": 512,
+		},
+	})
+	assert.NoError(err)
+
+	wrongPubKey := model.KeyPair{
+		ID:         id.New(),
+		PublicKey:  encodePem("WRONG TYPE", x509.MarshalPKCS1PublicKey(rsaKey.publicKey)),
+		PrivateKey: encodePem(privateKeyType, x509.MarshalPKCS1PrivateKey(rsaKey.privateKey)),
+		Format:     "PEM",
+		Algorithm:  rsaKey.algorithm,
+		CreatedAt:  timeutil.Now(),
+	}
+
+	_, err = Decode(wrongPubKey)
+	assert.Error(err)
+
+	wrongPrivKey := model.KeyPair{
+		ID:         id.New(),
+		PublicKey:  encodePem(publicKeyType, x509.MarshalPKCS1PublicKey(rsaKey.publicKey)),
+		PrivateKey: encodePem("WRONG TYPE", x509.MarshalPKCS1PrivateKey(rsaKey.privateKey)),
+		Format:     "PEM",
+		Algorithm:  rsaKey.algorithm,
+		CreatedAt:  timeutil.Now(),
+	}
+
+	_, err = Decode(wrongPrivKey)
+	assert.Error(err)
 }
