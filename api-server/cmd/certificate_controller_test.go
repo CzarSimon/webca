@@ -506,6 +506,43 @@ func TestCreateIntermetiateCA_BadRequest(t *testing.T) {
 	assert.Equal(http.StatusBadRequest, res.Code)
 }
 
+func TestCreateIntermetiateCA_WrongSignatoryType(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	keyPassword := "16a4fc644b9ed17c5dcca9dfbdabb7a8"
+	_, admin, _ := createTestAccount(t, e)
+	cert := createTestRootCertificate(t, server, admin.JWTUser(), "client-cert", keyPassword)
+	typeChangeQuery := "UPDATE certificate SET type = ? WHERE id = ?"
+	r, err := e.db.ExecContext(ctx, typeChangeQuery, model.UserCertificateType, cert.ID)
+	assert.NoError(err)
+	affected, err := r.RowsAffected()
+	assert.NoError(err)
+	assert.Equal(int64(1), affected)
+
+	body := model.CertificateRequest{
+		Name: "intermediate-ca",
+		Subject: model.CertificateSubject{
+			CommonName: "WebCA Test Root CA",
+		},
+		Type:      "INTERMEDIATE_CA",
+		Algorithm: "RSA",
+		Password:  "3687749bb81bd5285afd324230da6387",
+		Options: map[string]interface{}{
+			"keySize": 1048,
+		},
+		Signatory: model.Signatory{
+			ID:       cert.ID,
+			Password: keyPassword,
+		},
+	}
+
+	req := createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+}
+
 func TestGetCertificateOptions(t *testing.T) {
 	assert := assert.New(t)
 	e, _ := createTestEnv()

@@ -227,14 +227,9 @@ func (c *CertificateService) getSigningKeys(ctx context.Context, req model.Certi
 		return certKeys, nil
 	}
 
-	encryptedKeys, found, err := c.findCertificateKeyPair(ctx, user.JWTUser(), req.Signatory.ID)
+	encryptedKeys, err := c.findSigningKeyPair(ctx, user.JWTUser(), req.Signatory.ID)
 	if err != nil {
 		return nil, err
-	}
-
-	if !found {
-		err = fmt.Errorf("KeyPair does not exist for certificate with id = %s", req.Signatory.ID)
-		return nil, httputil.PreconditionRequiredError(err)
 	}
 
 	keyPair, err := c.decryptKeys(ctx, encryptedKeys, req.Signatory.Password)
@@ -248,6 +243,40 @@ func (c *CertificateService) getSigningKeys(ctx context.Context, req model.Certi
 	}
 
 	return keys, nil
+}
+
+func (c *CertificateService) findSigningKeyPair(ctx context.Context, principal jwt.User, certificateID string) (model.KeyPair, error) {
+	cert, found, err := c.CertRepo.Find(ctx, certificateID)
+	if err != nil {
+		return model.KeyPair{}, err
+	}
+
+	if !found {
+		err = fmt.Errorf("certificate with id %s does not exist", certificateID)
+		return model.KeyPair{}, httputil.PreconditionRequiredError(err)
+	}
+
+	err = c.AuthService.AssertAccountAccess(ctx, principal, cert.AccountID)
+	if err != nil {
+		return model.KeyPair{}, err
+	}
+
+	if cert.Type != model.RootCAType && cert.Type != model.IntermediateCAType {
+		err := fmt.Errorf("invalid signing certificate: %s", cert)
+		return model.KeyPair{}, httputil.BadRequestError(err)
+	}
+
+	keyPair, found, err := c.findCertificateKeyPair(ctx, principal, certificateID)
+	if err != nil {
+		return model.KeyPair{}, err
+	}
+
+	if !found {
+		err = fmt.Errorf("KeyPair does not exist for certificate with id = %s", certificateID)
+		return model.KeyPair{}, httputil.PreconditionRequiredError(err)
+	}
+
+	return keyPair, nil
 }
 
 func (c *CertificateService) encryptKeys(ctx context.Context, keyPair model.KeyPair, pwd string, user model.User) (model.KeyPair, error) {
