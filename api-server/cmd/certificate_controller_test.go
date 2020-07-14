@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -217,15 +218,7 @@ func TestCreateCertificate_WeekPassword(t *testing.T) {
 	e, ctx := createTestEnv()
 	server := newServer(e)
 
-	accountRepo := repository.NewAccountRepository(e.db)
-	account := model.NewAccount("test-account")
-	err := accountRepo.Save(ctx, account)
-	assert.NoError(err)
-
-	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
-	userRepo := repository.NewUserRepository(e.db)
-	err = userRepo.Save(ctx, user)
-	assert.NoError(err)
+	account, _, user := createTestAccount(t, e)
 
 	body := model.CertificateRequest{
 		Name: "test-root-ca-certificate",
@@ -255,15 +248,7 @@ func TestCreateCertificate_AuthenticatedUserMissingInDatabase(t *testing.T) {
 	e, ctx := createTestEnv()
 	server := newServer(e)
 
-	accountRepo := repository.NewAccountRepository(e.db)
-	account := model.NewAccount("test-account")
-	err := accountRepo.Save(ctx, account)
-	assert.NoError(err)
-
-	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
-	userRepo := repository.NewUserRepository(e.db)
-	err = userRepo.Save(ctx, user)
-	assert.NoError(err)
+	account, _, user := createTestAccount(t, e)
 
 	body := model.CertificateRequest{
 		Name: "test-root-ca-certificate",
@@ -295,15 +280,7 @@ func TestCreateCertificate_UnsupportedType(t *testing.T) {
 	e, ctx := createTestEnv()
 	server := newServer(e)
 
-	accountRepo := repository.NewAccountRepository(e.db)
-	account := model.NewAccount("test-account")
-	err := accountRepo.Save(ctx, account)
-	assert.NoError(err)
-
-	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
-	userRepo := repository.NewUserRepository(e.db)
-	err = userRepo.Save(ctx, user)
-	assert.NoError(err)
+	account, _, user := createTestAccount(t, e)
 
 	body := model.CertificateRequest{
 		Name: "test-root-ca-certificate",
@@ -338,15 +315,7 @@ func TestCreateCertificate_UnsupportedAlgorithm(t *testing.T) {
 	e, ctx := createTestEnv()
 	server := newServer(e)
 
-	accountRepo := repository.NewAccountRepository(e.db)
-	account := model.NewAccount("test-account")
-	err := accountRepo.Save(ctx, account)
-	assert.NoError(err)
-
-	user := model.NewUser("mail@mail.com", model.UserRole, model.Credentials{}, account)
-	userRepo := repository.NewUserRepository(e.db)
-	err = userRepo.Save(ctx, user)
-	assert.NoError(err)
+	account, _, user := createTestAccount(t, e)
 
 	body := model.CertificateRequest{
 		Name: "test-root-ca-certificate",
@@ -437,53 +406,22 @@ func TestGetCertificate(t *testing.T) {
 	e, ctx := createTestEnv()
 	server := newServer(e)
 
-	accountRepo := repository.NewAccountRepository(e.db)
-	account := model.NewAccount("test-account")
-	err := accountRepo.Save(ctx, account)
-	assert.NoError(err)
+	account, admin, user := createTestAccount(t, e)
+	cert := createTestRootCertificate(t, server, admin.JWTUser(), "test-root-ca-certificate", "edcc550504ad1e531a5a008644932355")
 
+	accountRepo := repository.NewAccountRepository(e.db)
 	otherAccount := model.NewAccount("other-account")
-	err = accountRepo.Save(ctx, otherAccount)
+	err := accountRepo.Save(ctx, otherAccount)
 	assert.NoError(err)
 
 	userRepo := repository.NewUserRepository(e.db)
-	admin := model.NewUser("admin@mail.com", model.AdminRole, model.Credentials{}, account)
-	err = userRepo.Save(ctx, admin)
-	assert.NoError(err)
-
-	user := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, account)
-	err = userRepo.Save(ctx, user)
-	assert.NoError(err)
-
 	otherUser := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, otherAccount)
 	err = userRepo.Save(ctx, otherUser)
 	assert.NoError(err)
 
-	body := model.CertificateRequest{
-		Name: "test-root-ca-certificate",
-		Subject: model.CertificateSubject{
-			CommonName: "WebCA Test Root CA",
-		},
-		Type:      "ROOT_CA",
-		Algorithm: "RSA",
-		Password:  "edcc550504ad1e531a5a008644932355",
-		Options: map[string]interface{}{
-			"keySize": 512,
-		},
-	}
-
-	req := createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
-	res := performTestRequest(server.Handler, req)
-	assert.Equal(http.StatusOK, res.Code)
-
-	certRepo := repository.NewCertificateRepository(e.db)
-	cert, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
-	assert.NoError(err)
-	assert.True(exists)
-
 	path := fmt.Sprintf("/v1/certificates/%s", cert.ID)
-	req = createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
-	res = performTestRequest(server.Handler, req)
+	req := createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
 
 	var rBody model.Certificate
@@ -495,7 +433,7 @@ func TestGetCertificate(t *testing.T) {
 	assert.Equal(cert.ID, rBody.ID)
 	assert.Equal("ROOT_CA", rBody.Type)
 	assert.Equal(account.ID, rBody.AccountID)
-	assert.Equal(body.Name, rBody.Name)
+	assert.Equal(cert.Name, rBody.Name)
 	assert.Greater(rBody.SerialNumber, int64(0))
 
 	req = createTestRequest(path, http.MethodGet, admin.JWTUser(), nil)
@@ -710,20 +648,14 @@ func TestGetCertificateBody(t *testing.T) {
 	e, ctx := createTestEnv()
 	server := newServer(e)
 
-	accountRepo := repository.NewAccountRepository(e.db)
-	account := model.NewAccount("test-account")
-	err := accountRepo.Save(ctx, account)
-	assert.NoError(err)
+	account, _, user := createTestAccount(t, e)
 
+	accountRepo := repository.NewAccountRepository(e.db)
 	otherAccount := model.NewAccount("other-account")
-	err = accountRepo.Save(ctx, otherAccount)
+	err := accountRepo.Save(ctx, otherAccount)
 	assert.NoError(err)
 
 	userRepo := repository.NewUserRepository(e.db)
-	user := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, account)
-	err = userRepo.Save(ctx, user)
-	assert.NoError(err)
-
 	otherUser := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, otherAccount)
 	err = userRepo.Save(ctx, otherUser)
 	assert.NoError(err)
@@ -825,57 +757,28 @@ func TestGetCertificatePrivateKey(t *testing.T) {
 	e, ctx := createTestEnv()
 	server := newServer(e)
 
-	accountRepo := repository.NewAccountRepository(e.db)
-	account := model.NewAccount("test-account")
-	err := accountRepo.Save(ctx, account)
-	assert.NoError(err)
+	keyPassword := "8e13d01c9e540a267cd2920ee749f398a66d66e2"
+	_, admin, _ := createTestAccount(t, e)
+	cert := createTestRootCertificate(t, server, admin.JWTUser(), "root-ca", keyPassword)
 
+	accountRepo := repository.NewAccountRepository(e.db)
 	otherAccount := model.NewAccount("other-account")
-	err = accountRepo.Save(ctx, otherAccount)
+	err := accountRepo.Save(ctx, otherAccount)
 	assert.NoError(err)
 
 	userRepo := repository.NewUserRepository(e.db)
-	admin := model.NewUser("admin@mail.com", model.AdminRole, model.Credentials{}, account)
-	err = userRepo.Save(ctx, admin)
-	assert.NoError(err)
-
-	user := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, account)
-	err = userRepo.Save(ctx, user)
-	assert.NoError(err)
-
 	otherUser := model.NewUser("user@mail.com", model.UserRole, model.Credentials{}, otherAccount)
 	err = userRepo.Save(ctx, otherUser)
 	assert.NoError(err)
-
-	body := model.CertificateRequest{
-		Name: "cert-1",
-		Subject: model.CertificateSubject{
-			CommonName: "Cert 1",
-		},
-		Type:      "ROOT_CA",
-		Algorithm: "RSA",
-		Password:  "8e13d01c9e540a267cd2920ee749f398a66d66e2",
-		Options: map[string]interface{}{
-			"keySize": 512,
-		},
-	}
-	req := createTestRequest("/v1/certificates", http.MethodPost, admin.JWTUser(), body)
-	res := performTestRequest(server.Handler, req)
-	assert.Equal(http.StatusOK, res.Code)
-
-	certRepo := repository.NewCertificateRepository(e.db)
-	cert, exists, err := certRepo.FindByNameAndAccountID(ctx, body.Name, account.ID)
-	assert.NoError(err)
-	assert.True(exists)
 
 	keyPair, exists, err := repository.NewKeyPairRepository(e.db).FindByCertificateID(ctx, cert.ID)
 	assert.NoError(err)
 	assert.True(exists)
 
 	path := fmt.Sprintf("/v1/certificates/%s/private-key", cert.ID)
-	req = createTestRequest(path, http.MethodGet, admin.JWTUser(), nil)
-	req.Header.Add("X-Private-Key-Password", body.Password)
-	res = performTestRequest(server.Handler, req)
+	req := createTestRequest(path, http.MethodGet, admin.JWTUser(), nil)
+	req.Header.Add("X-Private-Key-Password", keyPassword)
+	res := performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusOK, res.Code)
 
 	contentType := res.Header().Get("Content-Type")
@@ -884,7 +787,7 @@ func TestGetCertificatePrivateKey(t *testing.T) {
 	var rBody model.Attachment
 	err = json.NewDecoder(res.Result().Body).Decode(&rBody)
 	assert.NoError(err)
-	assert.Equal("cert-1.private-key.pem", rBody.Filename)
+	assert.Equal("root-ca.private-key.pem", rBody.Filename)
 	assert.Equal("text/plain", rBody.ContentType)
 	assert.True(strings.HasPrefix(rBody.Body, "-----BEGIN RSA PRIVATE KEY-----"))
 	assert.True(strings.HasSuffix(rBody.Body, "-----END RSA PRIVATE KEY-----\n"))
@@ -897,7 +800,7 @@ func TestGetCertificatePrivateKey(t *testing.T) {
 	assert.Equal(admin.ID, events[0].UserID)
 
 	req = createTestRequest(path, http.MethodGet, otherUser.JWTUser(), nil)
-	req.Header.Add("X-Private-Key-Password", body.Password)
+	req.Header.Add("X-Private-Key-Password", keyPassword)
 	res = performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusForbidden, res.Code)
 
@@ -907,7 +810,7 @@ func TestGetCertificatePrivateKey(t *testing.T) {
 	}
 
 	req = createTestRequest(path, http.MethodGet, principalThatDoesNotExist, nil)
-	req.Header.Add("X-Private-Key-Password", body.Password)
+	req.Header.Add("X-Private-Key-Password", keyPassword)
 	res = performTestRequest(server.Handler, req)
 	assert.Equal(http.StatusUnauthorized, res.Code)
 
@@ -962,4 +865,53 @@ func TestGetCertificatePrivateKey_UnauthorizedAndForbidden(t *testing.T) {
 		jwt.AnonymousRole,
 		model.UserRole,
 	})
+}
+
+func createTestRootCertificate(t *testing.T, server *http.Server, user jwt.User, name, password string) model.Certificate {
+	assert := assert.New(t)
+
+	body := model.CertificateRequest{
+		Name: name,
+		Subject: model.CertificateSubject{
+			CommonName: name,
+		},
+		Type:      "ROOT_CA",
+		Algorithm: "RSA",
+		Password:  password,
+		Options: map[string]interface{}{
+			"keySize": 1024,
+		},
+	}
+	req := createTestRequest("/v1/certificates", http.MethodPost, user, body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var cert model.Certificate
+	err := json.NewDecoder(res.Result().Body).Decode(&cert)
+	assert.NoError(err)
+
+	return cert
+}
+
+func createTestAccount(t *testing.T, e *env) (model.Account, model.User, model.User) {
+	assert := assert.New(t)
+	ctx := context.Background()
+
+	accountRepo := repository.NewAccountRepository(e.db)
+	userRepo := repository.NewUserRepository(e.db)
+
+	accountName := fmt.Sprintf("test-account-%s", id.New())
+	account := model.NewAccount(accountName)
+	err := accountRepo.Save(ctx, account)
+	assert.NoError(err)
+
+	admin := model.NewUser("admin@account.com", model.AdminRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, admin)
+	assert.NoError(err)
+
+	user := model.NewUser("user@account.com", model.UserRole, model.Credentials{}, account)
+	err = userRepo.Save(ctx, user)
+	assert.NoError(err)
+
+	return account, admin, user
 }
