@@ -144,10 +144,12 @@ test('certificate page: renders root certificate', async () => {
   expect(screen.getByText('Root CA')).toBeInTheDocument();
   expect(screen.getByText('Common name')).toBeInTheDocument();
   expect(screen.getByText('test root ca')).toBeInTheDocument();
-  expect(screen.getByText('Created At')).toBeInTheDocument();
+  expect(screen.getByText('Created at')).toBeInTheDocument();
   expect(screen.getByText('07/12/2020, 5:28:00 PM')).toBeInTheDocument();
-  expect(screen.getByText('Expires At')).toBeInTheDocument();
+  expect(screen.getByText('Expires at')).toBeInTheDocument();
   expect(screen.getByText('07/12/2021, 5:28:00 PM')).toBeInTheDocument();
+  expect(screen.getByText('Serial number')).toBeInTheDocument();
+  expect(screen.getByText('4526837442362845')).toBeInTheDocument();
 
   const bodyCollapse = screen.getByText('Body');
   expect(bodyCollapse).toBeInTheDocument();

@@ -14,12 +14,16 @@ export function BasicCertificateDetails({ certificate }: Props) {
 
   return (
     <Descriptions
+      column={2}
       title={
         <h3>
           <FormattedMessage id="basicCertificateDetails.title" />
         </h3>
       }
     >
+      <Descriptions.Item label={formattedMessage('basicCertificateDetails.serialNumber')}>
+        {certificate?.serialNumber}
+      </Descriptions.Item>
       <Descriptions.Item label={formattedMessage('basicCertificateDetails.type')}>
         <Tag color="green">
           <FormattedMessage id={`certificate.type-${certificate?.type}`} />
