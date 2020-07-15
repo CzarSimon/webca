@@ -28,7 +28,8 @@ import (
 )
 
 const (
-	textPlainType = "text/plain"
+	textPlainType   = "text/plain"
+	maxSerialNumber = 9007199254740991
 )
 
 func init() {
@@ -477,7 +478,7 @@ func attachmentFilename(name, category, format string) string {
 }
 
 func randomSerialNumber() int64 {
-	number := mathrand.Int63()/10 + 1
+	number := mathrand.Int63n(maxSerialNumber-1) + 1
 	if number < 0 {
 		return number * -1
 	}
