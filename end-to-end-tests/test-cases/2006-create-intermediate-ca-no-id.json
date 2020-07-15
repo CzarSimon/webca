@@ -1,0 +1,28 @@
+{
+  "name": "Create INTERMEDIATE_CA RSA certificate with no signatory id",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/certificates",
+    "headers": {
+      "Authorization": "Bearer ${admin.token}"
+    },
+    "body": {
+      "name": "api-test intermediate ca",
+      "subject": {
+        "commonName": "api-test intermediate ca"
+      },
+      "type": "INTERMEDIATE_CA",
+      "algorithm": "RSA",
+      "password": "9c5c615ea50b5702fd705d40684cbb21",
+      "options": {
+        "keySize": 1024
+      },
+      "signatory": {
+        "password": "5da7ec13bcfe5518eb41f99bf3070bff89e843fc"
+      }
+    }
+  },
+  "response": {
+    "status": 400
+  }
+}
