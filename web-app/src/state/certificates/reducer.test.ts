@@ -119,6 +119,7 @@ test('certificate reducer: select and deselect certificate', () => {
   const cert: Certificate = {
     id: '14597ed1-281f-495a-8366-4f8a411a20bc',
     name: 'test root ca',
+    serialNumber: 1041018258857953,
     body: 'pem formated certificate body',
     subject: {
       commonName: 'test root ca',
@@ -162,6 +163,7 @@ test('certificate reducer: add and remove certificates', () => {
       {
         id: 'd1b9c1e9-ce8f-4296-8671-3411105ceb45',
         name: 'cert-1',
+        serialNumber: 2681780644171099,
         body: 'pem formated certificate body',
         subject: {
           commonName: 'test root ca',
@@ -175,6 +177,7 @@ test('certificate reducer: add and remove certificates', () => {
       {
         id: '26b679f0-ad89-4290-84a3-02f16ee23c09',
         name: 'cert-2',
+        serialNumber: 2546633804774058,
         body: 'pem formated certificate body',
         subject: {
           commonName: 'test root ca',

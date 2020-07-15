@@ -38,6 +38,7 @@ const opts: CertificateOptions = {
 const cert: Certificate = {
   id: '14597ed1-281f-495a-8366-4f8a411a20bc',
   name: 'test root ca',
+  serialNumber: 1786694408187572,
   body: 'pem formated certificate body',
   subject: {
     commonName: 'test root ca',

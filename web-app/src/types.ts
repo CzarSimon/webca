@@ -50,6 +50,7 @@ export interface Account {
 export interface Certificate {
   id: string;
   name: string;
+  serialNumber: number;
   body: string;
   subject: CertificateSubject;
   format: string;

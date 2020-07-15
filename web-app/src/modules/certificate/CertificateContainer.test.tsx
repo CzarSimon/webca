@@ -39,6 +39,7 @@ beforeEach(() => {
 const rootCert: Certificate = {
   id: 'd1b9c1e9-ce8f-4296-8671-3411105ceb45',
   name: 'cert-1',
+  serialNumber: 4526837442362845,
   body: 'pem formated certificate body',
   subject: {
     commonName: 'test root ca',
@@ -65,6 +66,7 @@ const rootCertPrivateKey: Attachment = {
 const cert: Certificate = {
   id: rootCert.id,
   name: 'cert-2',
+  serialNumber: 1362162917301873,
   body: 'pem formated certificate body',
   subject: {
     commonName: 'test certificate',

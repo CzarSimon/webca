@@ -23,6 +23,7 @@ const certs: CertificatePage = {
     {
       id: 'd1b9c1e9-ce8f-4296-8671-3411105ceb45',
       name: 'cert-1',
+      serialNumber: 1750938045240173,
       body: 'pem formated certificate body',
       subject: {
         commonName: 'test root ca',
@@ -36,6 +37,7 @@ const certs: CertificatePage = {
     {
       id: '26b679f0-ad89-4290-84a3-02f16ee23c09',
       name: 'cert-2',
+      serialNumber: 2043203384578991,
       body: 'pem formated certificate body',
       subject: {
         commonName: 'test root ca',
