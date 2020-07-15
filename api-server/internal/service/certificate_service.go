@@ -439,7 +439,7 @@ func assembleCertificate(req model.CertificateRequest, keyPair model.KeyPair, us
 }
 
 func x509Template(cert model.Certificate) (*x509.Certificate, error) {
-	xc := &x509.Certificate{
+	c := &x509.Certificate{
 		SerialNumber: big.NewInt(cert.SerialNumber),
 		Subject: pkix.Name{
 			CommonName:         cert.Subject.CommonName,
@@ -456,16 +456,20 @@ func x509Template(cert model.Certificate) (*x509.Certificate, error) {
 	switch cert.Type {
 	case model.RootCAType:
 	case model.IntermediateCAType:
-		xc.IsCA = true
-		xc.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign
-		xc.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
-		xc.BasicConstraintsValid = true
+		c.IsCA = true
+		c.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign
+		c.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
+		c.BasicConstraintsValid = true
+	case model.UserCertificateType:
+		c.IsCA = false
+		c.KeyUsage = x509.KeyUsageDigitalSignature
+		c.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
 	default:
 		err := fmt.Errorf("unsupported certificate type: %s", cert.Type)
 		return nil, httputil.BadRequestError(err)
 	}
 
-	return xc, nil
+	return c, nil
 }
 
 func attachmentFilename(name, category, format string) string {
