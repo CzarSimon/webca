@@ -822,6 +822,64 @@ func TestGetCertificates(t *testing.T) {
 	}
 }
 
+func TestGetCertificates_FilterByType(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	account, admin, user := createTestAccount(t, e)
+
+	pwd1 := "aadeef2b7e58bbef6040f8c547642a83"
+	pwd2 := "2ab4b49156cdf37711dcf6d8526fa612"
+	c1 := createTestRootCertificate(t, server, admin.JWTUser(), "root-ca-1", pwd1)
+	c2 := createTestRootCertificate(t, server, admin.JWTUser(), "root-ca-2", pwd2)
+
+	pwd3 := "c324c1ea5ba2a30aa6cd94c4fc4b0ef2"
+	pwd4 := "171fe17c60e4a499f391c869d99f535e"
+	createTestIntermediateCertificate(t, server, user.JWTUser(), "intermediate-ca-1", pwd3, model.Signatory{ID: c1.ID, Password: pwd1})
+	createTestIntermediateCertificate(t, server, user.JWTUser(), "intermediate-ca-2", pwd4, model.Signatory{ID: c2.ID, Password: pwd2})
+
+	path := fmt.Sprintf("/v1/certificates?accountId=%s&type=%s&type=%s", account.ID, model.RootCAType, model.IntermediateCAType)
+	req := createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var p1 model.CertificatePage
+	err := json.NewDecoder(res.Result().Body).Decode(&p1)
+	assert.NoError(err)
+	assert.Len(p1.Results, 4)
+
+	time.Sleep(50 * time.Millisecond)
+
+	path = fmt.Sprintf("/v1/certificates?accountId=%s&type=%s", account.ID, model.RootCAType)
+	req = createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var p2 model.CertificatePage
+	err = json.NewDecoder(res.Result().Body).Decode(&p2)
+	assert.NoError(err)
+	assert.Len(p2.Results, 2)
+	for _, cert := range p2.Results {
+		assert.Equal(model.RootCAType, cert.Type)
+	}
+
+	time.Sleep(50 * time.Millisecond)
+
+	path = fmt.Sprintf("/v1/certificates?accountId=%s&type=%s", account.ID, model.IntermediateCAType)
+	req = createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res = performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var p3 model.CertificatePage
+	err = json.NewDecoder(res.Result().Body).Decode(&p3)
+	assert.NoError(err)
+	assert.Len(p3.Results, 2)
+	for _, cert := range p3.Results {
+		assert.Equal(model.IntermediateCAType, cert.Type)
+	}
+}
+
 func TestGetCertificates_WrongAccount(t *testing.T) {
 	assert := assert.New(t)
 	e, ctx := createTestEnv()

@@ -61,21 +61,21 @@ func (c *CertificateService) GetCertificate(ctx context.Context, principal jwt.U
 }
 
 // GetCertificates retrieves a list of certificates based on account id.
-func (c *CertificateService) GetCertificates(ctx context.Context, principal jwt.User, accountID string) (model.CertificatePage, error) {
+func (c *CertificateService) GetCertificates(ctx context.Context, principal jwt.User, filter model.CertificateFilter) (model.CertificatePage, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificates")
 	defer span.Finish()
 
-	err := c.AuthService.AssertAccountAccess(ctx, principal, accountID)
+	err := c.AuthService.AssertAccountAccess(ctx, principal, filter.AccountID)
 	if err != nil {
 		return model.CertificatePage{}, err
 	}
 
-	certs, err := c.CertRepo.FindByAccountID(ctx, accountID)
+	certs, err := c.getCertificatesByFilter(ctx, filter)
 	if err != nil {
 		return model.CertificatePage{}, err
 	}
 
-	go c.logCertificatesReading(ctx, certs, principal.ID)
+	go c.logCertificatesReading(context.Background(), certs, principal.ID)
 	rlen := len(certs)
 	return model.CertificatePage{
 		CurrentPage:    1,
@@ -84,6 +84,14 @@ func (c *CertificateService) GetCertificates(ctx context.Context, principal jwt.
 		ResultsPerPage: rlen,
 		Results:        certs,
 	}, nil
+}
+
+func (c *CertificateService) getCertificatesByFilter(ctx context.Context, filter model.CertificateFilter) ([]model.Certificate, error) {
+	if filter.Types == nil || len(filter.Types) == 0 {
+		return c.CertRepo.FindByAccountID(ctx, filter.AccountID)
+	}
+
+	return c.CertRepo.FindByAccountIDAndTypes(ctx, filter.AccountID, filter.Types)
 }
 
 // GetOptions fetches certificate creation options.

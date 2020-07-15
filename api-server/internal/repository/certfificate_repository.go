@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/CzarSimon/httputil/dbutil"
 	"github.com/CzarSimon/webca/api-server/internal/model"
@@ -16,6 +17,7 @@ type CertificateRepository interface {
 	Find(ctx context.Context, id string) (model.Certificate, bool, error)
 	FindByNameAndAccountID(ctx context.Context, name, accountID string) (model.Certificate, bool, error)
 	FindByAccountID(ctx context.Context, accountID string) ([]model.Certificate, error)
+	FindByAccountIDAndTypes(ctx context.Context, accountID string, types []string) ([]model.Certificate, error)
 	FindTypes(ctx context.Context) ([]model.CertificateType, error)
 }
 
@@ -214,25 +216,56 @@ func (r *certRepo) FindByAccountID(ctx context.Context, accountID string) ([]mod
 	span, ctx := opentracing.StartSpanFromContext(ctx, "cert_repo_find_by_account_id")
 	defer span.Finish()
 
-	certs := make([]model.Certificate, 0)
 	rows, err := r.db.QueryContext(ctx, findCertificatesByAccountIDQuery, accountID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query certificate by accountId=%s: %w", accountID, err)
 	}
 	defer rows.Close()
 
-	var c model.Certificate
-	sigID := sql.NullString{}
-	for rows.Next() {
-		err = rows.Scan(&c.ID, &c.Name, &c.SerialNumber, &c.Body, &c.Format, &c.Type, &sigID, &c.AccountID, &c.CreatedAt, &c.ExpiresAt)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan row for certificate by accountId=%s: %w", accountID, err)
-		}
-		c.SignatoryID = sigID.String
-		certs = append(certs, c)
+	return mapRowsToCertificates(rows)
+}
+
+const findCertificatesByAccountIDAndTypesQuery = `
+	SELECT 
+		id, 
+		name,
+		serial_number,
+		body,
+		format,
+		type,
+		signatory_id,
+		account_id,
+		created_at,
+		expires_at
+	FROM 
+		certificate
+	WHERE
+		account_id = ?
+		AND type IN (?%s)`
+
+func (r *certRepo) FindByAccountIDAndTypes(ctx context.Context, accountID string, types []string) ([]model.Certificate, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "cert_repo_find_by_account_id_and_types")
+	defer span.Finish()
+
+	query := fmt.Sprintf(findCertificatesByAccountIDAndTypesQuery, strings.Repeat(", ?", len(types)-1))
+	args := createAccountIDAndTypesArgs(accountID, types)
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query certificate by accountId=%s and types=%v: %w", accountID, types, err)
+	}
+	defer rows.Close()
+
+	return mapRowsToCertificates(rows)
+}
+
+func createAccountIDAndTypesArgs(accountID string, types []string) []interface{} {
+	args := make([]interface{}, 1, len(types)+1)
+	args[0] = accountID
+	for _, t := range types {
+		args = append(args, t)
 	}
 
-	return certs, nil
+	return args
 }
 
 const findCertificateTypesQuery = `
@@ -267,4 +300,21 @@ func (r *certRepo) FindTypes(ctx context.Context) ([]model.CertificateType, erro
 	}
 
 	return types, nil
+}
+
+func mapRowsToCertificates(rows *sql.Rows) ([]model.Certificate, error) {
+	certs := make([]model.Certificate, 0)
+
+	var c model.Certificate
+	sigID := sql.NullString{}
+	for rows.Next() {
+		err := rows.Scan(&c.ID, &c.Name, &c.SerialNumber, &c.Body, &c.Format, &c.Type, &sigID, &c.AccountID, &c.CreatedAt, &c.ExpiresAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row for certificate. %w", err)
+		}
+		c.SignatoryID = sigID.String
+		certs = append(certs, c)
+	}
+
+	return certs, nil
 }

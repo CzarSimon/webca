@@ -71,7 +71,7 @@ func (e *env) getCertificates(c *gin.Context) {
 	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "certificate_controller_get_certificate")
 	defer span.Finish()
 
-	accountID, err := httputil.ParseQueryValue(c, "accountId")
+	filter, err := parseCertificateFilter(c)
 	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
@@ -85,7 +85,7 @@ func (e *env) getCertificates(c *gin.Context) {
 		return
 	}
 
-	certs, err := e.certificateService.GetCertificates(ctx, principal, accountID)
+	certs, err := e.certificateService.GetCertificates(ctx, principal, filter)
 	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
@@ -179,4 +179,18 @@ func parseCertificateRequest(c *gin.Context) (model.CertificateRequest, error) {
 	}
 
 	return body, nil
+}
+
+func parseCertificateFilter(c *gin.Context) (model.CertificateFilter, error) {
+	accountID, err := httputil.ParseQueryValue(c, "accountId")
+	if err != nil {
+		return model.CertificateFilter{}, err
+	}
+
+	types, _ := httputil.ParseQueryValues(c, "type")
+
+	return model.CertificateFilter{
+		AccountID: accountID,
+		Types:     types,
+	}, nil
 }

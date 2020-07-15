@@ -205,6 +205,12 @@ func (c Certificate) String() string {
 	)
 }
 
+// CertificateFilter collection of parameters by which to filter a certificate retrival.
+type CertificateFilter struct {
+	AccountID string
+	Types     []string
+}
+
 // CertificateType description of a certificate type and its status.
 type CertificateType struct {
 	Name      string    `json:"name,omitempty"`
