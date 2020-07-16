@@ -1,8 +1,9 @@
 import { Thunk, Dispatch, Optional, CertificateRequest, successCallback } from '../../types';
 import * as api from '../../api';
 import { ResponseMetadata } from '@czarsimon/httpclient';
-import { addOptions, selectCertificate, addCertificates } from './actions';
+import { addOptions, selectCertificate, addCertificates, addSigningCertificates } from './actions';
 import { logError, downloadAttachment } from '../../utils/apiutil';
+import { CERTIFICATE_TYPES } from '../../constants';
 
 type CreateCallback = (success: boolean, id?: string) => void;
 
@@ -34,13 +35,26 @@ export function getCertificate(id: string): Thunk {
 
 export function getCertificatesByAccountId(accountId: string): Thunk {
   return async (dispatch: Dispatch): Promise<void> => {
-    const { body, error, metadata } = await api.getCertificatesByAccountId(accountId);
+    const { body, error, metadata } = await api.getCertificatesByAccountIdAndTypes(accountId);
     if (!body) {
-      handleGetCertificatesError(accountId, error, metadata);
+      handleGetCertificatesError(accountId, undefined, error, metadata);
       return;
     }
 
     dispatch(addCertificates(body));
+  };
+}
+
+export function getSigningCertificates(accountId: string): Thunk {
+  return async (dispatch: Dispatch): Promise<void> => {
+    const types = [CERTIFICATE_TYPES.ROOT_CA, CERTIFICATE_TYPES.INTERMEDIATE_CA];
+    const { body, error, metadata } = await api.getCertificatesByAccountIdAndTypes(accountId, types);
+    if (!body) {
+      handleGetCertificatesError(accountId, types, error, metadata);
+      return;
+    }
+
+    dispatch(addSigningCertificates(body.results));
   };
 }
 
@@ -90,8 +104,13 @@ function handleGetCertificateError(id: string, error: Optional<Error>, metadata:
   logError(`Failed fetch certificate by id=${id}.`, error, metadata);
 }
 
-function handleGetCertificatesError(accountId: string, error: Optional<Error>, metadata: ResponseMetadata) {
-  logError(`Failed fetch certificates by accountId=${accountId}`, error, metadata);
+function handleGetCertificatesError(
+  accountId: string,
+  types: Optional<string[]>,
+  error: Optional<Error>,
+  metadata: ResponseMetadata,
+) {
+  logError(`Failed fetch certificates by accountId=${accountId} and types=${types}`, error, metadata);
 }
 
 function handleDownloadCertificateBodyError(id: string, error: Optional<Error>, metadata: ResponseMetadata) {

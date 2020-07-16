@@ -11,8 +11,12 @@ export const createCertificate = (req: CertificateRequest): Promise<HTTPResponse
 export const getCertificate = (id: string): Promise<HTTPResponse<Certificate>> =>
   httpclient.get<Certificate>({ url: `${CERTIFICATES_URL}/${id}` });
 
-export const getCertificatesByAccountId = (accountId: string): Promise<HTTPResponse<CertificatePage>> =>
-  httpclient.get<CertificatePage>({ url: `${CERTIFICATES_URL}?accountId=${accountId}` });
+export const getCertificatesByAccountIdAndTypes = (
+  accountId: string,
+  types?: string[],
+): Promise<HTTPResponse<CertificatePage>> => {
+  return httpclient.get<CertificatePage>({ url: createCertificatesUrl(accountId, types) });
+};
 
 export const getCertificateOptions = (): Promise<HTTPResponse<CertificateOptions>> =>
   httpclient.get<CertificateOptions>({ url: OPTIONS_URL });
@@ -27,3 +31,13 @@ export const downloadCertificatePrivateKey = (id: string, password: string): Pro
       'X-Private-Key-Password': password,
     },
   });
+
+function createCertificatesUrl(accountId: string, types?: string[]): string {
+  const url = `${CERTIFICATES_URL}?accountId=${accountId}`;
+  if (!types) {
+    return url;
+  }
+
+  const typeFilter = types.map((t) => `type=${t}`).join('&');
+  return `${url}&${typeFilter}`;
+}

@@ -16,6 +16,12 @@ export interface CertificateState {
   certificates: Certificates;
   selected?: Certificate;
   options?: CertificateOptions;
+  signatories: Signatories;
+}
+
+interface Signatories {
+  certificates: Certificate[];
+  loaded: boolean;
 }
 
 // Account types

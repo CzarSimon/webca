@@ -8,6 +8,7 @@ export {
   downloadCertificateBody,
   downloadCertificatePrivateKey,
   getCertificatesByAccountId,
+  getSigningCertificates,
 } from './operations';
 
 export default reducer;

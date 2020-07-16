@@ -6,6 +6,8 @@ import {
   selectCertificate,
   removeCertificates,
   deselectCertificate,
+  addSigningCertificates,
+  removeSigningCertificates,
 } from './actions';
 import { CertificateState, CertificateOptions, Certificate, Page } from '../../types';
 
@@ -17,6 +19,10 @@ test('certificate reducer: add options', () => {
     },
     selected: undefined,
     options: undefined,
+    signatories: {
+      certificates: [],
+      loaded: false,
+    },
   };
 
   const opts: CertificateOptions = {
@@ -49,6 +55,7 @@ test('certificate reducer: add options', () => {
   expect(state.certificates.loaded).toBeFalsy();
   expect(state.selected).toBeUndefined();
   expect(state.options).toBe(opts);
+  expect(state.signatories).toBe(initalState.signatories);
 });
 
 test('certificate reducer: remove options', () => {
@@ -84,6 +91,10 @@ test('certificate reducer: remove options', () => {
     },
     selected: undefined,
     options: opts,
+    signatories: {
+      certificates: [],
+      loaded: false,
+    },
   };
 
   const state = reducer(initalState, removeOptions());
@@ -91,6 +102,7 @@ test('certificate reducer: remove options', () => {
   expect(state.certificates.loaded).toBeFalsy();
   expect(state.selected).toBeUndefined();
   expect(state.options).toBeUndefined();
+  expect(state.signatories).toBe(initalState.signatories);
 });
 
 test('certificate reducer: select and deselect certificate', () => {
@@ -114,6 +126,10 @@ test('certificate reducer: select and deselect certificate', () => {
     },
     selected: undefined,
     options: opts,
+    signatories: {
+      certificates: [],
+      loaded: false,
+    },
   };
 
   const cert: Certificate = {
@@ -136,12 +152,14 @@ test('certificate reducer: select and deselect certificate', () => {
   expect(state.certificates.loaded).toBeFalsy();
   expect(state.selected).toBe(cert);
   expect(state.options).toBe(opts);
+  expect(state.signatories).toBe(initalState.signatories);
 
   const nextState = reducer(state, deselectCertificate());
   expect(nextState.certificates.items).toBeUndefined();
   expect(nextState.certificates.loaded).toBeFalsy();
   expect(nextState.selected).toBeUndefined();
   expect(nextState.options).toBe(opts);
+  expect(state.signatories).toBe(initalState.signatories);
 });
 
 test('certificate reducer: add and remove certificates', () => {
@@ -152,6 +170,10 @@ test('certificate reducer: add and remove certificates', () => {
     },
     selected: undefined,
     options: undefined,
+    signatories: {
+      certificates: [],
+      loaded: false,
+    },
   };
 
   const certs: Page<Certificate> = {
@@ -196,10 +218,80 @@ test('certificate reducer: add and remove certificates', () => {
   expect(state.certificates.loaded).toBeTruthy();
   expect(state.selected).toBeUndefined();
   expect(state.options).toBeUndefined();
+  expect(state.signatories).toBe(initalState.signatories);
 
-  state = reducer(initalState, removeCertificates());
+  state = reducer(state, removeCertificates());
   expect(state.certificates.items).toBeUndefined();
   expect(state.certificates.loaded).toBeFalsy();
   expect(state.selected).toBeUndefined();
   expect(state.options).toBeUndefined();
+  expect(state.signatories).toBe(initalState.signatories);
+});
+
+test('certificate reducer: add and remove signing certificates', () => {
+  const initalState: CertificateState = {
+    certificates: {
+      items: undefined,
+      loaded: false,
+    },
+    selected: undefined,
+    options: undefined,
+    signatories: {
+      certificates: [],
+      loaded: false,
+    },
+  };
+
+  const certs: Page<Certificate> = {
+    currentPage: 1,
+    totalPages: 2,
+    totalResults: 3,
+    resultsPerPage: 2,
+    results: [
+      {
+        id: 'd1b9c1e9-ce8f-4296-8671-3411105ceb45',
+        name: 'cert-1',
+        serialNumber: 2681780644171099,
+        body: 'pem formated certificate body',
+        subject: {
+          commonName: 'test root ca',
+        },
+        format: 'PEM',
+        type: 'ROOT_CA',
+        accountId: '51f5435d-0841-4538-a484-7489257f6245',
+        createdAt: 'some-date',
+        expiresAt: 'some-date',
+      },
+      {
+        id: '26b679f0-ad89-4290-84a3-02f16ee23c09',
+        name: 'cert-2',
+        serialNumber: 2546633804774058,
+        body: 'pem formated certificate body',
+        subject: {
+          commonName: 'test root ca',
+        },
+        format: 'PEM',
+        type: 'CERTIFICATE',
+        accountId: '51f5435d-0841-4538-a484-7489257f6245',
+        createdAt: 'some-other-date',
+        expiresAt: 'some-date',
+      },
+    ],
+  };
+
+  let state = reducer(initalState, addSigningCertificates(certs.results));
+  expect(state.signatories.certificates).toBe(certs.results);
+  expect(state.signatories.loaded).toBeTruthy();
+  expect(state.selected).toBeUndefined();
+  expect(state.options).toBeUndefined();
+  expect(state.certificates).toBe(initalState.certificates);
+  expect(state.certificates.loaded).toBeFalsy();
+
+  state = reducer(state, removeSigningCertificates());
+  expect(state.signatories.certificates).toHaveLength(0);
+  expect(state.signatories.loaded).toBeFalsy();
+  expect(state.selected).toBeUndefined();
+  expect(state.options).toBeUndefined();
+  expect(state.certificates).toBe(initalState.certificates);
+  expect(state.certificates.loaded).toBeFalsy();
 });

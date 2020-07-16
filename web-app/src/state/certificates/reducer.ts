@@ -11,13 +11,21 @@ const initalState: CertificateState = {
   },
   selected: undefined,
   options: undefined,
+  signatories: {
+    certificates: [],
+    loaded: false,
+  },
 };
 
 const reducer = createReducer<CertificateState, CertificateAction>(initalState)
   .handleAction(actions.addCertificates, (state, action) => addCertificates(state, action.payload))
   .handleAction(actions.selectCertificate, (state, action) => selectCertificate(state, action.payload))
   .handleAction(actions.addOptions, (state, action) => addOptions(state, action.payload))
-  .handleAction([actions.removeCertificates, actions.removeOptions, actions.deselectCertificate], voidReducer);
+  .handleAction(actions.addSigningCertificates, (state, action) => addSigningCertificates(state, action.payload))
+  .handleAction(
+    [actions.removeCertificates, actions.removeOptions, actions.deselectCertificate, actions.removeSigningCertificates],
+    voidReducer,
+  );
 
 function addCertificates(state: CertificateState, items: Page<Certificate>): CertificateState {
   return {
@@ -44,6 +52,17 @@ function addOptions(state: CertificateState, options: CertificateOptions): Certi
   };
 }
 
+function addSigningCertificates(state: CertificateState, certificates: Certificate[]): CertificateState {
+  return {
+    ...state,
+    signatories: {
+      ...state.signatories,
+      loaded: true,
+      certificates,
+    },
+  };
+}
+
 function voidReducer(state: CertificateState, action: PayloadAction<string, void>): CertificateState {
   switch (action.type) {
     case getType(actions.removeCertificates):
@@ -52,6 +71,8 @@ function voidReducer(state: CertificateState, action: PayloadAction<string, void
       return removeOptions(state);
     case getType(actions.deselectCertificate):
       return deselectCertificate(state);
+    case getType(actions.removeSigningCertificates):
+      return removeSigningCertificates(state);
     default:
       return state;
   }
@@ -79,6 +100,17 @@ function deselectCertificate(state: CertificateState): CertificateState {
   return {
     ...state,
     selected: undefined,
+  };
+}
+
+function removeSigningCertificates(state: CertificateState): CertificateState {
+  return {
+    ...state,
+    signatories: {
+      ...state.signatories,
+      certificates: [],
+      loaded: false,
+    },
   };
 }
 

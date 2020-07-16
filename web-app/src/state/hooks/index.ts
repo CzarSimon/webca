@@ -3,7 +3,12 @@ import { CertificateOptions, Optional, CertificateState, UserState, Certificates
 import { AppState } from '..';
 import Form, { FormInstance } from 'antd/lib/form';
 import { useEffect } from 'react';
-import { getCertificateOptions, getCertificatesByAccountId, getCertificate } from '../certificates';
+import {
+  getCertificateOptions,
+  getCertificatesByAccountId,
+  getCertificate,
+  getSigningCertificates,
+} from '../certificates';
 import { AUTH_TOKEN_KEY, USER_ID_KEY } from '../../constants';
 import { setToken } from '../../api/httpclient';
 import { getUser } from '../user';
@@ -15,6 +20,8 @@ export const useCertificateState = (): CertificateState => useSelector(certifica
 export const useCertificateOptions = (): Optional<CertificateOptions> => useCertificateState().options;
 
 export const useCertificates = (): Certificates => useCertificateState().certificates;
+
+export const useSignatories = (): Certificate[] => useCertificateState().signatories.certificates;
 
 const certificateSelector = (state: AppState): CertificateState => state.certificates;
 
@@ -65,6 +72,20 @@ export function useFetchCertificates(): Certificates {
   }, [dispatch, accountId]);
 
   return useCertificates();
+}
+
+export function useFetchSignatories(): Certificate[] {
+  const dispatch = useDispatch();
+  const accountId = useAccountId();
+  const { loaded } = useCertificateState().signatories;
+
+  useEffect(() => {
+    if (accountId && !loaded) {
+      dispatch(getSigningCertificates(accountId));
+    }
+  }, [dispatch, accountId, loaded]);
+
+  return useSignatories();
 }
 
 export function useIsAuthenticated(): boolean {
