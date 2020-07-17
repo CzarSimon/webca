@@ -100,4 +100,8 @@ export const enUS: TextMap = {
 
   'home.title': 'webca.io',
   'home.subtitle': 'Web based certificate authority',
+
+  'signatorySearch.title': 'Certificate authority',
+  'signatorySearch.search-placeholder': 'Search CA',
+  'signatorySearch.password-placeholder': 'CA private key password',
 };

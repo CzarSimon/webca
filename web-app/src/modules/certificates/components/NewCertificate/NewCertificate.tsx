@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Form, Input } from 'antd';
-import { CertificateOptions, CertificateRequest, Optional } from '../../../../types';
+import { CertificateOptions, CertificateRequest, Optional, Signatory } from '../../../../types';
 import { Dropdown } from '../../../../components/from';
 import { FormattedMessage } from 'react-intl';
-import { PASSWORD_MIN_LENGTH } from '../../../../constants';
+import { PASSWORD_MIN_LENGTH, CERTIFICATE_TYPES } from '../../../../constants';
 import { Store } from 'antd/lib/form/interface';
 import log from '@czarsimon/remotelogger';
 import { suggestKeySize } from '../../../../utils/rsautil';
@@ -11,10 +11,11 @@ import { useFormSelect } from '../../../../state/hooks';
 import { useFormatedMessage } from '../../../../translations';
 import { AlgorithmOptions } from './AlgorithmOptions';
 import { SubjectOptionsForm } from './SubjectOptionsForm';
-
-import styles from './NewCertificate.module.css';
 import { yearsToDays } from '../../../../utils/timeutil';
 import { CertificateExpiryForm } from './CertificateExpiryForm';
+import { SignatorySearch } from '../SignatorySearch';
+
+import styles from './NewCertificate.module.css';
 
 interface Props {
   options: CertificateOptions;
@@ -24,6 +25,7 @@ interface Props {
 export function NewCertificate({ options, submit }: Props) {
   const [algorithm, setAlgorithm] = useState<Optional<string>>();
   const [certificateType, setCertificateType] = useState<Optional<string>>();
+  const [signatory, setSignatory] = useState<Optional<Signatory>>(undefined);
   const { form, onSelect } = useFormSelect();
   const formatedMessage = useFormatedMessage();
 
@@ -64,6 +66,7 @@ export function NewCertificate({ options, submit }: Props) {
       options: {
         keySize,
       },
+      signatory,
       expiresInDays: yearsToDays(validFor),
     });
   };
@@ -108,6 +111,7 @@ export function NewCertificate({ options, submit }: Props) {
               />
             </Form.Item>
           </div>
+          {showSignatorySearch(certificateType) && <SignatorySearch setSignatory={setSignatory} />}
           <AlgorithmOptions
             algorithm={algorithm}
             certificateType={certificateType}
@@ -136,4 +140,9 @@ export function NewCertificate({ options, submit }: Props) {
       </div>
     </div>
   );
+}
+
+function showSignatorySearch(certificateType: Optional<string>): boolean {
+  const { INTERMEDIATE_CA, CERTIFICATE } = CERTIFICATE_TYPES;
+  return certificateType === CERTIFICATE || certificateType === INTERMEDIATE_CA ? true : false;
 }

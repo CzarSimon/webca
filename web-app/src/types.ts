@@ -95,10 +95,15 @@ export interface CertificateRequest {
   subject: CertificateSubject;
   type: string;
   algorithm: string;
-  signatoryId?: string;
+  signatory?: Signatory;
   password: string;
   options: TypedMap<any>;
   expiresInDays: number;
+}
+
+export interface Signatory {
+  id: string;
+  password: string;
 }
 
 export type CertificatePage = Page<Certificate>;
