@@ -1,6 +1,6 @@
 import reducer from './reducer';
 
-export { removeOptions } from './actions';
+export { removeOptions, removeSigningCertificates } from './actions';
 export {
   createCertificate,
   getCertificateOptions,

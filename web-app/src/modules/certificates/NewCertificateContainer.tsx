@@ -2,7 +2,7 @@ import React from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { NewCertificate, NewCertificateSkeleton } from './components/NewCertificate';
-import { createCertificate } from '../../state/certificates';
+import { createCertificate, removeSigningCertificates } from '../../state/certificates';
 import { useFetchCertificateOptions } from '../../state/hooks';
 import { CertificateRequest } from '../../types';
 
@@ -14,6 +14,7 @@ export function NewCertificateContainer() {
   const onCreateSuccess = (success: boolean, id?: string) => {
     if (success) {
       history.push(`/certificates/${id}`);
+      dispatch(removeSigningCertificates());
     }
   };
 
