@@ -1,4 +1,4 @@
-FROM golang:1.13.7-alpine3.11 AS build
+FROM golang:1.14.6-alpine3.12 AS build
 
 # Copy source
 WORKDIR /app/api-server
@@ -11,7 +11,7 @@ RUN go mod download
 WORKDIR /app/api-server/cmd
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
 
-FROM alpine:3.11 AS run
+FROM alpine:3.12 AS run
 
 WORKDIR /etc/api-server/migrations
 COPY ./resources/db/mysql/ .

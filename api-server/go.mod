@@ -8,9 +8,9 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
-	github.com/opentracing/opentracing-go v1.1.0
-	github.com/stretchr/testify v1.6.0
-	github.com/uber/jaeger-client-go v2.23.1+incompatible
+	github.com/opentracing/opentracing-go v1.2.0
+	github.com/stretchr/testify v1.6.1
+	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	go.uber.org/zap v1.15.0
 )
