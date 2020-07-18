@@ -54,7 +54,9 @@ export function getSigningCertificates(accountId: string): Thunk {
       return;
     }
 
-    dispatch(addSigningCertificates(body.results));
+    if (body.results) {
+      dispatch(addSigningCertificates(body.results));
+    }
   };
 }
 

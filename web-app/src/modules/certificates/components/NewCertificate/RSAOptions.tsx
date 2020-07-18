@@ -9,7 +9,7 @@ import { Optional } from '../../../../types';
 
 import styles from './RSAOptions.module.css';
 
-const keySizeOptions: SelectOption[] = keySizes.map((bits) => ({ id: bits.toString(), text: bits.toString() }));
+const keySizeOptions: SelectOption[] = keySizes.map((bits) => ({ id: bits.toString(), text: `${bits} bits` }));
 
 function sufficientKeySize(selected: Optional<string>, suggested: number): boolean {
   return selected ? parseInt(selected) >= suggested : false;
