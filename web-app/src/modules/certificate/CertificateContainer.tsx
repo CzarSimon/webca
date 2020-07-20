@@ -9,7 +9,7 @@ import { successCallback } from '../../types';
 export function CertificateContainer() {
   const dispatch = useDispatch();
   const { user } = useUserState();
-  const certificate = useSelectedCertificate();
+  const { certificate } = useSelectedCertificate();
   const isAdmin = user?.role === ROLES.ADMIN;
   const downloadCertificate = () => {
     if (!certificate) {

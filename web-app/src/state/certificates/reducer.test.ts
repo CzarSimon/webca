@@ -17,7 +17,7 @@ test('certificate reducer: add options', () => {
       items: undefined,
       loaded: false,
     },
-    selected: undefined,
+    selected: {},
     options: undefined,
     signatories: {
       certificates: [],
@@ -53,7 +53,7 @@ test('certificate reducer: add options', () => {
   const state = reducer(initalState, addOptions(opts));
   expect(state.certificates.items).toBeUndefined();
   expect(state.certificates.loaded).toBeFalsy();
-  expect(state.selected).toBeUndefined();
+  expect(state.selected).toMatchObject({});
   expect(state.options).toBe(opts);
   expect(state.signatories).toBe(initalState.signatories);
 });
@@ -89,7 +89,7 @@ test('certificate reducer: remove options', () => {
       items: undefined,
       loaded: false,
     },
-    selected: undefined,
+    selected: {},
     options: opts,
     signatories: {
       certificates: [],
@@ -100,7 +100,7 @@ test('certificate reducer: remove options', () => {
   const state = reducer(initalState, removeOptions());
   expect(state.certificates.items).toBeUndefined();
   expect(state.certificates.loaded).toBeFalsy();
-  expect(state.selected).toBeUndefined();
+  expect(state.selected).toMatchObject({});
   expect(state.options).toBeUndefined();
   expect(state.signatories).toBe(initalState.signatories);
 });
@@ -124,7 +124,7 @@ test('certificate reducer: select and deselect certificate', () => {
       items: undefined,
       loaded: false,
     },
-    selected: undefined,
+    selected: {},
     options: opts,
     signatories: {
       certificates: [],
@@ -150,14 +150,14 @@ test('certificate reducer: select and deselect certificate', () => {
   const state = reducer(initalState, selectCertificate(cert));
   expect(state.certificates.items).toBeUndefined();
   expect(state.certificates.loaded).toBeFalsy();
-  expect(state.selected).toBe(cert);
+  expect(state.selected.certificate).toBe(cert);
   expect(state.options).toBe(opts);
   expect(state.signatories).toBe(initalState.signatories);
 
   const nextState = reducer(state, deselectCertificate());
   expect(nextState.certificates.items).toBeUndefined();
   expect(nextState.certificates.loaded).toBeFalsy();
-  expect(nextState.selected).toBeUndefined();
+  expect(nextState.selected).toMatchObject({});
   expect(nextState.options).toBe(opts);
   expect(state.signatories).toBe(initalState.signatories);
 });
@@ -168,7 +168,7 @@ test('certificate reducer: add and remove certificates', () => {
       items: undefined,
       loaded: false,
     },
-    selected: undefined,
+    selected: {},
     options: undefined,
     signatories: {
       certificates: [],
@@ -216,14 +216,14 @@ test('certificate reducer: add and remove certificates', () => {
   let state = reducer(initalState, addCertificates(certs));
   expect(state.certificates.items).toBe(certs);
   expect(state.certificates.loaded).toBeTruthy();
-  expect(state.selected).toBeUndefined();
+  expect(state.selected).toMatchObject({});
   expect(state.options).toBeUndefined();
   expect(state.signatories).toBe(initalState.signatories);
 
   state = reducer(state, removeCertificates());
   expect(state.certificates.items).toBeUndefined();
   expect(state.certificates.loaded).toBeFalsy();
-  expect(state.selected).toBeUndefined();
+  expect(state.selected).toMatchObject({});
   expect(state.options).toBeUndefined();
   expect(state.signatories).toBe(initalState.signatories);
 });
@@ -234,7 +234,7 @@ test('certificate reducer: add and remove signing certificates', () => {
       items: undefined,
       loaded: false,
     },
-    selected: undefined,
+    selected: {},
     options: undefined,
     signatories: {
       certificates: [],
@@ -282,7 +282,7 @@ test('certificate reducer: add and remove signing certificates', () => {
   let state = reducer(initalState, addSigningCertificates(certs.results));
   expect(state.signatories.certificates).toBe(certs.results);
   expect(state.signatories.loaded).toBeTruthy();
-  expect(state.selected).toBeUndefined();
+  expect(state.selected).toMatchObject({});
   expect(state.options).toBeUndefined();
   expect(state.certificates).toBe(initalState.certificates);
   expect(state.certificates.loaded).toBeFalsy();
@@ -290,7 +290,7 @@ test('certificate reducer: add and remove signing certificates', () => {
   state = reducer(state, removeSigningCertificates());
   expect(state.signatories.certificates).toHaveLength(0);
   expect(state.signatories.loaded).toBeFalsy();
-  expect(state.selected).toBeUndefined();
+  expect(state.selected).toMatchObject({});
   expect(state.options).toBeUndefined();
   expect(state.certificates).toBe(initalState.certificates);
   expect(state.certificates.loaded).toBeFalsy();

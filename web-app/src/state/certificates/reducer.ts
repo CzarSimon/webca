@@ -9,7 +9,7 @@ const initalState: CertificateState = {
     items: undefined,
     loaded: false,
   },
-  selected: undefined,
+  selected: {},
   options: undefined,
   signatories: {
     certificates: [],
@@ -41,7 +41,10 @@ function addCertificates(state: CertificateState, items: Page<Certificate>): Cer
 function selectCertificate(state: CertificateState, selected: Certificate): CertificateState {
   return {
     ...state,
-    selected,
+    selected: {
+      ...state.selected,
+      certificate: selected,
+    },
   };
 }
 
@@ -99,7 +102,7 @@ function removeOptions(state: CertificateState): CertificateState {
 function deselectCertificate(state: CertificateState): CertificateState {
   return {
     ...state,
-    selected: undefined,
+    selected: {},
   };
 }
 

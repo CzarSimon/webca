@@ -145,7 +145,7 @@ test('new certificate: renders form', async () => {
   await wait(
     () => {
       const { selected } = store.getState().certificates;
-      expect(selected).toBe(cert);
+      expect(selected.certificate).toBe(cert);
       expect(window.location.pathname).toBe(`/certificates/${cert.id}`);
     },
     { timeout: 1 },

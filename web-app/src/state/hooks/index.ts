@@ -1,5 +1,13 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { CertificateOptions, Optional, CertificateState, UserState, Certificates, Certificate } from '../../types';
+import {
+  CertificateOptions,
+  Optional,
+  CertificateState,
+  UserState,
+  Certificates,
+  Certificate,
+  SelectedCertificate,
+} from '../../types';
 import { AppState } from '..';
 import Form, { FormInstance } from 'antd/lib/form';
 import { useEffect } from 'react';
@@ -107,7 +115,7 @@ export function useIsAuthenticated(): boolean {
   return loaded;
 }
 
-export function useSelectedCertificate(): Optional<Certificate> {
+export function useSelectedCertificate(): SelectedCertificate {
   const { certificateId } = useParams();
   const { selected } = useCertificateState();
   const dispatch = useDispatch();
@@ -121,5 +129,5 @@ export function useSelectedCertificate(): Optional<Certificate> {
     dispatch(getCertificate(certificateId));
   }, [dispatch, certificateId]);
 
-  return selected && selected.id === certificateId ? selected : undefined;
+  return selected;
 }

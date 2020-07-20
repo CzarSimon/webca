@@ -14,9 +14,14 @@ export interface UserState {
 
 export interface CertificateState {
   certificates: Certificates;
-  selected?: Certificate;
+  selected: SelectedCertificate;
   options?: CertificateOptions;
   signatories: Signatories;
+}
+
+export interface SelectedCertificate {
+  certificate?: Certificate;
+  signatory?: Certificate;
 }
 
 interface Signatories {
