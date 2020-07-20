@@ -32,7 +32,7 @@ type AuthenticationRequest struct {
 // AuthenticationResponse user information and access token.
 type AuthenticationResponse struct {
 	Token string `json:"token,omitempty"`
-	User  User   `json:"user,omitempty"`
+	User  User   `json:"user"`
 }
 
 // User account member.
@@ -43,7 +43,7 @@ type User struct {
 	Credentials Credentials `json:"-"`
 	CreatedAt   time.Time   `json:"createdAt,omitempty"`
 	UpdatedAt   time.Time   `json:"updatedAt,omitempty"`
-	Account     Account     `json:"account,omitempty"`
+	Account     Account     `json:"account"`
 }
 
 // NewUser creates a new user account.
@@ -187,7 +187,7 @@ type Certificate struct {
 	ID           string             `json:"id,omitempty"`
 	Name         string             `json:"name,omitempty"`
 	SerialNumber int64              `json:"serialNumber,omitempty"`
-	Subject      CertificateSubject `json:"subject,omitempty"`
+	Subject      CertificateSubject `json:"subject"`
 	Body         string             `json:"body,omitempty"`
 	KeyPair      KeyPair            `json:"-"`
 	Format       string             `json:"format,omitempty"`
@@ -225,9 +225,9 @@ func (t CertificateType) String() string {
 
 // CertificateOptions options for creation of certificates.
 type CertificateOptions struct {
-	Types      []CertificateType `json:"types,omitempty"`
-	Algorithms []string          `json:"algorithms,omitempty"`
-	Formats    []string          `json:"formats,omitempty"`
+	Types      []CertificateType `json:"types"`
+	Algorithms []string          `json:"algorithms"`
+	Formats    []string          `json:"formats"`
 }
 
 // KeyPair asymmetric key pair of a public and private key, the private key is encrypted.
@@ -249,11 +249,11 @@ func (k KeyPair) String() string {
 
 // CertificatePage paginated list of certificates.
 type CertificatePage struct {
-	CurrentPage    int           `json:"currentPage,omitempty"`
-	TotalPages     int           `json:"totalPages,omitempty"`
-	TotalResults   int           `json:"totalResults,omitempty"`
-	ResultsPerPage int           `json:"resultsPerPage,omitempty"`
-	Results        []Certificate `json:"results,omitempty"`
+	CurrentPage    int           `json:"currentPage"`
+	TotalPages     int           `json:"totalPages"`
+	TotalResults   int           `json:"totalResults"`
+	ResultsPerPage int           `json:"resultsPerPage"`
+	Results        []Certificate `json:"results"`
 }
 
 // AuditEvent sensitive activity performed in the system.
