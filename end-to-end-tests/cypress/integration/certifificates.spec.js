@@ -125,6 +125,10 @@ describe("Goto certificate list, and select new certificate creation", () => {
     cy.contains("Body");
     cy.contains(/Download certificate/i);
     cy.contains(/Download private key/i);
+
+    cy.contains("Certificate authority");
+    cy.contains("root-ca").click();
+    cy.contains("Root CA");
   });
 
   it("Create server certificate", () => {
@@ -174,6 +178,10 @@ describe("Goto certificate list, and select new certificate creation", () => {
     cy.contains("Body");
     cy.contains(/Download certificate chain/i);
     cy.contains(/Download private key/i);
+
+    cy.contains("Certificate authority");
+    cy.contains("intermediate-ca").click();
+    cy.contains("Intermediate CA");
   });
 
   it("Check certificate list", () => {

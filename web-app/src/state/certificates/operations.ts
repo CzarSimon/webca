@@ -16,15 +16,20 @@ type CreateCallback = (success: boolean, id?: string) => void;
 
 export function createCertificate(req: CertificateRequest, callback: CreateCallback): Thunk {
   return async (dispatch: Dispatch): Promise<void> => {
-    const { body: cert, error, metadata } = await api.createCertificate(req);
-    if (!cert) {
+    const { body, error, metadata } = await api.createCertificate(req);
+    if (!body) {
       handleCreateCertificateError(error, metadata);
       callback(false);
       return;
     }
 
-    dispatch(selectCertificate(cert));
-    callback(true, cert.id);
+    dispatch(selectCertificate(body));
+    if (body.signatoryId) {
+      dispatch(getCertificateSignatory(body.signatoryId));
+    } else {
+      dispatch(removeSelectedSignatory());
+    }
+    callback(true, body.id);
   };
 }
 
