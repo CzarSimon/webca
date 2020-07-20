@@ -10,7 +10,8 @@
     "api-tests": "resttest run --port 28080"
   },
   "author": "Simon Lindgren",
-  "dependencies": {
-    "cypress": "^4.9.0"
+  "dependencies": {},
+  "devDependencies": {
+    "cypress": "^4.10.0"
   }
 }

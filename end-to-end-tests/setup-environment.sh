@@ -8,7 +8,7 @@ mysql_image=$(sh parse-image.sh mysql)
 docker run -d --name webca-db --network $NETWORK -p 23306:3306 -e MYSQL_ROOT_PASSWORD=password $mysql_image
 
 echo "Starting httplogger"
-docker run -d --name httplogger --network $NETWORK -e JAEGER_DISABLED=true czarsimon/httplogger:0.7 
+docker run -d --name httplogger --network $NETWORK -e JAEGER_DISABLED=true czarsimon/httplogger:0.8 
 
 api_server_image=$(sh parse-image.sh api-server)
 docker pull $api_server_image
