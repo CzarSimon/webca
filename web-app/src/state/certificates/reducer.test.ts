@@ -6,6 +6,7 @@ import {
   selectCertificate,
   removeCertificates,
   deselectCertificate,
+  addSelectedSignatory,
   addSigningCertificates,
   removeSigningCertificates,
 } from './actions';
@@ -294,4 +295,92 @@ test('certificate reducer: add and remove signing certificates', () => {
   expect(state.options).toBeUndefined();
   expect(state.certificates).toBe(initalState.certificates);
   expect(state.certificates.loaded).toBeFalsy();
+});
+
+test('certificate reducer: select and deselect certificate and signatory', () => {
+  const opts: CertificateOptions = {
+    types: [
+      {
+        name: 'ROOT_CA',
+        active: true,
+        createdAt: 'some-date',
+        updatedAt: 'some-date',
+      },
+      {
+        name: 'INTERMEDIATE_CA',
+        active: true,
+        createdAt: 'some-date',
+        updatedAt: 'some-date',
+      },
+    ],
+    algorithms: ['RSA'],
+    formats: ['PEM'],
+  };
+
+  const initalState: CertificateState = {
+    certificates: {
+      items: undefined,
+      loaded: false,
+    },
+    selected: {},
+    options: opts,
+    signatories: {
+      certificates: [],
+      loaded: false,
+    },
+  };
+
+  const intermediateCA: Certificate = {
+    id: '14597ed1-281f-495a-8366-4f8a411a20bc',
+    name: 'Intermediate CA',
+    serialNumber: 1041018258857953,
+    body: 'pem formated certificate body',
+    subject: {
+      commonName: 'intermediate-ca',
+    },
+    format: opts.formats[0],
+    type: opts.types[1].name,
+    accountId: '51f5435d-0841-4538-a484-7489257f6245',
+    signatoryId: '2722c00f-7b10-4642-ba42-cc83a1727cb0',
+    createdAt: 'some-date',
+    expiresAt: 'some-date',
+  };
+
+  const rootCA: Certificate = {
+    id: '2722c00f-7b10-4642-ba42-cc83a1727cb0',
+    name: 'Root CA',
+    serialNumber: 3802855181619434,
+    body: 'pem formated certificate body',
+    subject: {
+      commonName: 'root-ca',
+    },
+    format: opts.formats[0],
+    type: opts.types[0].name,
+    accountId: '51f5435d-0841-4538-a484-7489257f6245',
+    createdAt: 'some-date',
+    expiresAt: 'some-date',
+  };
+
+  let state = reducer(initalState, selectCertificate(intermediateCA));
+  expect(state.certificates.items).toBeUndefined();
+  expect(state.certificates.loaded).toBeFalsy();
+  expect(state.selected.certificate).toBe(intermediateCA);
+  expect(state.selected.signatory).toBeUndefined();
+  expect(state.options).toBe(opts);
+  expect(state.signatories).toBe(initalState.signatories);
+
+  state = reducer(state, addSelectedSignatory(rootCA));
+  expect(state.certificates.items).toBeUndefined();
+  expect(state.certificates.loaded).toBeFalsy();
+  expect(state.selected.certificate).toBe(intermediateCA);
+  expect(state.selected.signatory).toBe(rootCA);
+  expect(state.options).toBe(opts);
+  expect(state.signatories).toBe(initalState.signatories);
+
+  state = reducer(state, deselectCertificate());
+  expect(state.certificates.items).toBeUndefined();
+  expect(state.certificates.loaded).toBeFalsy();
+  expect(state.selected).toMatchObject({});
+  expect(state.options).toBe(opts);
+  expect(state.signatories).toBe(initalState.signatories);
 });

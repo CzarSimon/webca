@@ -19,7 +19,7 @@ const initalState: CertificateState = {
 
 const reducer = createReducer<CertificateState, CertificateAction>(initalState)
   .handleAction(actions.addCertificates, (state, action) => addCertificates(state, action.payload))
-  .handleAction(actions.selectCertificate, (state, action) => selectCertificate(state, action.payload))
+  .handleAction([actions.selectCertificate, actions.addSelectedSignatory], certificateReducer)
   .handleAction(actions.addOptions, (state, action) => addOptions(state, action.payload))
   .handleAction(actions.addSigningCertificates, (state, action) => addSigningCertificates(state, action.payload))
   .handleAction(
@@ -38,16 +38,6 @@ function addCertificates(state: CertificateState, items: Page<Certificate>): Cer
   };
 }
 
-function selectCertificate(state: CertificateState, selected: Certificate): CertificateState {
-  return {
-    ...state,
-    selected: {
-      ...state.selected,
-      certificate: selected,
-    },
-  };
-}
-
 function addOptions(state: CertificateState, options: CertificateOptions): CertificateState {
   return {
     ...state,
@@ -62,6 +52,37 @@ function addSigningCertificates(state: CertificateState, certificates: Certifica
       ...state.signatories,
       loaded: true,
       certificates,
+    },
+  };
+}
+
+function certificateReducer(state: CertificateState, action: PayloadAction<string, Certificate>): CertificateState {
+  switch (action.type) {
+    case getType(actions.selectCertificate):
+      return selectCertificate(state, action.payload);
+    case getType(actions.addSelectedSignatory):
+      return addSelectedSignatory(state, action.payload);
+    default:
+      return state;
+  }
+}
+
+function selectCertificate(state: CertificateState, certificate: Certificate): CertificateState {
+  return {
+    ...state,
+    selected: {
+      ...state.selected,
+      certificate,
+    },
+  };
+}
+
+function addSelectedSignatory(state: CertificateState, signatory: Certificate): CertificateState {
+  return {
+    ...state,
+    selected: {
+      ...state.selected,
+      signatory,
     },
   };
 }
