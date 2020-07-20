@@ -10,6 +10,9 @@ import { Certificate, User, Attachment } from '../../types';
 import { addUser } from '../../state/user/actions';
 import { downloadAttachment } from '../../utils/apiutil';
 
+// Should equal to the certificateId value in the react-router-dom useParams mock below.
+const certificateId = 'd1b9c1e9-ce8f-4296-8671-3411105ceb45';
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
@@ -37,7 +40,7 @@ beforeEach(() => {
 });
 
 const rootCert: Certificate = {
-  id: 'd1b9c1e9-ce8f-4296-8671-3411105ceb45',
+  id: certificateId,
   name: 'cert-1',
   serialNumber: 4526837442362845,
   body: 'pem formated certificate body',
@@ -63,8 +66,39 @@ const rootCertPrivateKey: Attachment = {
   filename: 'cert-1.private-key.pem',
 };
 
+const rootCA: Certificate = {
+  id: '7807d79b-2ee3-43bf-aa28-87c7bc66acba',
+  name: 'name:root-ca',
+  serialNumber: 6674323821678735,
+  body: 'pem formated certificate body',
+  subject: {
+    commonName: 'root-ca',
+  },
+  format: 'PEM',
+  type: 'ROOT_CA',
+  createdAt: '2020-05-19 08:30:20',
+  expiresAt: '2021-05-16 08:30:20',
+  accountId: '51f5435d-0841-4538-a484-7489257f6245',
+};
+
+const intermediateCA: Certificate = {
+  id: certificateId,
+  name: 'name:intermediate-ca',
+  serialNumber: 2800649869724387,
+  body: 'pem formated certificate body',
+  subject: {
+    commonName: 'intermediate-ca',
+  },
+  format: 'PEM',
+  type: 'INTERMEDIATE_CA',
+  createdAt: '2020-05-19 08:30:20',
+  expiresAt: '2021-05-16 08:30:20',
+  signatoryId: rootCA.id,
+  accountId: '51f5435d-0841-4538-a484-7489257f6245',
+};
+
 const cert: Certificate = {
-  id: rootCert.id,
+  id: certificateId,
   name: 'cert-2',
   serialNumber: 1362162917301873,
   body: 'pem formated certificate body',
@@ -150,6 +184,7 @@ test('certificate page: renders root certificate', async () => {
   expect(screen.getByText('07/12/2021, 5:28:00 PM')).toBeInTheDocument();
   expect(screen.getByText('Serial number')).toBeInTheDocument();
   expect(screen.getByText('4526837442362845')).toBeInTheDocument();
+  expect(screen.queryByText('Certificate authority')).toBeFalsy();
 
   const bodyCollapse = screen.getByText('Body');
   expect(bodyCollapse).toBeInTheDocument();
@@ -328,4 +363,53 @@ test('certificate page: render certificate as user, should not show private key 
   expect(screen.queryByRole('button', { name: /download private key/i })).toBeFalsy();
 
   expect(saveAs).toBeCalledTimes(0);
+});
+
+test('certificate page: render intermediate certificate', async () => {
+  const store = initStore();
+  store.dispatch(addUser(admin));
+  mockRequests({
+    [`/api/v1/certificates/${rootCA.id}`]: {
+      body: rootCA,
+      metadata: {
+        method: 'GET',
+        requestId: 'get-root-certificate-req-id',
+        status: 200,
+        url: `/api/v1/certificates/${rootCA.id}`,
+      },
+    },
+    [`/api/v1/certificates/${intermediateCA.id}`]: {
+      body: intermediateCA,
+      metadata: {
+        method: 'GET',
+        requestId: 'get-intermediate-certificate-req-id',
+        status: 200,
+        url: `/api/v1/certificates/${intermediateCA.id}`,
+      },
+    },
+  });
+
+  await act(async () => {
+    render(<CertificateContainer />, { reduxStore: store });
+  });
+
+  expect(screen.getByRole('heading', { name: 'name:intermediate-ca' })).toBeInTheDocument();
+  expect(screen.getByText('Basic details')).toBeInTheDocument();
+  expect(screen.getByText('Subject')).toBeInTheDocument();
+  expect(screen.getByText('intermediate-ca')).toBeInTheDocument();
+  expect(screen.getByText('Type')).toBeInTheDocument();
+  expect(screen.getByText(`${intermediateCA.serialNumber}`)).toBeInTheDocument();
+  expect(screen.getByText('Intermediate CA')).toBeInTheDocument();
+  expect(screen.getByText('Common name')).toBeInTheDocument();
+  const downloadButton = screen.getByRole('button', { name: /download certificate/i });
+  expect(downloadButton).toBeInTheDocument();
+  expect(downloadButton).toBeEnabled();
+  const downloadPrivateKeyButton = screen.getByRole('button', { name: /download private key/i });
+  expect(downloadPrivateKeyButton).toBeInTheDocument();
+  expect(downloadPrivateKeyButton).toBeEnabled();
+
+  expect(saveAs).toBeCalledTimes(0);
+
+  expect(screen.getByText('Certificate authority')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'name:root-ca' })).toBeInTheDocument();
 });

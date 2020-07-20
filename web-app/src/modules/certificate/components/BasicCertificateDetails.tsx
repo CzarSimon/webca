@@ -1,16 +1,18 @@
 import React from 'react';
 import { Tag, Descriptions } from 'antd';
 import { FormattedMessage } from 'react-intl';
-import { Certificate } from '../../../types';
+import { SelectedCertificate } from '../../../types';
 import { useFormatedMessage } from '../../../translations';
 import { DateTime } from '../../../components/display/DateTime';
+import { Link } from 'react-router-dom';
 
 interface Props {
-  certificate?: Certificate;
+  selected: SelectedCertificate;
 }
 
-export function BasicCertificateDetails({ certificate }: Props) {
+export function BasicCertificateDetails({ selected }: Props) {
   const formattedMessage = useFormatedMessage();
+  const { certificate, signatory } = selected;
 
   return (
     <Descriptions
@@ -35,6 +37,11 @@ export function BasicCertificateDetails({ certificate }: Props) {
       <Descriptions.Item label={formattedMessage('basicCertificateDetails.expiresAt')}>
         <DateTime value={certificate?.expiresAt} />
       </Descriptions.Item>
+      {signatory && (
+        <Descriptions.Item label={formattedMessage('basicCertificateDetails.certificateAuthoriy')}>
+          <Link to={`/certificates/${signatory!.id}`}>{signatory!.name}</Link>
+        </Descriptions.Item>
+      )}
     </Descriptions>
   );
 }

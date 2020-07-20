@@ -1,7 +1,14 @@
 import { Thunk, Dispatch, Optional, CertificateRequest, successCallback } from '../../types';
 import * as api from '../../api';
 import { ResponseMetadata } from '@czarsimon/httpclient';
-import { addOptions, selectCertificate, addCertificates, addSigningCertificates } from './actions';
+import {
+  addOptions,
+  selectCertificate,
+  addCertificates,
+  addSigningCertificates,
+  removeSelectedSignatory,
+  addSelectedSignatory,
+} from './actions';
 import { logError, downloadAttachment } from '../../utils/apiutil';
 import { CERTIFICATE_TYPES } from '../../constants';
 
@@ -30,6 +37,11 @@ export function getCertificate(id: string): Thunk {
     }
 
     dispatch(selectCertificate(body));
+    if (body.signatoryId) {
+      dispatch(getCertificateSignatory(body.signatoryId));
+    } else {
+      dispatch(removeSelectedSignatory());
+    }
   };
 }
 
@@ -95,6 +107,18 @@ export function getCertificateOptions(): Thunk {
     }
 
     dispatch(addOptions(body));
+  };
+}
+
+function getCertificateSignatory(id: string): Thunk {
+  return async (dispatch: Dispatch): Promise<void> => {
+    const { body, error, metadata } = await api.getCertificate(id);
+    if (!body) {
+      handleGetCertificateError(id, error, metadata);
+      return;
+    }
+
+    dispatch(addSelectedSignatory(body));
   };
 }
 

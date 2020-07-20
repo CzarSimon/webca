@@ -9,7 +9,8 @@ import { successCallback } from '../../types';
 export function CertificateContainer() {
   const dispatch = useDispatch();
   const { user } = useUserState();
-  const { certificate } = useSelectedCertificate();
+  const selected = useSelectedCertificate();
+  const { certificate } = selected;
   const isAdmin = user?.role === ROLES.ADMIN;
   const downloadCertificate = () => {
     if (!certificate) {
@@ -30,7 +31,7 @@ export function CertificateContainer() {
   return (
     <CertificateDisplay
       isLoading={!certificate}
-      certificate={certificate}
+      selected={selected}
       isAdmin={isAdmin}
       downloadCertificate={downloadCertificate}
       downloadPrivateKey={downloadPrivateKey}

@@ -1,31 +1,26 @@
 import React, { useState } from 'react';
 import { Card, Space, Divider } from 'antd';
-import { Certificate, successCallback } from '../../../types';
+import { successCallback, SelectedCertificate } from '../../../types';
 import { DownloadCertificateButton } from './DownloadCertificateButton';
 import { DownloadPrivateKeyButton } from './DownloadPrivateKeyButton';
 import { BasicCertificateDetails } from './BasicCertificateDetails';
 import { CertificateSubjectDetails } from './CertificateSubjectDetails';
 import { CertificateBody } from './CertificateBody';
+import { PrivateKeyModal } from './PrivateKeyModal';
 
 import styles from './CertificateDisplay.module.css';
-import { PrivateKeyModal } from './PrivateKeyModal';
 
 interface Props {
   isAdmin: boolean;
   isLoading: boolean;
-  certificate?: Certificate;
+  selected: SelectedCertificate;
   downloadCertificate: () => void;
   downloadPrivateKey: (password: string, callback: successCallback) => void;
 }
 
-export function CertificateDisplay({
-  isAdmin,
-  isLoading,
-  certificate,
-  downloadCertificate,
-  downloadPrivateKey,
-}: Props) {
+export function CertificateDisplay({ isAdmin, isLoading, selected, downloadCertificate, downloadPrivateKey }: Props) {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const { certificate } = selected;
 
   return (
     <div className={styles.Container}>
@@ -33,7 +28,7 @@ export function CertificateDisplay({
       <Divider />
       <div className={styles.Card}>
         <Card loading={isLoading} bordered={false}>
-          <BasicCertificateDetails certificate={certificate} />
+          <BasicCertificateDetails selected={selected} />
           <CertificateSubjectDetails subject={certificate?.subject} />
           <CertificateBody certificate={certificate} />
         </Card>

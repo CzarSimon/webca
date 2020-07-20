@@ -23,7 +23,13 @@ const reducer = createReducer<CertificateState, CertificateAction>(initalState)
   .handleAction(actions.addOptions, (state, action) => addOptions(state, action.payload))
   .handleAction(actions.addSigningCertificates, (state, action) => addSigningCertificates(state, action.payload))
   .handleAction(
-    [actions.removeCertificates, actions.removeOptions, actions.deselectCertificate, actions.removeSigningCertificates],
+    [
+      actions.removeCertificates,
+      actions.removeOptions,
+      actions.deselectCertificate,
+      actions.removeSigningCertificates,
+      actions.removeSelectedSignatory,
+    ],
     voidReducer,
   );
 
@@ -97,6 +103,8 @@ function voidReducer(state: CertificateState, action: PayloadAction<string, void
       return deselectCertificate(state);
     case getType(actions.removeSigningCertificates):
       return removeSigningCertificates(state);
+    case getType(actions.removeSelectedSignatory):
+      return removeSelectedSignatory(state);
     default:
       return state;
   }
@@ -134,6 +142,16 @@ function removeSigningCertificates(state: CertificateState): CertificateState {
       ...state.signatories,
       certificates: [],
       loaded: false,
+    },
+  };
+}
+
+function removeSelectedSignatory(state: CertificateState): CertificateState {
+  return {
+    ...state,
+    selected: {
+      ...state.selected,
+      signatory: undefined,
     },
   };
 }

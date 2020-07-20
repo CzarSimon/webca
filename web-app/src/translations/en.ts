@@ -69,6 +69,7 @@ export const enUS: TextMap = {
   'basicCertificateDetails.createdAt': 'Created at',
   'basicCertificateDetails.expiresAt': 'Expires at',
   'basicCertificateDetails.serialNumber': 'Serial number',
+  'basicCertificateDetails.certificateAuthoriy': 'Certificate authority',
 
   'certificateSubjectDetails.title': 'Subject',
   'certificateSubjectDetails.commonName': 'Common name',

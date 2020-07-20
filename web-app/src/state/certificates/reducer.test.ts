@@ -8,6 +8,7 @@ import {
   deselectCertificate,
   addSelectedSignatory,
   addSigningCertificates,
+  removeSelectedSignatory,
   removeSigningCertificates,
 } from './actions';
 import { CertificateState, CertificateOptions, Certificate, Page } from '../../types';
@@ -362,6 +363,22 @@ test('certificate reducer: select and deselect certificate and signatory', () =>
   };
 
   let state = reducer(initalState, selectCertificate(intermediateCA));
+  expect(state.certificates.items).toBeUndefined();
+  expect(state.certificates.loaded).toBeFalsy();
+  expect(state.selected.certificate).toBe(intermediateCA);
+  expect(state.selected.signatory).toBeUndefined();
+  expect(state.options).toBe(opts);
+  expect(state.signatories).toBe(initalState.signatories);
+
+  state = reducer(state, addSelectedSignatory(rootCA));
+  expect(state.certificates.items).toBeUndefined();
+  expect(state.certificates.loaded).toBeFalsy();
+  expect(state.selected.certificate).toBe(intermediateCA);
+  expect(state.selected.signatory).toBe(rootCA);
+  expect(state.options).toBe(opts);
+  expect(state.signatories).toBe(initalState.signatories);
+
+  state = reducer(state, removeSelectedSignatory());
   expect(state.certificates.items).toBeUndefined();
   expect(state.certificates.loaded).toBeFalsy();
   expect(state.selected.certificate).toBe(intermediateCA);
