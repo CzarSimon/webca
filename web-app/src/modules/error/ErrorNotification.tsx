@@ -28,7 +28,7 @@ export function ErrorNotification() {
 
   return (
     <div className={styles.ErrorNotification}>
-      <Alert message={error.info} type="error" onClose={removeError} closable showIcon />
+      <Alert message={error.info} type="error" onClose={removeError} showIcon />
     </div>
   );
 }

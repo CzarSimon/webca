@@ -10,6 +10,7 @@ import { removeUser } from '../../state/user/actions';
 
 beforeEach(() => {
   store.dispatch(removeUser());
+  sessionStorage.clear();
 });
 
 test('signup: renders form', async () => {
@@ -139,4 +140,44 @@ test('login: redirect to signup works', async () => {
 
   userEvent.click(loginLink);
   expect(window.location.pathname).toBe('/login');
+});
+
+test('signup: duplicate account emails displayes error', async () => {
+  // Assert being state
+  expect(store.getState().user.user).toBeUndefined();
+  mockRequests({
+    '/api/v1/signup': {
+      metadata: {
+        method: 'GET',
+        requestId: 'signup-request-id',
+        status: 409,
+        url: '/api/v1/signup',
+      },
+      error: new Error('Conflict'),
+    },
+  });
+
+  render(<SignUpContainer />);
+
+  const accountNameInput = screen.getByPlaceholderText(/Account name/) as HTMLInputElement;
+  const emailInput = screen.getByPlaceholderText(/Email/) as HTMLInputElement;
+  const passwordInput = screen.getByPlaceholderText(/Password/) as HTMLInputElement;
+
+  fireEvent.change(accountNameInput, { target: { value: 'test-account-name' } });
+  fireEvent.change(emailInput, { target: { value: 'duplicate@mail.com' } });
+  fireEvent.change(passwordInput, { target: { value: '68630b4dbe30f4a3cc62e3d69552dee2' } });
+
+  const signupButton = screen.getByText(/Sign Up/);
+  fireEvent.click(signupButton);
+
+  await wait(
+    () => {
+      expect(screen.getByText(/A user with that email already exits for the account/i)).toBeInTheDocument();
+      const state = store.getState();
+      expect(state.user.loaded).toBe(false);
+      expect(state.user.user).toBeUndefined();
+      expect(window.location.pathname).not.toBe('/');
+    },
+    { timeout: 1 },
+  );
 });

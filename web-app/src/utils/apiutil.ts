@@ -14,3 +14,8 @@ export function downloadAttachment({ body, filename, contentType }: Attachment) 
   saveAs(blob, filename);
   log.info(`successfully downloaded attachment(filename=${filename}, contentType=${contentType})`);
 }
+
+export function createApiError({ method, status, url, requestId }: ResponseMetadata): Error {
+  const requestIdentifier = requestId ? ` requestId=${requestId}` : '';
+  return new Error(`${method.toUpperCase()} ${url} - status=${status}${requestIdentifier}`);
+}

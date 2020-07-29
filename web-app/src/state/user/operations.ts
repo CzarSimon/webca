@@ -12,14 +12,15 @@ import { ResponseMetadata } from '@czarsimon/httpclient';
 import log from '@czarsimon/remotelogger';
 import { setToken } from '../../api/httpclient';
 import { addUser, removeUser } from './actions';
-import { logError } from '../../utils/apiutil';
+import { logError, createApiError } from '../../utils/apiutil';
 import { USER_ID_KEY, AUTH_TOKEN_KEY } from '../../constants';
+import { registerHTTPError } from '../error';
 
 export function signUp(req: AuthenticationRequest, callback: successCallback): Thunk {
   return async (dispatch: Dispatch): Promise<void> => {
     const { body, error, metadata } = await api.signup(req);
     if (!body) {
-      handleSignupError(req, error, metadata);
+      handleSignupError(dispatch, req, error, metadata);
       callback(false);
       return;
     }
@@ -35,7 +36,7 @@ export function login(req: AuthenticationRequest, callback: successCallback): Th
   return async (dispatch: Dispatch): Promise<void> => {
     const { body, error, metadata } = await api.login(req);
     if (!body) {
-      handleLoginError(req, error, metadata);
+      handleLoginError(dispatch, req, error, metadata);
       callback(false);
       return;
     }
@@ -51,7 +52,7 @@ export function getUser(id: string): Thunk {
   return async (dispatch: Dispatch): Promise<void> => {
     const { body, error, metadata } = await api.getUser(id);
     if (!body) {
-      handleGetUserError(id, error, metadata);
+      handleGetUserError(dispatch, id, error, metadata);
       return;
     }
 
@@ -83,14 +84,27 @@ function storeAuthResponse(auth: AuthenticationResponse) {
   sessionStorage.setItem(USER_ID_KEY, user.id);
 }
 
-function handleSignupError(req: AuthenticationRequest, error: Optional<Error>, metadata: ResponseMetadata) {
+function handleSignupError(
+  dispatch: Dispatch,
+  req: AuthenticationRequest,
+  error: Optional<Error>,
+  metadata: ResponseMetadata,
+) {
   logError(`Failed to create user/account. accountName=${req.accountName}`, error, metadata);
+  dispatch(registerHTTPError('api.signup', metadata, error || createApiError(metadata)));
 }
 
-function handleLoginError(req: AuthenticationRequest, error: Optional<Error>, metadata: ResponseMetadata) {
+function handleLoginError(
+  dispatch: Dispatch,
+  req: AuthenticationRequest,
+  error: Optional<Error>,
+  metadata: ResponseMetadata,
+) {
   logError(`Failed to login user. accountName=${req.accountName}`, error, metadata);
+  dispatch(registerHTTPError('api.login', metadata, error || createApiError(metadata)));
 }
 
-function handleGetUserError(userId: string, error: Optional<Error>, metadata: ResponseMetadata) {
+function handleGetUserError(dispatch: Dispatch, userId: string, error: Optional<Error>, metadata: ResponseMetadata) {
   logError(`Failed to retrieve user(id=${userId}).`, error, metadata);
+  dispatch(registerHTTPError('api.getUser', metadata, error || createApiError(metadata)));
 }

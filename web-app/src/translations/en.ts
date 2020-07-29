@@ -105,4 +105,8 @@ export const enUS: TextMap = {
   'signatorySearch.title': 'Certificate authority',
   'signatorySearch.search-placeholder': 'Search CA',
   'signatorySearch.password-placeholder': 'CA private key password',
+
+  'api.login.401': 'The account name, email and password do not match',
+  'api.signup.409': 'A user with that email already exits for the account',
+  'api.getUser.404': 'No such user exists',
 };

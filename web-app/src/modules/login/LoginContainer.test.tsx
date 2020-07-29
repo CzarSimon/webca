@@ -12,6 +12,7 @@ import { USER_ID_KEY, AUTH_TOKEN_KEY } from '../../constants';
 
 beforeEach(() => {
   store.dispatch(removeUser());
+  sessionStorage.clear();
 });
 
 const user: User = {
@@ -131,4 +132,53 @@ test('login: redirect to signup works', async () => {
 
   userEvent.click(singupLink);
   expect(window.location.pathname).toBe('/signup');
+});
+
+test('login: wrong password dispays error', async () => {
+  // Assert being state
+  expect(store.getState().user.user).toBeUndefined();
+
+  mockRequests({
+    '/api/v1/login': {
+      metadata: {
+        method: 'GET',
+        requestId: 'login-request-id',
+        status: 401,
+        url: '/api/v1/login',
+      },
+      error: new Error('Unauthorized'),
+    },
+  });
+
+  render(<LoginContainer />);
+
+  const accountNameInput = screen.getByPlaceholderText(/Account name/) as HTMLInputElement;
+  const emailInput = screen.getByPlaceholderText(/Email/) as HTMLInputElement;
+  const passwordInput = screen.getByPlaceholderText(/Password/) as HTMLInputElement;
+
+  await act(async () => {
+    await userEvent.type(accountNameInput, user.account.name);
+    await userEvent.type(emailInput, user.email);
+    await userEvent.type(passwordInput, 'wrong-password');
+  });
+
+  expect(accountNameInput.value).toBe(user.account.name);
+  expect(emailInput.value).toBe(user.email);
+  expect(passwordInput.value).toBe('wrong-password');
+
+  const loginButton = screen.getByRole('button', { name: /Log in/ });
+  userEvent.click(loginButton);
+
+  await wait(
+    () => {
+      expect(screen.getByText(/The account name, email and password do not match/i)).toBeInTheDocument();
+      const state = store.getState();
+      expect(state.user.loaded).toBe(false);
+      expect(state.user.user).toBeUndefined();
+      expect(window.location.pathname).not.toBe('/');
+      expect(sessionStorage.getItem(USER_ID_KEY)).toBeNull();
+      expect(sessionStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
+    },
+    { timeout: 1 },
+  );
 });
