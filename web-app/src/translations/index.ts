@@ -1,4 +1,4 @@
-import { TypedMap, TextMap } from '../types';
+import { TypedMap, TextMap, Optional } from '../types';
 import { enUS } from './en';
 import { useIntl } from 'react-intl';
 
@@ -8,6 +8,16 @@ export const messages: TypedMap<TextMap> = {
 
 export function getLocale(): string {
   return 'en-US';
+}
+
+export function getMessage(key: string): Optional<string> {
+  const locale = getLocale();
+  const localizedMessages = messages[locale];
+  if (!localizedMessages) {
+    return undefined;
+  }
+
+  return localizedMessages[key];
 }
 
 export function useFormatedMessage(): (id: string) => string {

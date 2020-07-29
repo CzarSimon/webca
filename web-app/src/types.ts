@@ -19,14 +19,8 @@ export interface CertificateState {
   signatories: Signatories;
 }
 
-export interface SelectedCertificate {
-  certificate?: Certificate;
-  signatory?: Certificate;
-}
-
-interface Signatories {
-  certificates: Certificate[];
-  loaded: boolean;
+export interface ErrorState {
+  error?: ErrorInfo;
 }
 
 // Account types
@@ -122,6 +116,23 @@ export interface Attachment {
   body: string;
   contentType: string;
   filename: string;
+}
+
+export interface SelectedCertificate {
+  certificate?: Certificate;
+  signatory?: Certificate;
+}
+
+interface Signatories {
+  certificates: Certificate[];
+  loaded: boolean;
+}
+
+// Error types
+
+export interface ErrorInfo {
+  error: Error;
+  info: string;
 }
 
 // Utility types

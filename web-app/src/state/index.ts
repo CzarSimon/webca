@@ -1,11 +1,13 @@
 import { applyMiddleware, createStore, combineReducers, compose, AnyAction } from 'redux';
 import thunk, { ThunkAction } from 'redux-thunk';
+import error from './error';
 import certificates from './certificates';
 import user from './user';
 import { getClientInfo, initLogAndHttpclient } from './initState';
 import log from '@czarsimon/remotelogger';
 
 const reducer = combineReducers({
+  error,
   certificates,
   user,
 });

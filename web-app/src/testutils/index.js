@@ -7,6 +7,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { store } from '../state';
 import { messages } from '../translations';
 import log, { ConsoleHandler, level } from '@czarsimon/remotelogger';
+import { ErrorNotification } from '../modules/error';
 
 const logHandlers = { console: new ConsoleHandler(level.DEBUG) };
 log.configure(logHandlers);
@@ -30,6 +31,7 @@ function render(ui, { locale = 'en-US', reduxStore = store, ...renderOptions } =
     return (
       <IntlProvider locale={locale} messages={messages[locale]} timeZone="UTC">
         <Provider store={reduxStore}>
+          <ErrorNotification />
           <Router>{children}</Router>
         </Provider>
       </IntlProvider>

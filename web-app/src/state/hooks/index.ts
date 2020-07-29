@@ -7,6 +7,7 @@ import {
   Certificates,
   Certificate,
   SelectedCertificate,
+  ErrorState,
 } from '../../types';
 import { AppState } from '..';
 import Form, { FormInstance } from 'antd/lib/form';
@@ -19,6 +20,7 @@ import {
 } from '../certificates';
 import { AUTH_TOKEN_KEY, USER_ID_KEY } from '../../constants';
 import { setToken } from '../../api/httpclient';
+import { removeError } from '../error';
 import { getUser } from '../user';
 import { useParams } from 'react-router-dom';
 import log from '@czarsimon/remotelogger';
@@ -36,6 +38,10 @@ const certificateSelector = (state: AppState): CertificateState => state.certifi
 export const useUserState = (): UserState => useSelector(userSelector);
 
 const userSelector = (state: AppState): UserState => state.user;
+
+export const useErrorState = (): ErrorState => useSelector(errorSelector);
+
+const errorSelector = (state: AppState): ErrorState => state.error;
 
 function useAccountId(): Optional<string> {
   const { user } = useUserState();
@@ -130,4 +136,15 @@ export function useSelectedCertificate(): SelectedCertificate {
   }, [dispatch, certificateId]);
 
   return selected;
+}
+
+export function useRemoveError(): () => void {
+  const dispatch = useDispatch();
+  const { error } = useErrorState();
+
+  return () => {
+    if (error) {
+      dispatch(removeError());
+    }
+  };
 }

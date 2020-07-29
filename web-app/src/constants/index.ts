@@ -27,3 +27,5 @@ export const ROLES: TypedMap<string> = {
   ADMIN: 'ADMIN',
   USER: 'USER',
 };
+
+export const ERROR_DISPLAY_TIME_MS = 4500;
