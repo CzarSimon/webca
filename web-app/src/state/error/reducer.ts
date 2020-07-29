@@ -5,7 +5,10 @@ import * as actions from './actions';
 type ErrorAction = ActionType<typeof actions>;
 
 const initalState: ErrorState = {
-  error: undefined,
+  error: {
+    info: 'Wrong password',
+    error: new Error('err'),
+  },
 };
 
 const reducer = createReducer<ErrorState, ErrorAction>(initalState)

@@ -1,0 +1,9 @@
+.ErrorNotification {
+  display: flex;
+  position: absolute;
+  margin-top: 24px;
+  padding-right: 24px;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-end;
+}

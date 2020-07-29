@@ -4,6 +4,8 @@ import { useErrorState, useRemoveError } from '../../state/hooks';
 import { ErrorInfo, Optional } from '../../types';
 import { ERROR_DISPLAY_TIME_MS } from '../../constants';
 
+import styles from './ErrorNotification.module.css';
+
 function setupErrorClearing(removeError: () => void, error?: ErrorInfo): Optional<() => void> {
   if (!error) {
     return;
@@ -24,5 +26,9 @@ export function ErrorNotification() {
     return null;
   }
 
-  return <Alert message={error.info} type="error" onClose={removeError} closable showIcon />;
+  return (
+    <div className={styles.ErrorNotification}>
+      <Alert message={error.info} type="error" onClose={removeError} closable showIcon />
+    </div>
+  );
 }
