@@ -30,6 +30,7 @@ export function SignUp({ submit }: Props) {
       <h1 className={styles.SignFormTitle}>
         <FormattedMessage id="signup.title" />
       </h1>
+      <p>Showing tobbe</p>
       <Form initialValues={{ remember: true }} onFinish={onFinish} onFinishFailed={onFinishFailed}>
         <Form.Item
           name="accountName"
