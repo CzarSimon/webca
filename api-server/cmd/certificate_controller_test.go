@@ -1046,6 +1046,119 @@ func TestGetCertificateBody_UnauthorizedAndForbidden(t *testing.T) {
 	})
 }
 
+func TestGetCertificateBody_CertificateChain_UserCertificate(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	rootPassword := "642c3216de747644cda01887ded6b9f7"
+	_, admin, user := createTestAccount(t, e)
+	rootCA := createTestRootCertificate(t, server, admin.JWTUser(), "root-ca", rootPassword)
+	intermediatePassword := "b571d613284940d09a1f6790a4abb861"
+	intermediateCA := createTestIntermediateCertificate(t, server, admin.JWTUser(), "intermediate-ca", intermediatePassword, model.Signatory{
+		ID:       rootCA.ID,
+		Password: rootPassword,
+	})
+	certPassword := "6ad4efc6862254d5c7a419e60ad04b88"
+	cert := createTestUserCertificate(t, server, admin.JWTUser(), "user-cert", certPassword, model.Signatory{
+		ID:       intermediateCA.ID,
+		Password: intermediatePassword,
+	})
+
+	path := fmt.Sprintf("/v1/certificates/%s/body?fullchain=true", cert.ID)
+	req := createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var fullchain model.Attachment
+	err := json.NewDecoder(res.Result().Body).Decode(&fullchain)
+	assert.NoError(err)
+	assert.Contains(fullchain.Body, cert.Body)
+	assert.Contains(fullchain.Body, intermediateCA.Body)
+	assert.NotContains(fullchain.Body, rootCA.Body)
+	assert.Equal("user-cert.fullchain.pem", fullchain.Filename)
+	assert.Equal("text/plain", fullchain.ContentType)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s:body", cert.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s:body", intermediateCA.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s:body", rootCA.ID))
+	assert.NoError(err)
+	assert.Len(events, 0)
+}
+
+func TestGetCertificateBody_CertificateChain_IntermediateCA(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	rootPassword := "642c3216de747644cda01887ded6b9f7"
+	_, admin, user := createTestAccount(t, e)
+	rootCA := createTestRootCertificate(t, server, admin.JWTUser(), "root-ca", rootPassword)
+	i1Password := "b571d613284940d09a1f6790a4abb861"
+	i1 := createTestIntermediateCertificate(t, server, admin.JWTUser(), "intermediate-ca-1", i1Password, model.Signatory{
+		ID:       rootCA.ID,
+		Password: rootPassword,
+	})
+	i2Password := "6ad4efc6862254d5c7a419e60ad04b88"
+	i2 := createTestIntermediateCertificate(t, server, admin.JWTUser(), "intermediate-ca-2", i2Password, model.Signatory{
+		ID:       i1.ID,
+		Password: i1Password,
+	})
+
+	path := fmt.Sprintf("/v1/certificates/%s/body?fullchain=true", i2.ID)
+	req := createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var fullchain model.Attachment
+	err := json.NewDecoder(res.Result().Body).Decode(&fullchain)
+	assert.NoError(err)
+	assert.Contains(fullchain.Body, i2.Body)
+	assert.Contains(fullchain.Body, i1.Body)
+	assert.NotContains(fullchain.Body, rootCA.Body)
+	assert.Equal("intermediate-ca-2.fullchain.pem", fullchain.Filename)
+	assert.Equal("text/plain", fullchain.ContentType)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s:body", i1.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s:body", i2.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+
+	events, err = auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s:body", rootCA.ID))
+	assert.NoError(err)
+	assert.Len(events, 0)
+}
+
+func TestGetCertificateBody_CertificateChain_RootCA(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	_, admin, user := createTestAccount(t, e)
+	rootCA := createTestRootCertificate(t, server, admin.JWTUser(), "root-ca", "642c3216de747644cda01887ded6b9f7")
+
+	path := fmt.Sprintf("/v1/certificates/%s/body?fullchain=true", rootCA.ID)
+	req := createTestRequest(path, http.MethodGet, user.JWTUser(), nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:certificate:%s:body", rootCA.ID))
+	assert.NoError(err)
+	assert.Len(events, 0)
+}
+
 func TestGetCertificatePrivateKey(t *testing.T) {
 	assert := assert.New(t)
 	e, ctx := createTestEnv()
@@ -1188,6 +1301,14 @@ func createTestRootCertificate(t *testing.T, server *http.Server, user jwt.User,
 }
 
 func createTestIntermediateCertificate(t *testing.T, server *http.Server, user jwt.User, name, password string, signatory model.Signatory) model.Certificate {
+	return createSignedTestCertificate(t, server, user, model.IntermediateCAType, name, password, signatory)
+}
+
+func createTestUserCertificate(t *testing.T, server *http.Server, user jwt.User, name, password string, signatory model.Signatory) model.Certificate {
+	return createSignedTestCertificate(t, server, user, model.UserCertificateType, name, password, signatory)
+}
+
+func createSignedTestCertificate(t *testing.T, server *http.Server, user jwt.User, certificateType, name, password string, signatory model.Signatory) model.Certificate {
 	assert := assert.New(t)
 
 	body := model.CertificateRequest{
@@ -1195,7 +1316,7 @@ func createTestIntermediateCertificate(t *testing.T, server *http.Server, user j
 		Subject: model.CertificateSubject{
 			CommonName: name,
 		},
-		Type:      model.IntermediateCAType,
+		Type:      certificateType,
 		Algorithm: "RSA",
 		Password:  password,
 		Options: map[string]interface{}{

@@ -107,7 +107,8 @@ func (e *env) getCertificateBody(c *gin.Context) {
 	}
 
 	certID := c.Param("id")
-	attachment, err := e.certificateService.GetCertificateBody(ctx, principal, certID)
+	fullchain := parseBooleanParameter(c, "fullchain", false)
+	attachment, err := e.certificateService.GetCertificateBody(ctx, principal, certID, fullchain)
 	if err != nil {
 		span.LogFields(tracelog.Error(err))
 		c.Error(err)
@@ -193,4 +194,13 @@ func parseCertificateFilter(c *gin.Context) (model.CertificateFilter, error) {
 		AccountID: accountID,
 		Types:     types,
 	}, nil
+}
+
+func parseBooleanParameter(c *gin.Context, key string, defaultValue bool) bool {
+	param, err := httputil.ParseQueryValue(c, key)
+	if err != nil {
+		return defaultValue
+	}
+
+	return param == "true"
 }

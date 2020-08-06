@@ -113,21 +113,15 @@ func (c *CertificateService) GetOptions(ctx context.Context) (model.CertificateO
 }
 
 // GetCertificateBody retrieves certificate body as an attachment.
-func (c *CertificateService) GetCertificateBody(ctx context.Context, principal jwt.User, id string) (model.Attachment, error) {
+func (c *CertificateService) GetCertificateBody(ctx context.Context, principal jwt.User, id string, fullchain bool) (model.Attachment, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "certificate_service_get_certificate_body")
 	defer span.Finish()
 
-	cert, err := c.findCertificate(ctx, principal, id)
-	if err != nil {
-		return model.Attachment{}, err
+	if fullchain {
+		return c.getCertificateChainBody(ctx, principal, id)
 	}
 
-	c.logCertificateBodyReading(ctx, cert, principal.ID)
-	return model.Attachment{
-		Body:        cert.Body,
-		ContentType: textPlainType,
-		Filename:    attachmentFilename(cert.Name, cert.Type, cert.Format),
-	}, err
+	return c.getCertificateBody(ctx, principal, id)
 }
 
 // GetCertificatePrivateKey retrieves certificate private key as an attachment.
@@ -229,6 +223,64 @@ func (c *CertificateService) createKeys(ctx context.Context, req model.KeyReques
 		err := fmt.Errorf("CertificateService: unsupported KeyRequest.Algorithm=%s", req.Algorithm)
 		return nil, httputil.BadRequestError(err)
 	}
+}
+
+func (c *CertificateService) getCertificateBody(ctx context.Context, principal jwt.User, id string) (model.Attachment, error) {
+	cert, err := c.findCertificate(ctx, principal, id)
+	if err != nil {
+		return model.Attachment{}, err
+	}
+
+	c.logCertificateBodyReading(ctx, cert, principal.ID)
+	return model.Attachment{
+		Body:        cert.Body,
+		ContentType: textPlainType,
+		Filename:    attachmentFilename(cert.Name, cert.Type, cert.Format),
+	}, err
+}
+
+func (c *CertificateService) getCertificateChainBody(ctx context.Context, principal jwt.User, id string) (model.Attachment, error) {
+	chain, err := c.getCertificateChain(ctx, principal, id)
+	if err != nil {
+		return model.Attachment{}, err
+	}
+
+	if len(chain) < 1 {
+		err = fmt.Errorf("no certificate chain exits for certificate(id=%s)", id)
+		return model.Attachment{}, httputil.BadRequestError(err)
+	}
+
+	body := ""
+	for _, cert := range chain {
+		body += cert.Body
+		c.logCertificateBodyReading(ctx, cert, principal.ID)
+	}
+
+	return model.Attachment{
+		Body:        body,
+		ContentType: textPlainType,
+		Filename:    attachmentFilename(chain[0].Name, "fullchain", chain[0].Format),
+	}, err
+}
+
+func (c *CertificateService) getCertificateChain(ctx context.Context, principal jwt.User, id string) ([]model.Certificate, error) {
+	certificates := make([]model.Certificate, 0)
+	certID := id
+	for certID != "" {
+		cert, err := c.findCertificate(ctx, principal, certID)
+		if err != nil {
+			return nil, err
+		}
+
+		if cert.Type == model.RootCAType {
+			break
+		}
+
+		certificates = append(certificates, cert)
+		certID = cert.SignatoryID
+	}
+
+	return certificates, nil
 }
 
 func (c *CertificateService) getSigningKeys(ctx context.Context, req model.CertificateRequest, certKeys model.KeyEncoder, user model.User) (model.KeyEncoder, error) {
