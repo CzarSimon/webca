@@ -45,6 +45,7 @@ func newServer(e *env) *http.Server {
 	secured.GET("/v1/users/:id", e.getUser)
 
 	admin.GET("/v1/certificates/:id/private-key", e.getCertificatePrivateKey)
+	admin.POST("/v1/invitations", e.createInvitation)
 
 	return &http.Server{
 		Addr:    ":" + e.cfg.port,

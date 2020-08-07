@@ -24,6 +24,7 @@ type env struct {
 	accountService     *service.AccountService
 	certificateService *service.CertificateService
 	userService        *service.UserService
+	invitationService  *service.InvitationService
 	traceCloser        io.Closer
 }
 
@@ -102,6 +103,11 @@ func setupEnv() *env {
 			AuditLog:    auditLog,
 			UserRepo:    userRepo,
 			AuthService: authService,
+		},
+		invitationService: &service.InvitationService{
+			AuditLog:       auditLog,
+			InvitationRepo: repository.NewInvitationRepository(db),
+			UserRepo:       userRepo,
 		},
 		traceCloser: closer,
 	}

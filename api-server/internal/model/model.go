@@ -22,6 +22,12 @@ const (
 	UserRole  = "USER"
 )
 
+// Invitation statuses
+const (
+	InvitationCreated  = "CREATED"
+	InvitationAccepted = "ACCEPTED"
+)
+
 // AuthenticationRequest authentication information.
 type AuthenticationRequest struct {
 	AccountName string `json:"accountName,omitempty"`
@@ -97,6 +103,47 @@ func NewAccount(name string) Account {
 
 func (a Account) String() string {
 	return fmt.Sprintf("Account(id=%s, name=%s, createdAt=%v, updatedAt=%v)", a.ID, a.Name, a.CreatedAt, a.UpdatedAt)
+}
+
+// Invitation signup invitation.
+type Invitation struct {
+	ID          string    `json:"id,omitempty"`
+	Email       string    `json:"email,omitempty"`
+	Role        string    `json:"role,omitempty"`
+	Status      string    `json:"status,omitempty"`
+	CreatedByID string    `json:"createdById,omitempty"`
+	Account     Account   `json:"account"`
+	CreatedAt   time.Time `json:"createdAt,omitempty"`
+	ValidTo     time.Time `json:"validTo,omitempty"`
+	AcceptedAt  time.Time `json:"acceptedAt,omitempty"`
+}
+
+func (i Invitation) String() string {
+	return fmt.Sprintf("Invitation(id=%s, role=%s, status=%s, createdById=%s, account=%s, createdAt=%v, validTo=%s, acceptedAt=%v)", i.ID, i.Role, i.Status, i.CreatedByID, i.Account, i.CreatedAt, i.ValidTo, i.AcceptedAt)
+}
+
+// InvitationCreationRequest request to create and invitation.
+type InvitationCreationRequest struct {
+	Email string `json:"email,omitempty"`
+	Role  string `json:"role,omitempty"`
+}
+
+// Validate validates the contents of a InvitationCreationRequest
+func (i InvitationCreationRequest) Validate() error {
+	if i.Role != UserRole && i.Role != AdminRole {
+		return fmt.Errorf("invalid role: %s", i.Role)
+	}
+
+	if i.Email == "" {
+		return fmt.Errorf("email cannot be empty")
+	}
+
+	return nil
+}
+
+// InvitationAcceptanceRequest request to accept an invitation.
+type InvitationAcceptanceRequest struct {
+	Password string `json:"password,omitempty"`
 }
 
 // Credentials authentication session.

@@ -151,6 +151,11 @@ func createTestEnv() (*env, context.Context) {
 			UserRepo:    userRepo,
 			AuthService: authService,
 		},
+		invitationService: &service.InvitationService{
+			AuditLog:       auditLog,
+			InvitationRepo: repository.NewInvitationRepository(db),
+			UserRepo:       userRepo,
+		},
 	}
 
 	return e, context.Background()
