@@ -5,11 +5,12 @@ import { FormattedMessage } from 'react-intl';
 interface Props {
   isLoading: boolean;
   isAdmin: boolean;
+  isRootCA: boolean;
   onClick: () => void;
 }
 
-export function DownloadPrivateKeyButton({ isAdmin, isLoading, onClick }: Props) {
-  if (!isAdmin) {
+export function DownloadPrivateKeyButton({ isAdmin, isRootCA, isLoading, onClick }: Props) {
+  if (isRootCA && !isAdmin) {
     return null;
   }
 

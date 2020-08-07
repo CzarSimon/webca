@@ -9,18 +9,28 @@ import { CertificateBody } from './CertificateBody';
 import { PrivateKeyModal } from './PrivateKeyModal';
 
 import styles from './CertificateDisplay.module.css';
+import { CERTIFICATE_TYPES } from '../../../constants';
 
 interface Props {
   isAdmin: boolean;
   isLoading: boolean;
   selected: SelectedCertificate;
   downloadCertificate: () => void;
+  downloadCertificateChain: () => void;
   downloadPrivateKey: (password: string, callback: successCallback) => void;
 }
 
-export function CertificateDisplay({ isAdmin, isLoading, selected, downloadCertificate, downloadPrivateKey }: Props) {
+export function CertificateDisplay({
+  isAdmin,
+  isLoading,
+  selected,
+  downloadCertificate,
+  downloadCertificateChain,
+  downloadPrivateKey,
+}: Props) {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const { certificate } = selected;
+  const isRootCA = certificate?.type === CERTIFICATE_TYPES.ROOT_CA;
 
   return (
     <div className={styles.Container}>
@@ -35,8 +45,16 @@ export function CertificateDisplay({ isAdmin, isLoading, selected, downloadCerti
       </div>
       <div className={styles.ButtonGroup}>
         <Space>
-          <DownloadCertificateButton isLoading={isLoading} type={certificate?.type} onClick={downloadCertificate} />
-          <DownloadPrivateKeyButton isLoading={isLoading} isAdmin={isAdmin} onClick={() => setModalOpen(true)} />
+          <DownloadCertificateButton isLoading={isLoading} onClick={downloadCertificate} />
+          {!isRootCA && (
+            <DownloadCertificateButton isLoading={isLoading} onClick={downloadCertificateChain} fullchain />
+          )}
+          <DownloadPrivateKeyButton
+            isLoading={isLoading}
+            isRootCA={isRootCA}
+            isAdmin={isAdmin}
+            onClick={() => setModalOpen(true)}
+          />
         </Space>
       </div>
       <PrivateKeyModal visible={modalOpen} onClose={() => setModalOpen(false)} download={downloadPrivateKey} />

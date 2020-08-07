@@ -21,8 +21,8 @@ export const getCertificatesByAccountIdAndTypes = (
 export const getCertificateOptions = (): Promise<HTTPResponse<CertificateOptions>> =>
   httpclient.get<CertificateOptions>({ url: OPTIONS_URL });
 
-export const downloadCertificateBody = (id: string): Promise<HTTPResponse<Attachment>> =>
-  httpclient.get<Attachment>({ url: `${CERTIFICATES_URL}/${id}/body` });
+export const downloadCertificateBody = (id: string, fullchain: boolean): Promise<HTTPResponse<Attachment>> =>
+  httpclient.get<Attachment>({ url: `${CERTIFICATES_URL}/${id}/body?fullchain=${fullchain}` });
 
 export const downloadCertificatePrivateKey = (id: string, password: string): Promise<HTTPResponse<Attachment>> =>
   httpclient.get<Attachment>({

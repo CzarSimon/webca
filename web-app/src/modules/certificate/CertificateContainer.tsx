@@ -12,12 +12,13 @@ export function CertificateContainer() {
   const selected = useSelectedCertificate();
   const { certificate } = selected;
   const isAdmin = user?.role === ROLES.ADMIN;
-  const downloadCertificate = () => {
+
+  const downloadCertificate = (fullchain: boolean) => {
     if (!certificate) {
       return;
     }
 
-    dispatch(downloadCertificateBody(certificate.id));
+    dispatch(downloadCertificateBody(certificate.id, fullchain));
   };
 
   const downloadPrivateKey = (password: string, callback: successCallback) => {
@@ -33,7 +34,8 @@ export function CertificateContainer() {
       isLoading={!certificate}
       selected={selected}
       isAdmin={isAdmin}
-      downloadCertificate={downloadCertificate}
+      downloadCertificate={() => downloadCertificate(false)}
+      downloadCertificateChain={() => downloadCertificate(true)}
       downloadPrivateKey={downloadPrivateKey}
     />
   );

@@ -1,22 +1,20 @@
 import React from 'react';
 import { Button } from 'antd';
 import { FormattedMessage } from 'react-intl';
-import { CERTIFICATE_TYPES } from '../../../constants';
 
 interface Props {
   isLoading: boolean;
-  type?: string;
+  fullchain?: boolean;
   onClick: () => void;
 }
 
-export function DownloadCertificateButton({ isLoading, type, onClick }: Props) {
-  const textKey =
-    type && CERTIFICATE_TYPES.CERTIFICATE === type
-      ? 'certificateDisplay.download-certificateChain'
-      : 'certificateDisplay.download-certificate';
+export function DownloadCertificateButton({ isLoading, onClick, fullchain = false }: Props) {
+  const textKey = fullchain
+    ? 'certificateDisplay.download-certificateChain'
+    : 'certificateDisplay.download-certificate';
 
   return (
-    <Button disabled={isLoading || !type} type="primary" size="large" onClick={onClick}>
+    <Button disabled={isLoading} type="primary" size="large" onClick={onClick}>
       <FormattedMessage id={textKey} />
     </Button>
   );

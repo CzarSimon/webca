@@ -109,6 +109,7 @@ const cert: Certificate = {
   type: 'CERTIFICATE',
   createdAt: '2020-05-19 08:30:20',
   expiresAt: '2021-05-16 08:30:20',
+  signatoryId: rootCA.id,
   accountId: '51f5435d-0841-4538-a484-7489257f6245',
 };
 
@@ -146,13 +147,13 @@ test('certificate page: renders root certificate', async () => {
         url: `/api/v1/certificates/${rootCert.id}`,
       },
     },
-    [`/api/v1/certificates/${rootCert.id}/body`]: {
+    [`/api/v1/certificates/${rootCert.id}/body?fullchain=false`]: {
       body: rootCertBody,
       metadata: {
         method: 'GET',
         requestId: 'get-root-certificate-body-req-id',
         status: 200,
-        url: `/api/v1/certificates/${rootCert.id}/body`,
+        url: `/api/v1/certificates/${rootCert.id}/body?fullchain=false`,
       },
     },
     [`/api/v1/certificates/${rootCert.id}/private-key`]: {
@@ -192,7 +193,8 @@ test('certificate page: renders root certificate', async () => {
   await act(async () => userEvent.click(bodyCollapse));
   expect(screen.getByText('pem formated certificate body')).toBeInTheDocument();
 
-  const downloadButton = screen.getByRole('button', { name: /download certificate/i });
+  expect(screen.queryByRole('button', { name: /^download certificate chain$/i })).toBeFalsy();
+  const downloadButton = screen.getByRole('button', { name: /^download certificate$/i });
   expect(downloadButton).toBeInTheDocument();
   expect(downloadButton).toBeEnabled();
   const downloadPrivateKeyButton = screen.getByRole('button', { name: /download private key/i });
@@ -261,7 +263,7 @@ test('certificate page: renders root certificate', async () => {
   expect(saveAs).toBeCalledTimes(0);
 });
 
-test('certificate page: render certificate', async () => {
+test('certificate page: render certificate as admin', async () => {
   const store = initStore();
   store.dispatch(addUser(admin));
   mockRequests({
@@ -288,9 +290,12 @@ test('certificate page: render certificate', async () => {
   expect(screen.getByText('Certificate')).toBeInTheDocument();
   expect(screen.getByText('Common name')).toBeInTheDocument();
   expect(screen.getByText('test certificate')).toBeInTheDocument();
-  const downloadButton = screen.getByRole('button', { name: /download certificate chain/i });
-  expect(downloadButton).toBeInTheDocument();
-  expect(downloadButton).toBeEnabled();
+  const downloadCertButton = screen.getByRole('button', { name: /^download certificate$/i });
+  expect(downloadCertButton).toBeInTheDocument();
+  expect(downloadCertButton).toBeEnabled();
+  const downloadChainButton = screen.getByRole('button', { name: /^download certificate chain$/i });
+  expect(downloadChainButton).toBeInTheDocument();
+  expect(downloadChainButton).toBeEnabled();
   const downloadPrivateKeyButton = screen.getByRole('button', { name: /download private key/i });
   expect(downloadPrivateKeyButton).toBeInTheDocument();
   expect(downloadPrivateKeyButton).toBeEnabled();
@@ -320,7 +325,7 @@ test('certificate page: certficiate loading', async () => {
   expect(screen.queryByText('cert-1')).toBeFalsy();
   expect(screen.queryByText('Root CA')).toBeFalsy();
   expect(screen.queryByText('test root ca')).toBeFalsy();
-  const downloadButton = screen.getByRole('button', { name: /download certificate/i });
+  const downloadButton = screen.getByRole('button', { name: /^download certificate$/i });
   expect(downloadButton).toBeInTheDocument();
   expect(downloadButton).toBeDisabled();
   const downloadPrivateKeyButton = screen.getByRole('button', { name: /download private key/i });
@@ -330,7 +335,7 @@ test('certificate page: certficiate loading', async () => {
   expect(saveAs).toBeCalledTimes(0);
 });
 
-test('certificate page: render certificate as user, should not show private key button', async () => {
+test('certificate page: render certificate as user, should show private key button', async () => {
   const store = initStore();
   store.dispatch(addUser(user));
   mockRequests({
@@ -343,6 +348,15 @@ test('certificate page: render certificate as user, should not show private key 
         url: `/api/v1/certificates/${cert.id}`,
       },
     },
+    [`/api/v1/certificates/${rootCA.id}`]: {
+      body: rootCA,
+      metadata: {
+        method: 'GET',
+        requestId: 'get-root-ca-req-id',
+        status: 200,
+        url: `/api/v1/certificates/${rootCA.id}`,
+      },
+    },
   });
 
   await act(async () => {
@@ -351,15 +365,54 @@ test('certificate page: render certificate as user, should not show private key 
 
   expect(screen.getByText('Basic details')).toBeInTheDocument();
   expect(screen.getByText('Subject')).toBeInTheDocument();
-
   expect(screen.getByText('cert-2')).toBeInTheDocument();
   expect(screen.getByText('Type')).toBeInTheDocument();
   expect(screen.getByText('Certificate')).toBeInTheDocument();
   expect(screen.getByText('Common name')).toBeInTheDocument();
   expect(screen.getByText('test certificate')).toBeInTheDocument();
-  const downloadButton = screen.getByRole('button', { name: /download certificate chain/i });
-  expect(downloadButton).toBeInTheDocument();
-  expect(downloadButton).toBeEnabled();
+  expect(screen.getByRole('link', { name: 'name:root-ca' })).toBeInTheDocument();
+  const downloadCertButton = screen.getByRole('button', { name: /^download certificate$/i });
+  expect(downloadCertButton).toBeInTheDocument();
+  expect(downloadCertButton).toBeEnabled();
+
+  const downloadChainButton = screen.getByRole('button', { name: /^download certificate chain$/i });
+  expect(downloadChainButton).toBeInTheDocument();
+  expect(downloadChainButton).toBeEnabled();
+
+  const privateKeyButton = screen.getByRole('button', { name: /^download private key$/i });
+  expect(privateKeyButton).toBeInTheDocument();
+  expect(privateKeyButton).toBeEnabled();
+
+  expect(saveAs).toBeCalledTimes(0);
+});
+
+test('certificate page: render root ca as user, should not show private key button', async () => {
+  const store = initStore();
+  store.dispatch(addUser(user));
+  mockRequests({
+    [`/api/v1/certificates/${rootCert.id}`]: {
+      body: rootCert,
+      metadata: {
+        method: 'GET',
+        requestId: 'get-certificate-req-id',
+        status: 200,
+        url: `/api/v1/certificates/${rootCert.id}`,
+      },
+    },
+  });
+
+  await act(async () => {
+    render(<CertificateContainer />, { reduxStore: store });
+  });
+
+  expect(screen.getByText('cert-1')).toBeInTheDocument();
+  expect(screen.getByText('Root CA')).toBeInTheDocument();
+  expect(screen.getByText('test root ca')).toBeInTheDocument();
+  const downloadCertButton = screen.getByRole('button', { name: /^download certificate$/i });
+  expect(downloadCertButton).toBeInTheDocument();
+  expect(downloadCertButton).toBeEnabled();
+
+  expect(screen.queryByRole('button', { name: /^download certificate chain$/i })).toBeFalsy();
   expect(screen.queryByRole('button', { name: /download private key/i })).toBeFalsy();
 
   expect(saveAs).toBeCalledTimes(0);
@@ -401,9 +454,12 @@ test('certificate page: render intermediate certificate', async () => {
   expect(screen.getByText(`${intermediateCA.serialNumber}`)).toBeInTheDocument();
   expect(screen.getByText('Intermediate CA')).toBeInTheDocument();
   expect(screen.getByText('Common name')).toBeInTheDocument();
-  const downloadButton = screen.getByRole('button', { name: /download certificate/i });
-  expect(downloadButton).toBeInTheDocument();
-  expect(downloadButton).toBeEnabled();
+  const downloadCertButton = screen.getByRole('button', { name: /^download certificate$/i });
+  expect(downloadCertButton).toBeInTheDocument();
+  expect(downloadCertButton).toBeEnabled();
+  const downloadChainButton = screen.getByRole('button', { name: /^download certificate chain$/i });
+  expect(downloadChainButton).toBeInTheDocument();
+  expect(downloadChainButton).toBeEnabled();
   const downloadPrivateKeyButton = screen.getByRole('button', { name: /download private key/i });
   expect(downloadPrivateKeyButton).toBeInTheDocument();
   expect(downloadPrivateKeyButton).toBeEnabled();

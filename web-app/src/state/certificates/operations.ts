@@ -77,9 +77,9 @@ export function getSigningCertificates(accountId: string): Thunk {
   };
 }
 
-export function downloadCertificateBody(id: string): Thunk {
+export function downloadCertificateBody(id: string, fullchain: boolean): Thunk {
   return async (): Promise<void> => {
-    const { body, error, metadata } = await api.downloadCertificateBody(id);
+    const { body, error, metadata } = await api.downloadCertificateBody(id, fullchain);
     if (!body) {
       handleDownloadCertificateBodyError(id, error, metadata);
       return;
