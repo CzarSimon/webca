@@ -31,7 +31,7 @@ const findUserQuery = `
 	SELECT 
 		u.id, 
 		u.email, 
-		u.Role,
+		u.role,
 		u.password, 
 		u.salt,
 		u.created_at,

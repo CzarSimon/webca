@@ -43,12 +43,50 @@ func TestCreateInvitation(t *testing.T) {
 	assert.True(invite.CreatedAt.Before(timeutil.Now()))
 	assert.True(invite.CreatedAt.After(startTime))
 
+	inviteRepo := repository.NewInvitationRepository(e.db)
+	stored, exists, err := inviteRepo.Find(ctx, invite.ID)
+	assert.NoError(err)
+	assert.True(exists)
+	assert.Equal(invite, stored)
+
 	auditRepo := repository.NewAuditEventRepository(e.db)
 	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:invitation:%s", invite.ID))
 	assert.NoError(err)
 	assert.Len(events, 1)
 	assert.Equal("CREATE", events[0].Activity)
 	assert.Equal(admin.ID, events[0].UserID)
+}
+
+func TestCreateInvitation_InvalidRole(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	_, admin, _ := createTestAccount(t, e)
+
+	body := model.InvitationCreationRequest{
+		Email: "new-user@webca.io",
+		Role:  "UNKNOWN_ROLE",
+	}
+	req := createTestRequest("/v1/invitations", http.MethodPost, admin.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
+}
+
+func TestCreateInvitation_EmptyEmail(t *testing.T) {
+	assert := assert.New(t)
+	e, _ := createTestEnv()
+	server := newServer(e)
+
+	_, admin, _ := createTestAccount(t, e)
+
+	body := model.InvitationCreationRequest{
+		Email: "",
+		Role:  model.AdminRole,
+	}
+	req := createTestRequest("/v1/invitations", http.MethodPost, admin.JWTUser(), body)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusBadRequest, res.Code)
 }
 
 func TestCreateInvitation_BadContentType(t *testing.T) {
