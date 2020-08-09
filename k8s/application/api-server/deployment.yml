@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: api-server
-          image: docker.pkg.github.com/czarsimon/webca/api-server:0.13.0
+          image: docker.pkg.github.com/czarsimon/webca/api-server:0.14.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
