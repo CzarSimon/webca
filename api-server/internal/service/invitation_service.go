@@ -22,9 +22,23 @@ type InvitationService struct {
 	UserRepo       repository.UserRepository
 }
 
+// GetInvitation retrieves an invitation if it exits.
+func (i *InvitationService) GetInvitation(ctx context.Context, id string) (model.Invitation, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "invitation_service_get_invitation")
+	defer span.Finish()
+
+	invite, err := i.findInvitation(ctx, id)
+	if err != nil {
+		return model.Invitation{}, err
+	}
+
+	i.logInvitationRead(ctx, invite)
+	return invite, nil
+}
+
 // Create creates an invitation.
 func (i *InvitationService) Create(ctx context.Context, principal jwt.User, req model.InvitationCreationRequest) (model.Invitation, error) {
-	span, _ := opentracing.StartSpanFromContext(ctx, "invitation_service_create")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "invitation_service_create")
 	defer span.Finish()
 
 	invite, err := i.createNewInviation(ctx, req, principal.ID)
@@ -74,6 +88,24 @@ func (i *InvitationService) findUser(ctx context.Context, userID string) (model.
 	return user, nil
 }
 
+func (i *InvitationService) findInvitation(ctx context.Context, id string) (model.Invitation, error) {
+	invite, exits, err := i.InvitationRepo.Find(ctx, id)
+	if err != nil {
+		return model.Invitation{}, err
+	}
+
+	if !exits {
+		err = fmt.Errorf("could not find invitation with id=%s", id)
+		return model.Invitation{}, httputil.NotFoundError(err)
+	}
+
+	return invite, nil
+}
+
 func (i *InvitationService) logNewInvitation(ctx context.Context, invite model.Invitation, userID string) {
 	i.AuditLog.Create(ctx, userID, "invitation:%s", invite.ID)
+}
+
+func (i *InvitationService) logInvitationRead(ctx context.Context, invite model.Invitation) {
+	i.AuditLog.Read(ctx, "ANONYMOUS", "invitation:%s", invite.ID)
 }

@@ -39,6 +39,21 @@ func (e *env) createInvitation(c *gin.Context) {
 	c.JSON(http.StatusOK, invitation)
 }
 
+func (e *env) getInvitation(c *gin.Context) {
+	span, ctx := opentracing.StartSpanFromContext(c.Request.Context(), "invitation_controller_get_invitation")
+	defer span.Finish()
+
+	inviteID := c.Param("id")
+	invite, err := e.invitationService.GetInvitation(ctx, inviteID)
+	if err != nil {
+		span.LogFields(tracelog.Error(err))
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, invite)
+}
+
 func parseInvitaionCreationRequest(c *gin.Context) (model.InvitationCreationRequest, error) {
 	var body model.InvitationCreationRequest
 	err := c.BindJSON(&body)

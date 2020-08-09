@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/CzarSimon/httputil/id"
 	"github.com/CzarSimon/httputil/jwt"
 	"github.com/CzarSimon/webca/api-server/internal/model"
 	"github.com/CzarSimon/webca/api-server/internal/repository"
@@ -101,4 +102,48 @@ func TestCreateInvitation_UnauthorizedAndForbidden(t *testing.T) {
 		jwt.AnonymousRole,
 		model.UserRole,
 	})
+}
+
+func TestGetInvitation(t *testing.T) {
+	assert := assert.New(t)
+	e, ctx := createTestEnv()
+	server := newServer(e)
+
+	startTime := timeutil.Now()
+	account, admin, _ := createTestAccount(t, e)
+	inviteRepo := repository.NewInvitationRepository(e.db)
+	invite := model.Invitation{
+		ID:          id.New(),
+		Email:       "new-user@webca.io",
+		Role:        model.AdminRole,
+		Status:      model.InvitationCreated,
+		CreatedByID: admin.ID,
+		Account:     account,
+		CreatedAt:   startTime,
+		ValidTo:     startTime.Add(24 * time.Hour),
+	}
+	err := inviteRepo.Save(ctx, invite)
+	assert.NoError(err)
+
+	path := fmt.Sprintf("/v1/invitations/%s", invite.ID)
+	req := createUnauthenticatedTestRequest(path, http.MethodGet, nil)
+	res := performTestRequest(server.Handler, req)
+	assert.Equal(http.StatusOK, res.Code)
+
+	var rBody model.Invitation
+	err = json.NewDecoder(res.Result().Body).Decode(&rBody)
+	assert.NoError(err)
+	assert.Equal(invite, rBody)
+
+	auditRepo := repository.NewAuditEventRepository(e.db)
+	events, err := auditRepo.FindByResource(ctx, fmt.Sprintf("webca:api-server:invitation:%s", invite.ID))
+	assert.NoError(err)
+	assert.Len(events, 1)
+	assert.Equal("READ", events[0].Activity)
+	assert.Equal("ANONYMOUS", events[0].UserID)
+}
+
+func TestGetInvitation_BadContentType(t *testing.T) {
+	path := fmt.Sprintf("/v1/invitations/%s", id.New())
+	testBadContentType(t, path, http.MethodGet, model.AdminRole)
 }

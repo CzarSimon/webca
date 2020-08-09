@@ -143,6 +143,7 @@ func (i InvitationCreationRequest) Validate() error {
 
 // InvitationAcceptanceRequest request to accept an invitation.
 type InvitationAcceptanceRequest struct {
+	ID       string `json:"id,omitempty"`
 	Password string `json:"password,omitempty"`
 }
 
