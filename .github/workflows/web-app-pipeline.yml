@@ -48,6 +48,9 @@ jobs:
       - name: Check linting
         run: npm run check-linting
         working-directory: ./web-app
+      - name: Vulnerability scan
+        run: npm audit --audit-level=moderate
+        working-directory: ./web-app
       - name: Test
         run: npm test
         working-directory: ./web-app
