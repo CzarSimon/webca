@@ -1,5 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux';
 import {
+  Account,
   CertificateOptions,
   Optional,
   CertificateState,
@@ -43,9 +44,14 @@ export const useErrorState = (): ErrorState => useSelector(errorSelector);
 
 const errorSelector = (state: AppState): ErrorState => state.error;
 
-function useAccountId(): Optional<string> {
+export function useAccount(): Optional<Account> {
   const { user } = useUserState();
-  return user ? user.account.id : undefined;
+  return user ? user.account : undefined;
+}
+
+function useAccountId(): Optional<string> {
+  const account = useAccount();
+  return account ? account.id : undefined;
 }
 
 interface UseFormSelectHook {

@@ -29,14 +29,14 @@ export function SideMenu() {
           <FormattedMessage id="sideMenu.certificates-item" />
         </p>
       </Menu.Item>
-      <Menu.Item key="settings">
-        <p className={styles.MenuItem}>
-          <FormattedMessage id="sideMenu.settings-item" />
-        </p>
-      </Menu.Item>
       <Menu.Item key="account">
         <p className={styles.MenuItem}>
           <FormattedMessage id="sideMenu.account-item" />
+        </p>
+      </Menu.Item>
+      <Menu.Item key="settings">
+        <p className={styles.MenuItem}>
+          <FormattedMessage id="sideMenu.settings-item" />
         </p>
       </Menu.Item>
     </Menu>

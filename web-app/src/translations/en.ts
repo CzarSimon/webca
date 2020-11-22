@@ -4,6 +4,10 @@ import { PASSWORD_MIN_LENGTH } from '../constants';
 export const enUS: TextMap = {
   'app.description': 'Webbased CA and certificicate manager',
 
+  'account.title': 'Account',
+  'account.details.name-label': 'Name',
+  'account.details.createdAt-label': 'Created at',
+
   'signup.title': 'webca.io',
   'signup.accountName-placeholder': 'Account name',
   'signup.accountName-required': 'Please provide an account name',
