@@ -91,6 +91,7 @@ export const enUS: TextMap = {
   'sideMenu.title': 'webca.io',
   'sideMenu.certificates-item': 'Certificates',
   'sideMenu.settings-item': 'Settings',
+  'sideMenu.account-item': 'Account',
 
   'userDetails.title': 'User details',
 

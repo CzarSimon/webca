@@ -34,6 +34,11 @@ export function SideMenu() {
           <FormattedMessage id="sideMenu.settings-item" />
         </p>
       </Menu.Item>
+      <Menu.Item key="account">
+        <p className={styles.MenuItem}>
+          <FormattedMessage id="sideMenu.account-item" />
+        </p>
+      </Menu.Item>
     </Menu>
   );
 }

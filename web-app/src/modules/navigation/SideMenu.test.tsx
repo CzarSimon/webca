@@ -23,6 +23,9 @@ function TestRouter() {
           <Route exact path="/settings">
             <p>component-2</p>
           </Route>
+          <Route exact path="/account">
+            <p>component-3</p>
+          </Route>
           <Route path="/">
             <p>default</p>
           </Route>
@@ -44,26 +47,39 @@ test('side menu test navigation', async () => {
   expect(certItem).toBeInTheDocument();
   const settingsItem = screen.getByText('Settings');
   expect(settingsItem).toBeInTheDocument();
+  const accountItem = screen.getByText('Account');
+  expect(accountItem).toBeInTheDocument();
 
   expect(screen.queryByText('component-1')).toBeFalsy();
   expect(screen.queryByText('component-2')).toBeFalsy();
+  expect(screen.queryByText('component-3')).toBeFalsy();
   expect(screen.getByText('default')).toBeInTheDocument();
 
   await act(async () => userEvent.click(certItem));
 
   expect(screen.getByText('component-1')).toBeInTheDocument();
   expect(screen.queryByText('component-2')).toBeFalsy();
+  expect(screen.queryByText('component-3')).toBeFalsy();
   expect(screen.queryByText('default')).toBeFalsy();
 
   await act(async () => userEvent.click(settingsItem));
 
   expect(screen.queryByText('component-1')).toBeFalsy();
   expect(screen.getByText('component-2')).toBeInTheDocument();
+  expect(screen.queryByText('component-3')).toBeFalsy();
+  expect(screen.queryByText('default')).toBeFalsy();
+
+  await act(async () => userEvent.click(accountItem));
+
+  expect(screen.queryByText('component-1')).toBeFalsy();
+  expect(screen.queryByText('component-2')).toBeFalsy();
+  expect(screen.getByText('component-3')).toBeInTheDocument();
   expect(screen.queryByText('default')).toBeFalsy();
 
   await act(async () => userEvent.click(title));
 
   expect(screen.queryByText('component-1')).toBeFalsy();
   expect(screen.queryByText('component-2')).toBeFalsy();
+  expect(screen.queryByText('component-3')).toBeFalsy();
   expect(screen.getByText('default')).toBeInTheDocument();
 });
