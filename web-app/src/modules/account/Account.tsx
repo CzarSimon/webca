@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { useAccount } from '../../state/hooks';
 import { AccountDetails } from './components/AccountDetails';
-
-import styles from './Account.module.css';
+import { UserManagementContainer } from './UserManagementContainer';
 
 export function Account() {
   const account = useAccount();
@@ -12,8 +11,9 @@ export function Account() {
   }
 
   return (
-    <div className={styles.Account}>
+    <Fragment>
       <AccountDetails account={account} />
-    </div>
+      <UserManagementContainer />
+    </Fragment>
   );
 }

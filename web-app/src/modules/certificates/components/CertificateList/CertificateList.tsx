@@ -4,9 +4,9 @@ import { Table } from 'antd';
 import { ColumnProps } from 'antd/lib/table';
 import { useFormatedMessage } from '../../../../translations';
 import { CertificateListTitle } from './CertificateListTitle';
+import { DateTime } from '../../../../components/display/DateTime';
 
 import styles from './CertificateList.module.css';
-import { DateTime } from '../../../../components/display/DateTime';
 
 interface Props extends Certificates {
   select: (id: string) => void;

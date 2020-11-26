@@ -31,6 +31,6 @@ test('account header should render', async () => {
   expect(screen.getByRole('heading', { name: 'Account' })).toBeInTheDocument();
   expect(screen.getByText('Name')).toBeInTheDocument();
   expect(screen.getByText('test-account')).toBeInTheDocument();
-  expect(screen.getByText('Created at')).toBeInTheDocument();
+  expect(screen.getAllByText('Created at')).toHaveLength(2);
   expect(screen.getByText('10/12/2020, 11:05:32 PM')).toBeInTheDocument();
 });

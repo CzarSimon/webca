@@ -19,7 +19,7 @@
     "@types/uuid": "^7.0.3",
     "antd": "^4.2.2",
     "file-saver": "^2.0.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.20",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-intl": "^4.5.4",
