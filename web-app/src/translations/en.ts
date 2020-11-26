@@ -116,6 +116,7 @@ export const enUS: TextMap = {
   'api.getUser.404': 'No such user exists',
 
   'userManagement.title': 'Users',
+  'userManagement.inviteUser-button': 'Invite user',
   'userManagement.email-column': 'Email',
   'userManagement.role-column': 'Role',
   'userManagement.createdAt-column': 'Created at',
