@@ -1,0 +1,11 @@
+{
+    "name": "Get invitation that does not exist",
+    "request": {
+        "method": "GET",
+        "path": "/api/v1/invitations/12c0b555-7152-49ec-a102-cc2dacb6659b"
+    },
+    "response": {
+        "status": 404
+    }
+}
+  

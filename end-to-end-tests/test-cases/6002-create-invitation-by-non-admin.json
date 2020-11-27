@@ -1,0 +1,18 @@
+{
+    "name": "Create invitation by user, should be forbidden",
+    "request": {
+        "method": "POST",
+        "path": "/api/v1/invitations",
+        "body": {
+            "email": "other.invited.user@test.com",
+            "role": "USER"
+        },
+        "headers": {
+            "Authorization": "Bearer ${user.token}"
+        }
+    },
+    "response": {
+        "status": 403
+    }
+}
+  

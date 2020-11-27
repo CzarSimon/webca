@@ -1,0 +1,15 @@
+{
+    "name": "Get invitation",
+    "request": {
+        "method": "GET",
+        "path": "/api/v1/invitations/${invitation.id}"
+    },
+    "response": {
+        "status": 200,
+        "body": {
+            "email": "invited.user@test.com",
+            "role": "USER"
+        }
+    }
+}
+  

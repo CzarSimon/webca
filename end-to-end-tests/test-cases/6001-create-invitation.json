@@ -1,0 +1,28 @@
+{
+    "name": "Create invitation by admin",
+    "request": {
+        "method": "POST",
+        "path": "/api/v1/invitations",
+        "body": {
+            "email": "invited.user@test.com",
+            "role": "USER"
+        },
+        "headers": {
+            "Authorization": "Bearer ${admin.token}"
+        }
+    },
+    "response": {
+        "status": 200,
+        "body": {
+            "email": "invited.user@test.com",
+            "role": "USER"
+        }
+    },
+    "setEnv": [
+        {
+            "envKey": "invitation.id",
+            "responseKey": "id"
+        }
+    ]
+}
+  
