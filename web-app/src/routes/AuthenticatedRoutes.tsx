@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { NewCertificateContainer, CertificateListContainer } from '../modules/certificates';
 import { CertificateContainer } from '../modules/certificate';
+import { NewInvitationContainer } from '../modules/account/NewInvitationContainer';
 import { SideMenu } from '../modules/navigation/SideMenu';
 import { Settings } from '../modules/settings';
 import { Account } from '../modules/account';
@@ -29,6 +30,9 @@ export function AuthenticatedRoutes() {
           </Route>
           <Route exact path="/settings">
             <Settings />
+          </Route>
+          <Route exact path="/invitations/add">
+            <NewInvitationContainer />
           </Route>
           <Route path="/">
             <Home />

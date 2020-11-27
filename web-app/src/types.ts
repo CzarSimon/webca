@@ -12,6 +12,11 @@ export interface UserState {
   loaded: boolean;
 }
 
+export interface InvitationState {
+  invitation?: Invitation;
+  loaded: boolean;
+}
+
 export interface CertificateState {
   certificates: Certificates;
   selected: SelectedCertificate;
@@ -49,6 +54,24 @@ export interface Account {
   name: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// Invitation types
+export interface InvitationCreationRequest {
+  email: string;
+  role: string;
+}
+
+export interface Invitation {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  createdById: string;
+  account: Account;
+  createdAt: string;
+  validTo: string;
+  acceptedAt?: string;
 }
 
 // Certificate types

@@ -24,7 +24,6 @@ function useColumns(): ColumnProps<User>[] {
     },
     {
       title: formatedMessage('userManagement.createdAt-column'),
-      sorter: true,
       dataIndex: 'createdAt',
       render: (_, cert) => <DateTime value={cert.createdAt} />, // eslint-disable-line
     },

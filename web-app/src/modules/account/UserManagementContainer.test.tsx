@@ -21,7 +21,7 @@ const user: User = {
   },
 };
 
-test('user manament list rendered', async () => {
+test('user management list rendered', async () => {
   const store = initStore();
   store.dispatch(addUser(user));
 

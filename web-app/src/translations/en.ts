@@ -114,10 +114,19 @@ export const enUS: TextMap = {
   'api.login.401': 'The account name, email and password do not match',
   'api.signup.409': 'A user with that email already exits for the account',
   'api.getUser.404': 'No such user exists',
+  'api.createInvitation.403': 'You are not allowed to invite new users',
+  'api.getInvitation.404': 'No matching invitation was found',
 
   'userManagement.title': 'Users',
   'userManagement.inviteUser-button': 'Invite user',
   'userManagement.email-column': 'Email',
   'userManagement.role-column': 'Role',
   'userManagement.createdAt-column': 'Created at',
+
+  'newInvitation.title': 'Create new invitation',
+  'newInvitation.email-required': 'Email is required',
+  'newInvitation.email-placeholder': 'Email',
+  'newInvitation.role-required': 'Role needs to be set',
+  'newInvitation.role-placeholder': 'Role',
+  'newInvitation.button': 'Send invitation',
 };

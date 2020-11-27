@@ -3,6 +3,7 @@ import thunk, { ThunkAction } from 'redux-thunk';
 import error from './error';
 import certificates from './certificates';
 import user from './user';
+import invitation from './invitation';
 import { getClientInfo, initLogAndHttpclient } from './initState';
 import log from '@czarsimon/remotelogger';
 
@@ -10,6 +11,7 @@ const reducer = combineReducers({
   error,
   certificates,
   user,
+  invitation,
 });
 
 export type AppState = ReturnType<typeof reducer>;
